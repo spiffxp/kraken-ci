@@ -18,6 +18,10 @@ end
 # check all environment variables
 abort 'AWS_ACCESS_KEY_ID environment variable needs to be set' if ENV['AWS_ACCESS_KEY_ID'].nil?
 abort 'AWS_SECRET_ACCESS_KEY environment variable needs to be set' if ENV['AWS_SECRET_ACCESS_KEY'].nil?
+abort 'GITHUB_CLIENT_ID environment variable needs to be set' if ENV['GITHUB_CLIENT_ID'].nil?
+abort 'GITHUB_CLIENT_KEY environment variable needs to be set' if ENV['GITHUB_CLIENT_KEY'].nil?
+abort 'HIPCHAT_V1_TOKEN environment variable needs to be set' if ENV['HIPCHAT_V1_TOKEN'].nil?
+abort 'GITHUB_ACCESS_TOKEN environment variable needs to be set' if ENV['GITHUB_ACCESS_TOKEN'].nil?
 
 def render(templatepath, destinationpath, variables)
   if File.file?(templatepath)
@@ -70,6 +74,40 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
       { 
         :hostname => hostname, 
         :jenkins_ssh_key => File.read(File.join('config', 'jenkins', 'keys', 'id_rsa.pub')) 
+      }
+    )
+
+    render(
+      File.join('templates', 'config.xml.erb'), 
+      File.join('config', 'data_volume', 'rendered', 'configs', 'config.xml'), 
+      { 
+        :github_client_id => ENV['GITHUB_CLIENT_ID'], 
+        :github_client_key => ENV['GITHUB_CLIENT_KEY'] 
+      }
+    )
+
+    render(
+      File.join('templates', 'jenkins.plugins.hipchat.HipChatNotifier.xml.erb'), 
+      File.join('config', 'data_volume', 'rendered', 'configs', 'jenkins.plugins.hipchat.HipChatNotifier.xml'), 
+      { 
+        :hipchat_api_token => ENV['HIPCHAT_V1_TOKEN']
+      }
+    )
+
+    render(
+      File.join('templates', 'org.jenkinsci.plugins.ghprb.GhprbTrigger.xml.erb'), 
+      File.join('config', 'data_volume', 'rendered', 'configs', 'org.jenkinsci.plugins.ghprb.GhprbTrigger.xml'), 
+      { 
+        :github_access_token => ENV['GITHUB_ACCESS_TOKEN']
+      }
+    )
+
+    render(
+      File.join('templates', 'settings.yaml.erb'), 
+      File.join('config', 'data_volume', 'rendered', 'settings', 'settings.yaml'), 
+      { 
+        :aws_key_id => ENV['AWS_ACCESS_KEY_ID'],
+        :aws_secret => ENV['AWS_SECRET_ACCESS_KEY']
       }
     )
   end

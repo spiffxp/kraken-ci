@@ -6,7 +6,7 @@ First run vagrant:
     
 ### Try it out
 
-Make sure you are either on corp net or VPN. Point your browser to
+Point your browser to
 
     https://pipelet.kubeme.io
 

@@ -1,12 +1,12 @@
 FROM jenkins
 MAINTAINER Marat Garafutdinov <marat.g@samsung.com>
+
+USER root
 COPY plugins.txt /usr/share/jenkins/plugins.txt
 COPY keys /root/.ssh/
 
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
-
-USER root
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -21,14 +21,16 @@ RUN apt-get update \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-ENV RUBY_MAJOR 2.0
-ENV RUBY_VERSION 2.0.0-p645
+ENV RUBY_MAJOR 2.2
+ENV RUBY_VERSION 2.2.1
 
 # some of ruby's build scripts are written in ruby
 # we purge this later to make sure our final image uses what we just built
 RUN buildDeps=' \
         autoconf \
         bison \
+        build-essential \
+        openssl \
         gcc \
         libbz2-dev \
         libgdbm-dev \
@@ -37,12 +39,24 @@ RUN buildDeps=' \
         libreadline-dev \
         libxml2-dev \
         libxslt-dev \
+        libreadline6 \
+        libreadline6-dev \
+        curl \
+        git-core \
+        zlib1g \
+        zlib1g-dev \
+        libssl-dev \
+        libyaml-dev \
+        libc6-dev \
+        ncurses-dev \
+        automake \
+        libtool \
         make \
         ruby \
     ' \
     && set -x \
     && apt-get update \
-    && apt-get install -y --no-install-recommends $buildDeps \
+    && apt-get install -y --force-yes --no-install-recommends $buildDeps \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /usr/src/ruby \
     && curl -SL "http://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR/ruby-$RUBY_VERSION.tar.bz2" \
@@ -63,7 +77,3 @@ RUN gem install bundler
 # install vagrant
 RUN wget https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.deb
 RUN DEBIAN_FRONTEND=noninteractive dpkg -i vagrant_1.7.2_x86_64.deb
-
-USER jenkins
-
-
