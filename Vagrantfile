@@ -38,7 +38,7 @@ def hostname
 end 
 
 # required plugins:
-required_plugins = %w(vagrant-aws vagrant-triggers promise)
+required_plugins = %w(vagrant-aws vagrant-triggers promise highline)
 
 required_plugins.each do |plugin|
   need_restart = false
@@ -55,7 +55,6 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
   config.trigger.before [:up, :provision] do
     info 'Getting ssl certs'
     run "sudo pip install awscli" if find_executable('aws').nil?
-    run "sudo pip install cli53" if find_executable('cli53').nil?
     run "aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.key #{File.join(File.dirname(__FILE__), 'config/nginx/certs/')}" 
     run "aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.crt #{File.join(File.dirname(__FILE__), 'config/nginx/certs/')}"
     info 'Getting ssh keys'
@@ -152,6 +151,7 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
 
       override.ssh.username = 'core'
       override.ssh.private_key_path = File.join(Dir.home, '.ssh', 'keys', hostname, 'id_rsa')
+      override.ssh.insert_key = false
       override.nfs.functional = false
     end
 

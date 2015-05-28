@@ -9,7 +9,7 @@ COPY keys /root/.ssh/
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+    && apt-get install -y --force-yes --no-install-recommends \
         bzip2 \
         ca-certificates \
         curl \
@@ -66,8 +66,7 @@ RUN buildDeps=' \
     && ./configure --disable-install-doc \
     && make -j"$(nproc)" \
     && make install \
-    && rm -r /usr/src/ruby \
-    && apt-get purge -y --auto-remove $buildDeps
+    && rm -r /usr/src/ruby
 
 # skip installing gem documentation
 RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
@@ -77,3 +76,8 @@ RUN gem install bundler
 # install vagrant
 RUN wget https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.deb
 RUN DEBIAN_FRONTEND=noninteractive dpkg -i vagrant_1.7.2_x86_64.deb
+
+# install kubectl
+RUN wget https://github.com/GoogleCloudPlatform/kubernetes/releases/download/v0.17.1/kubernetes.tar.gz
+RUN tar -xvf kubernetes.tar.gz
+RUN cp kubernetes/platforms/linux/amd64/kubectl /usr/bin
