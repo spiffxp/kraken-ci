@@ -22,7 +22,7 @@
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>${sha1}</name>
+        <name>&quot;${sha1}&quot;</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -62,10 +62,23 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>ruby --version</command>
+      <command>cp -f $JENKINS_HOME/support/settings.yaml $WORKSPACE/kubernetes/aws
+bundle install
+kubernetes/kraken aws up
+kubernetes/kraken test aws</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
+      <buildSteps>
+        <hudson.tasks.Shell>
+          <command>kubernetes/kraken aws destroy --force</command>
+        </hudson.tasks.Shell>
+      </buildSteps>
+      <scriptOnlyIfSuccess>true</scriptOnlyIfSuccess>
+      <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
+      <markBuildUnstable>false</markBuildUnstable>
+    </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
     <jenkins.plugins.hipchat.HipChatNotifier plugin="hipchat@0.1.9">
       <token></token>
       <room>Pipeline</room>
