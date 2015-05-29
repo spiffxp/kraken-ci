@@ -87,5 +87,5 @@ RUN wget https://s3.amazonaws.com/aws-cli/awscli-bundle.zip
 RUN unzip awscli-bundle.zip
 RUN awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
 RUN mkdir -p /root/.aws
-RUN cp config /root/.aws/config
-RUN cp credentials /root/.aws/credentials
+COPY config /root/.aws/config
+COPY credentials /root/.aws/credentials
