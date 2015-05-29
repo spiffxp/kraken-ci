@@ -7,7 +7,7 @@
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.11.3">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.22">
       <autoRebuild>false</autoRebuild>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
@@ -36,7 +36,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>cp -f $JENKINS_HOME/support/settings.yaml $WORKSPACE/kubernetes/aws
+      <command>aws s3 cp s3://sundry-automata/settings/jenkins/settings.yaml $WORKSPACE/kubernetes/aws/
 bundle install
 kubernetes/kraken aws up
 sleep 60

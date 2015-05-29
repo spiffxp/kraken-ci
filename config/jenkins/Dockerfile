@@ -81,3 +81,11 @@ RUN DEBIAN_FRONTEND=noninteractive dpkg -i vagrant_1.7.2_x86_64.deb
 RUN wget https://github.com/GoogleCloudPlatform/kubernetes/releases/download/v0.17.1/kubernetes.tar.gz
 RUN tar -xvf kubernetes.tar.gz
 RUN cp kubernetes/platforms/linux/amd64/kubectl /usr/bin
+
+# install the aws tools
+RUN wget https://s3.amazonaws.com/aws-cli/awscli-bundle.zip
+RUN unzip awscli-bundle.zip
+RUN awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+RUN mkdir -p /root/.aws
+RUN cp config /root/.aws/config
+RUN cp credentials /root/.aws/credentials
