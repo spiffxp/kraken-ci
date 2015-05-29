@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<org.jenkinsci.plugins.ghprb.GhprbTrigger_-DescriptorImpl plugin="ghprb@1.20.1">
+  <serverAPIUrl>https://api.github.com</serverAPIUrl>
+  <whitelistPhrase>.*add\W+to\W+whitelist.*</whitelistPhrase>
+  <okToTestPhrase>.*ok\W+to\W+test.*</okToTestPhrase>
+  <retestPhrase>.*test\W+this\W+please.*</retestPhrase>
+  <skipBuildPhrase>.*\[skip\W+ci\].*</skipBuildPhrase>
+  <cron>H/5 * * * *</cron>
+  <useComments>true</useComments>
+  <useDetailedComments>true</useDetailedComments>
+  <logExcerptLines>10</logExcerptLines>
+  <unstableAs>FAILURE</unstableAs>
+  <msgSuccess>Test PASSed.</msgSuccess>
+  <msgFailure>Test FAILed.</msgFailure>
+  <commitStatusContext></commitStatusContext>
+  <autoCloseFailedPullRequests>false</autoCloseFailedPullRequests>
+  <displayBuildErrorsOnDownstreamBuilds>false</displayBuildErrorsOnDownstreamBuilds>
+  <username></username>
+  <password></password>
+  <accessToken><%= github_access_token %></accessToken>
+  <adminlist>countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp</adminlist>
+  <publishedURL>http://pipelet.kubeme.io</publishedURL>
+  <requestForTestingPhrase>Can one of the admins verify this patch?</requestForTestingPhrase>
+  <jobs>
+    <entry>
+      <string>kraken_builder</string>
+      <concurrent-hash-map/>
+    </entry>
+    <entry>
+      <string>test</string>
+      <concurrent-hash-map/>
+    </entry>
+  </jobs>
+</org.jenkinsci.plugins.ghprb.GhprbTrigger_-DescriptorImpl>
