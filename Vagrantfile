@@ -102,8 +102,8 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
     )
 
     render(
-      File.join('templates', 'settings.yaml.erb'), 
-      File.join('config', 'data_volume', 'rendered', 'settings', 'settings.yaml'), 
+      File.join('templates', 'credentials.erb'), 
+      File.join('config', 'jenkins', 'credentials'), 
       { 
         :aws_key_id => ENV['AWS_ACCESS_KEY_ID'],
         :aws_secret => ENV['AWS_SECRET_ACCESS_KEY']
