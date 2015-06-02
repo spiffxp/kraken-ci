@@ -69,7 +69,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>aws s3 cp s3://sundry-automata/settings/jenkins/settings.yaml $WORKSPACE/kubernetes/aws/
+      <command>KRAKEN_CLUSTERS_PATH=${WORKSPACE}/kubernetes/clusters
+aws s3 cp s3://sundry-automata/settings/jenkins/settings.yaml ${KRAKEN_CLUSTERS_PATH}/aws/
 bundle install
 kubernetes/kraken aws up
 kubernetes/kraken test aws</command>
