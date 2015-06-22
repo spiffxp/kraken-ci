@@ -198,7 +198,7 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
       d.run 'jenkins',
         daemonize: true,
         image: 'samsung_ag/jenkins-server',
-        args: "-p 8080:8080 -p 50000:50000 --volumes-from jenkins-data -e VIRTUAL_HOST=#{hostname} -e VIRTUAL_PORT=8080"
+        args: "-p 8080:8080 -p 50000:50000 --volumes-from jenkins-data -e VIRTUAL_HOST=#{hostname} -e VIRTUAL_PORT=8080 -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker -v /usr/lib/libdevmapper.so.1.02:/usr/lib/libdevmapper.so.1.02"
     end
   end
 end
