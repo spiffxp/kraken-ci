@@ -70,10 +70,11 @@
   <builders>
     <hudson.tasks.Shell>
       <command>KRAKEN_CLUSTERS_PATH=${WORKSPACE}/kubernetes/clusters
-aws s3 cp s3://sundry-automata/settings/jenkins/settings.yaml ${KRAKEN_CLUSTERS_PATH}/aws/
+aws s3 cp s3://sundry-automata/settings/jenkins/clusters/aws/settings.yaml ${KRAKEN_CLUSTERS_PATH}/aws/
 bundle install
 kubernetes/kraken aws up
-kubernetes/kraken test aws</command>
+kubernetes/kraken test aws
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
