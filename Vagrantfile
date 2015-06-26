@@ -138,7 +138,7 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
       aws.elastic_ip        = '52.24.112.56' # eipalloc-f370d196
 
       # To mount EBS volumes
-      aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => 100 }]
+      aws.block_device_mapping = [{ 'DeviceName' => '/dev/sdf', 'Ebs.VolumeSize' => 100 }]
 
       # core os userdata
       
