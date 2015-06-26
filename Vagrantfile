@@ -38,7 +38,7 @@ def hostname
 end 
 
 # required plugins:
-required_plugins = %w(vagrant-aws vagrant-triggers promise highline)
+required_plugins = %w(vagrant-aws vagrant-triggers highline)
 
 required_plugins.each do |plugin|
   need_restart = false
@@ -50,66 +50,6 @@ required_plugins.each do |plugin|
 end
 
 Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
-
-  # install tools and download certs, if needed
-  config.trigger.before [:up, :provision] do
-    info 'Getting ssl certs'
-    run "sudo pip install awscli" if find_executable('aws').nil?
-    run "aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.key #{File.join(File.dirname(__FILE__), 'config/nginx/certs/')}" 
-    run "aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.crt #{File.join(File.dirname(__FILE__), 'config/nginx/certs/')}"
-    info 'Getting ssh keys'
-    run "aws s3 cp s3://sundry-automata/keys/jenkins/id_rsa #{File.join(File.dirname(__FILE__), 'config/jenkins/keys/')}" 
-    run "aws s3 cp s3://sundry-automata/keys/jenkins/id_rsa.pub #{File.join(File.dirname(__FILE__), 'config/jenkins/keys/')}"
-    info 'Installing ssh keys'
-    run "mkdir -p #{File.join(Dir.home, '.ssh', 'keys', hostname)}"
-    run "cp -f #{File.join(File.dirname(__FILE__), 'config', 'jenkins', 'keys', 'id_rsa')} #{File.join(Dir.home, '.ssh', 'keys', hostname)}"
-    run "cp -f #{File.join(File.dirname(__FILE__), 'config', 'jenkins', 'keys', 'id_rsa.pub')} #{File.join(Dir.home, '.ssh', 'keys', hostname)}"
-    run "chmod 400 #{File.join(Dir.home, '.ssh', 'keys', hostname, 'id_rsa')}"
-    run "ssh-add -K #{File.join(Dir.home, '.ssh', 'keys', hostname, 'id_rsa')}"
-    info 'Rendering templates'
-    render(
-      File.join('templates', 'systemd.config.erb'), 
-      File.join('.vagrant', 'user-data'), 
-      { 
-        :hostname => hostname, 
-        :jenkins_ssh_key => File.read(File.join('config', 'jenkins', 'keys', 'id_rsa.pub')) 
-      }
-    )
-
-    render(
-      File.join('templates', 'config.xml.erb'), 
-      File.join('config', 'data_volume', 'rendered', 'configs', 'config.xml'), 
-      { 
-        :github_client_id => ENV['GITHUB_CLIENT_ID'], 
-        :github_client_key => ENV['GITHUB_CLIENT_KEY'] 
-      }
-    )
-
-    render(
-      File.join('templates', 'jenkins.plugins.hipchat.HipChatNotifier.xml.erb'), 
-      File.join('config', 'data_volume', 'rendered', 'configs', 'jenkins.plugins.hipchat.HipChatNotifier.xml'), 
-      { 
-        :hipchat_api_token => ENV['HIPCHAT_V1_TOKEN']
-      }
-    )
-
-    render(
-      File.join('templates', 'org.jenkinsci.plugins.ghprb.GhprbTrigger.xml.erb'), 
-      File.join('config', 'data_volume', 'rendered', 'configs', 'org.jenkinsci.plugins.ghprb.GhprbTrigger.xml'), 
-      { 
-        :github_access_token => ENV['GITHUB_ACCESS_TOKEN']
-      }
-    )
-
-    render(
-      File.join('templates', 'credentials.erb'), 
-      File.join('config', 'jenkins', 'credentials'), 
-      { 
-        :aws_key_id => ENV['AWS_ACCESS_KEY_ID'],
-        :aws_secret => ENV['AWS_SECRET_ACCESS_KEY']
-      }
-    )
-  end
 
   # clean up downloaded certs
   config.trigger.after [:up, :provision, :destroy] do
@@ -137,12 +77,72 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
       aws.subnet_id         = 'subnet-eab4d28f'
       aws.elastic_ip        = '52.24.112.56' # eipalloc-f370d196
 
+
+      puts 'Getting ssl certs'
+      if find_executable('aws').nil?
+        system "sudo pip install awscli" or raise 'sudo pip install awscli failed'
+      end
+      system "aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.key #{File.join(File.dirname(__FILE__), 'config/nginx/certs/')}" or raise 'getting pipelet.kubeme.io.key failed'
+      system "aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.crt #{File.join(File.dirname(__FILE__), 'config/nginx/certs/')}" or raise 'getting pipelet.kubeme.io.crt failed'
+      puts 'Getting ssh keys'
+      system "aws s3 cp s3://sundry-automata/keys/jenkins/id_rsa #{File.join(File.dirname(__FILE__), 'config/jenkins/keys/')}" or raise 'getting id_rsa failed'
+      system "aws s3 cp s3://sundry-automata/keys/jenkins/id_rsa.pub #{File.join(File.dirname(__FILE__), 'config/jenkins/keys/')}" or raise 'getting id_rsa.pub failed'
+      puts 'Installing ssh keys'
+      system "mkdir -p #{File.join(Dir.home, '.ssh', 'keys', hostname)}"
+      system "cp -f #{File.join(File.dirname(__FILE__), 'config', 'jenkins', 'keys', 'id_rsa')} #{File.join(Dir.home, '.ssh', 'keys', hostname)}"
+      system "cp -f #{File.join(File.dirname(__FILE__), 'config', 'jenkins', 'keys', 'id_rsa.pub')} #{File.join(Dir.home, '.ssh', 'keys', hostname)}"
+      system "chmod 400 #{File.join(Dir.home, '.ssh', 'keys', hostname, 'id_rsa')}"
+      system "ssh-add -K #{File.join(Dir.home, '.ssh', 'keys', hostname, 'id_rsa')}"
+      puts 'Rendering templates'
+      render(
+        File.join('templates', 'systemd.config.erb'), 
+        File.join('.vagrant', 'user-data'), 
+        { 
+          :hostname => hostname, 
+          :jenkins_ssh_key => File.read(File.join('config', 'jenkins', 'keys', 'id_rsa.pub')) 
+        }
+      )
+
+      render(
+        File.join('templates', 'config.xml.erb'), 
+        File.join('config', 'data_volume', 'rendered', 'configs', 'config.xml'), 
+        { 
+          :github_client_id => ENV['GITHUB_CLIENT_ID'], 
+          :github_client_key => ENV['GITHUB_CLIENT_KEY'] 
+        }
+      )
+
+      render(
+        File.join('templates', 'jenkins.plugins.hipchat.HipChatNotifier.xml.erb'), 
+        File.join('config', 'data_volume', 'rendered', 'configs', 'jenkins.plugins.hipchat.HipChatNotifier.xml'), 
+        { 
+          :hipchat_api_token => ENV['HIPCHAT_V1_TOKEN']
+        }
+      )
+
+      render(
+        File.join('templates', 'org.jenkinsci.plugins.ghprb.GhprbTrigger.xml.erb'), 
+        File.join('config', 'data_volume', 'rendered', 'configs', 'org.jenkinsci.plugins.ghprb.GhprbTrigger.xml'), 
+        { 
+          :github_access_token => ENV['GITHUB_ACCESS_TOKEN']
+        }
+      )
+
+      render(
+        File.join('templates', 'credentials.erb'), 
+        File.join('config', 'jenkins', 'credentials'), 
+        { 
+          :aws_key_id => ENV['AWS_ACCESS_KEY_ID'],
+          :aws_secret => ENV['AWS_SECRET_ACCESS_KEY']
+        }
+      )
+
+
       # To mount EBS volumes
-      aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => 100 }]
+      aws.block_device_mapping = [{ 'DeviceName' => '/dev/sdf', 'Ebs.VolumeSize' => 100 }]
 
       # core os userdata
-      
-      aws.user_data = promise { File.read(File.join('.vagrant', 'user-data')) }
+      aws.user_data = File.read(File.join('.vagrant', 'user-data'))
 
       aws.tags = {
         'Name' => 'Samsung AG Pipelet',
