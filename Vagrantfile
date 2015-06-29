@@ -121,14 +121,6 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
       )
 
       render(
-        File.join('templates', 'org.jenkinsci.plugins.ghprb.GhprbTrigger.xml.erb'), 
-        File.join('config', 'data_volume', 'rendered', 'configs', 'org.jenkinsci.plugins.ghprb.GhprbTrigger.xml'), 
-        { 
-          :github_access_token => ENV['GITHUB_ACCESS_TOKEN']
-        }
-      )
-
-      render(
         File.join('templates', 'credentials.erb'), 
         File.join('config', 'jenkins', 'credentials'), 
         { 
@@ -136,7 +128,6 @@ Vagrant::configure(VAGRANTFILE_API_VERSION) do |config|
           :aws_secret => ENV['AWS_SECRET_ACCESS_KEY']
         }
       )
-
 
       # To mount EBS volumes
       aws.block_device_mapping = [{ 'DeviceName' => '/dev/sdf', 'Ebs.VolumeSize' => 100 }]
