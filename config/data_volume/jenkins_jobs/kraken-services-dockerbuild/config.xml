@@ -121,6 +121,25 @@
       <createFingerprint>true</createFingerprint>
       <skipTagLatest>false</skipTagLatest>
     </com.cloudbees.dockerpublish.DockerBuilder>
+    <com.cloudbees.dockerpublish.DockerBuilder plugin="docker-build-publish@1.0">
+      <server plugin="docker-commons@1.0">
+        <uri>unix:///run/docker.sock</uri>
+      </server>
+      <registry plugin="docker-commons@1.0">
+        <url>https://quay.io/v1</url>
+        <credentialsId>ec5b44ed-2a27-4ed8-a35a-e7b360b99b8a</credentialsId>
+      </registry>
+      <repoName>samsung_ag/podpincher</repoName>
+      <noCache>false</noCache>
+      <forcePull>true</forcePull>
+      <dockerfilePath>podpincher/build</dockerfilePath>
+      <skipBuild>false</skipBuild>
+      <skipDecorate>false</skipDecorate>
+      <repoTag>${BUILD_NUMBER}</repoTag>
+      <skipPush>false</skipPush>
+      <createFingerprint>true</createFingerprint>
+      <skipTagLatest>false</skipTagLatest>
+    </com.cloudbees.dockerpublish.DockerBuilder>
   </builders>
   <publishers>
     <jenkins.plugins.hipchat.HipChatNotifier plugin="hipchat@0.1.9">
