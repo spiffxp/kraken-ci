@@ -31,13 +31,13 @@
   <securityRealm class="org.jenkinsci.plugins.GithubSecurityRealm">
     <githubWebUri>https://github.com</githubWebUri>
     <githubApiUri>https://api.github.com</githubApiUri>
-    <clientID><%= github_client_id %></clientID>
-    <clientSecret><%= github_client_key %></clientSecret>
+    <clientID>${github_client_id}</clientID>
+    <clientSecret>${github_client_key}</clientSecret>
   </securityRealm>
   <disableRememberMe>false</disableRememberMe>
   <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
-  <workspaceDir>${ITEM_ROOTDIR}/workspace</workspaceDir>
-  <buildsDir>${ITEM_ROOTDIR}/builds</buildsDir>
+  <workspaceDir>$${ITEM_ROOTDIR}/workspace</workspaceDir>
+  <buildsDir>$${ITEM_ROOTDIR}/builds</buildsDir>
   <markupFormatter class="hudson.markup.EscapedMarkupFormatter"/>
   <jdks/>
   <viewsTabBar class="hudson.views.DefaultViewsTabBar"/>
