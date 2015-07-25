@@ -1,0 +1,76 @@
+- name: Jenkins Data Volume Build
+   docker_image: path="/home/core/config/data_volume" name="samsung_ag/jenkins-data" state=build
+- name: Jenkins Server Build
+   docker_image: path="/home/core/config/jenkins" name="samsung_ag/jenkins-server" state=build
+- name: Jenkins Backup Helper Build
+   docker_image: path="/home/core/config/backup" name="samsung_ag/jenkins-backup" state=build
+- name: Jenkins Backup Helper Build
+   docker_image: path="/home/core/config/backup" name="samsung_ag/jenkins-backup" state=build
+- name: HashiCorp Vault Build
+   docker_image: path="/home/core/config/vault" name="samsung_ag/hashicorp-vault" state=build
+
+- name: Jenkins Data Volume Run
+  docker:
+    name: jenkins-data
+    image: samsung_ag/jenkins-data
+    state: started
+    pull: missing
+- name Jenkins Backup Helper Run
+  docker:
+    name: jenkins-backup
+    image: samsung_ag/jenkins-backup
+    state: started
+    pull: missing
+    command: s3://pipelet 60 /var/jenkins_home/jobs/
+    volumes_from:
+      - jenkins-data
+    env:
+      AWS_ACCESS_KEY_ID:"{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+      AWS_SECRET_ACCESS_KEY:"{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+- name Official NGINX
+  docker:
+    name: nginx
+    image: nginx
+    state: started
+    pull: missing
+    tty: yes
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /tmp/nginx:/etc/nginx/conf.d
+      - /home/core/config/nginx/certs:/etc/nginx/certs
+- name NGINX autoconfig
+  docker:
+    name: docker-gen
+    image: jwilder/docker-gen
+    state: started
+    pull: missing
+    tty: yes
+    command: -notify-sighup nginx -watch -only-exposed /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    volumes_from:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+      - /home/core/config/nginx/conf:/etc/docker-gen/templates
+- name Jenkins server
+  docker:
+    name: jenkins
+    image: samsung_ag/jenkins-server
+    state: started
+    pull: missing
+    tty: yes
+    command: -notify-sighup nginx -watch -only-exposed /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes_from:
+      - jenkins-data
+    env:
+      VIRTUAL_HOST:pipelet.kubeme.io
+      VIRTUAL_PORT:8080
+    volumes:
+      - /var/run/docker.sock:/run/docker.sock
+      - /usr/bin/docker:/bin/docker
+      - /usr/lib/libdevmapper.so.1.02:/usr/lib/libdevmapper.so.1.02
+
