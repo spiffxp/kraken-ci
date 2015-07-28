@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# a couple of simple checks first
+# a few simple checks first
 : ${AWS_ACCESS_KEY_ID:?"Set AWS_ACCESS_KEY_ID first"}
 : ${AWS_SECRET_ACCESS_KEY:?"Set AWS_SECRET_ACCESS_KEY first"}
 : ${AWS_DEFAULT_REGION:?"Set AWS_DEFAULT_REGION first"}
