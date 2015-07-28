@@ -22,7 +22,7 @@ resource "template_file" "jenkinsconfig" {
   }
 
   provisioner "local-exec" {
-    command = "mkdir -p config/data_volume/rendered/configs; echo '${self.rendered}' > config/data_volume/rendered/configs/config.xml"
+    command = "mkdir -p config/data_volume/rendered/configs; cat << 'EOF' > config/data_volume/rendered/configs/config.xml\n${self.rendered}\nEOF"
   }
 }
 
@@ -35,7 +35,7 @@ resource "template_file" "credentialsfile" {
   }
 
   provisioner "local-exec" {
-    command = "echo '${self.rendered}' > config/jenkins/credentials"
+    command = "cat << 'EOF' > config/jenkins/credentials\n${self.rendered}\nEOF"
   }
 }
 
@@ -47,7 +47,21 @@ resource "template_file" "hipchatconfig" {
   }
 
   provisioner "local-exec" {
-    command = "mkdir -p config/data_volume/rendered/configs; echo '${self.rendered}' > config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml"
+    command = "cat << 'EOF' > config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml\n${self.rendered}\nEOF"
+  }
+}
+
+resource "template_file" "ansible_inventory" {
+  filename = "templates/inventory.ansible.tpl"
+
+  vars {
+    public_ip = "${aws_instance.pipelet_ec2.public_ip}"
+    ci_host_dns = "${var.ci_hostname}"
+    docker_api_version = "${var.docker_api_version}"
+  }
+
+  provisioner "local-exec" {
+    command = "cat << 'EOF' > inventory.ansible\n${self.rendered}\nEOF"
   }
 }
 
@@ -104,12 +118,13 @@ resource "aws_key_pair" "pipelet_keypair" {
 }
 
 resource "aws_instance" "pipelet_ec2" {
-  depends_on = "template_file.cloudconfig"
+  depends_on = ["template_file.cloudconfig"]
   ami = "${var.coreos_ami}"
   instance_type = "${var.aws_instance_type}"
   key_name = "${aws_key_pair.pipelet_keypair.key_name}"
   vpc_security_group_ids = [ "${aws_security_group.pipelet_secgroup.id}" ]
   subnet_id = "${aws_subnet.pipelet_subnet.id}"
+  associate_public_ip_address = true
   ebs_block_device {
     device_name = "/dev/sdf"
     volume_size = "${var.aws_ebs_size}"
@@ -118,18 +133,13 @@ resource "aws_instance" "pipelet_ec2" {
   tags {
     Name = "${var.ci_hostname}"
   }
-}
-
-resource "aws_eip" "pipelet_eip" {
-  instance = "${aws_instance.pipelet_ec2.id}"
-  vpc = true
 
   provisioner "file" {
     source = "config"
     destination = "~"
     connection {
       type="ssh"
-      host = "${aws_eip.pipelet_eip.public_ip}"
+      host = "${self.public_ip}"
       user = "core"
       key_file ="~/.ssh/keys/krakenci/id_rsa"
     }
@@ -137,18 +147,19 @@ resource "aws_eip" "pipelet_eip" {
 }
 
 resource "aws_route53_record" "pipelet_route" {
+  depends_on = ["template_file.ansible_inventory", "template_file.jenkinsconfig", "template_file.credentialsfile", "template_file.hipchatconfig"]
   zone_id = "${var.route53_zone_id}"
   name = "${var.ci_hostname}"
   type = "A"
   ttl = "30"
-  records = ["${aws_eip.pipelet_eip.public_ip}"]
-
+  records = ["${aws_instance.pipelet_ec2.public_ip}"]
+  
   provisioner "local-exec" {
-    command = "echo '${var.ci_hostname}' > inventory.ansible"
+    command = "ansible-galaxy install defunctzombie.coreos-bootstrap --force"
   }
-
+  
   provisioner "local-exec" {
-    command = "ansible-playbook --inventory-file=inventory.ansible --user=core --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml"
+    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vvv"
   }
 }
 

@@ -23,7 +23,7 @@ variable "aws_subnet_cidr" {
   default = "10.1.110.0/24"
 }
 variable "ci_hostname" {
-  default = "terrapipelet.kubeme.io"
+  default = "pipelet.kubeme.io"
 }
 variable "vault_hostname" {
   default = "vault.kubeme.io"
@@ -36,4 +36,7 @@ variable "aws_secgroup_name" {
 }
 variable "aws_instance_type" {
   default = "m3.large"
+}
+variable "docker_api_version" {
+  default = "1.18"
 }

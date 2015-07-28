@@ -1,8 +1,10 @@
 ## Bring up a configured jenkins server
 
-First run vagrant:
+Make sure [Homebrew](http://brew.sh/) is installed. Then run:
     
-    $ vagrant up
+    $ ./setup.sh
+
+Set the required environment vairables if/when the script complains about them.
     
 ### Try it out
 
@@ -23,3 +25,12 @@ Should be a valid job. Try running it.
     https://pipelet.kubeme.io/jobs/kraken_builder 
 
 Should be a valid job. It should run every time someone opens a PR in the kraken repo
+
+# To destroy
+Run the terraform destroy command:
+
+    terraform destroy -input=false
+
+# Terraform state
+
+Currently no locking is implemented for the S3 state backend. Coordinate with your team members accordingly.
