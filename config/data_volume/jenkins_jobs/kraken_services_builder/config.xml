@@ -17,7 +17,7 @@
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@1.8">
     <script>node(&apos;master&apos;) {
-  sh &quot;echo &apos;Starting kraken services build ${currentBuild.displayName}&apos; | ./hipchat_room_message -f Pipelet -c green&quot;
+  sh &quot;echo &apos;Starting kraken services build ${currentBuild.displayName}&apos; | hipchat_room_message -f Pipelet -c green&quot;
   try {
     stage &apos;Downloading sources&apos;
     git credentialsId: &apos;jenkins-ssh&apos;, url: &apos;git@github.com:Samsung-AG/kraken-services.git&apos;
