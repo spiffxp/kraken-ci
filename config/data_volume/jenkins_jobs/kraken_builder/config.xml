@@ -26,7 +26,7 @@
       <hudson.plugins.git.UserRemoteConfig>
         <refspec>+refs/pull/*:refs/remotes/origin/pr/*</refspec>
         <url>git@github.com:Samsung-AG/kraken.git</url>
-        <credentialsId>18d27b38-926f-4bd4-a298-5c98b5e970c1</credentialsId>
+        <credentialsId>jenkins-ssh</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
@@ -66,7 +66,7 @@
       <__project class="project" reference="../../.."/>
       <gitHubApiAuth>
         <serverAPIUrl>https://api.github.com</serverAPIUrl>
-        <credentialsId>8105304f-841e-4839-afb2-a244e745683b</credentialsId>
+        <credentialsId>jenkins-github</credentialsId>
         <id>a6bb6ec6-ac3f-44c6-8abb-0883024c2639</id>
         <description>Github Jenkins Bot Account</description>
         <secret></secret>

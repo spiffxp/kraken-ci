@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<org.jenkinsci.plugins.ghprb.GhprbTrigger_-DescriptorImpl plugin="ghprb@1.24.2">
+<org.jenkinsci.plugins.ghprb.GhprbTrigger_-DescriptorImpl plugin="ghprb@1.26.2">
   <configVersion>1</configVersion>
   <whitelistPhrase>.*add\W+to\W+whitelist.*</whitelistPhrase>
   <okToTestPhrase>.*ok\W+to\W+test.*</okToTestPhrase>
@@ -14,7 +14,7 @@
   <githubAuth>
     <org.jenkinsci.plugins.ghprb.GhprbGitHubAuth>
       <serverAPIUrl>https://api.github.com</serverAPIUrl>
-      <credentialsId>8105304f-841e-4839-afb2-a244e745683b</credentialsId>
+      <credentialsId>jenkins-github</credentialsId>
       <id>a6bb6ec6-ac3f-44c6-8abb-0883024c2639</id>
       <description>Github Jenkins Bot Account</description>
       <secret></secret>

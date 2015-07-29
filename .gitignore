@@ -1,1 +1,8 @@
 .vagrant/
+
+# terraform stuff
+.terraform
+terraform.tfstate
+
+# generated ansible inventory
+*.ansible
