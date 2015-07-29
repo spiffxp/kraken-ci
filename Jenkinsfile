@@ -2,7 +2,7 @@ node('master') {
   sh "echo 'Starting kraken services build ${currentBuild.displayName}' | hipchat_room_message -f Pipelet -c green"
   try {
     stage 'Downloading sources'
-    git credentialsId: '18d27b38-926f-4bd4-a298-5c98b5e970c1', url: 'git@github.com:Samsung-AG/kraken-services.git'
+    git credentialsId: 'jenkins-ssh', url: 'git@github.com:Samsung-AG/kraken-services.git'
     stage 'Building and publishing images'
     docker.withServer('unix:///run/docker.sock') {
 
