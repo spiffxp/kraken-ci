@@ -89,3 +89,5 @@ RUN awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
 RUN mkdir -p /root/.aws
 COPY config /root/.aws/config
 COPY credentials /root/.aws/credentials
+COPY hipchat_room_message /usr/local/bin/hipchat_room_message
+RUN chmod +x /usr/local/bin/hipchat_room_message

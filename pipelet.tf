@@ -58,6 +58,8 @@ resource "template_file" "ansible_inventory" {
     public_ip = "${aws_instance.pipelet_ec2.public_ip}"
     ci_host_dns = "${var.ci_hostname}"
     docker_api_version = "${var.docker_api_version}"
+    hipchat_api_token = "${var.hipchat_api_token}"
+    hipchat_room_id = "${var.hipchat_room_id}"
   }
 
   provisioner "local-exec" {
@@ -153,11 +155,11 @@ resource "aws_route53_record" "pipelet_route" {
   type = "A"
   ttl = "30"
   records = ["${aws_instance.pipelet_ec2.public_ip}"]
-  
+
   provisioner "local-exec" {
     command = "ansible-galaxy install defunctzombie.coreos-bootstrap --force"
   }
-  
+
   provisioner "local-exec" {
     command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vvv"
   }

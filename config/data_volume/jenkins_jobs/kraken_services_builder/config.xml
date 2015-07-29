@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1.8">
+  <actions/>
+  <description>Builds kraken services docker images on commit to kraken services github repository</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>30</daysToKeep>
+    <numToKeep>100</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@1.8">
+    <script>node(&apos;master&apos;) {
+  sh &quot;echo &apos;Starting kraken services build ${currentBuild.displayName}&apos; | ./hipchat_room_message -f Pipelet -c green&quot;
+  try {
+    stage &apos;Downloading sources&apos;
+    git credentialsId: &apos;jenkins-ssh&apos;, url: &apos;git@github.com:Samsung-AG/kraken-services.git&apos;
+    stage &apos;Building and publishing images&apos;
+    docker.withServer(&apos;unix:///run/docker.sock&apos;) {
+
+      stage &apos;Building load generator test service image&apos;
+      def framework = docker.build(&quot;samsung_ag/trogdor-framework:${env.BUILD_NUMBER}&quot;, &quot;loadtest/build/web_service&quot;)
+      stage &apos;Pushing load generator test service image&apos;
+      docker.withRegistry(&apos;https://quay.io/v1&apos;, &apos;quay-io&apos;) {
+        framework.push()
+        framework.push &apos;latest&apos;
+      }
+
+      stage &apos;Building load generator image&apos;
+      def load_gen = docker.build(&quot;samsung_ag/trogdor-load-generator:${env.BUILD_NUMBER}&quot;, &quot;loadtest/build/load_generator&quot;)
+      stage &apos;Pushing load generator image&apos;
+      docker.withRegistry(&apos;https://quay.io/v1&apos;, &apos;quay-io&apos;) {
+        load_gen.push()
+        load_gen.push &apos;latest&apos;
+      }
+
+      stage &apos;Building influxdb image&apos;
+      def influxdb = docker.build(&quot;samsung_ag/influxdb:${env.BUILD_NUMBER}&quot;, &quot;influxdb-grafana/build/influxdb&quot;)
+      stage &apos;Pushing influxdb image&apos;
+      docker.withRegistry(&apos;https://quay.io/v1&apos;, &apos;quay-io&apos;) {
+        influxdb.push()
+        influxdb.push &apos;latest&apos;
+      }
+
+      stage &apos;Building grafana image&apos;
+      def grafana = docker.build(&quot;samsung_ag/grafana:${env.BUILD_NUMBER}&quot;, &quot;influxdb-grafana/build/grafana&quot;)
+      stage &apos;Pushing grafana image&apos;
+      docker.withRegistry(&apos;https://quay.io/v1&apos;, &apos;quay-io&apos;) {
+        grafana.push()
+        grafana.push &apos;latest&apos;
+      }
+
+      stage &apos;Building podpincher image&apos;
+      def podpincher = docker.build(&quot;samsung_ag/podpincher:${env.BUILD_NUMBER}&quot;, &quot;podpincher/build&quot;)
+      stage &apos;Pushing podpincher image&apos;
+      docker.withRegistry(&apos;https://quay.io/v1&apos;, &apos;quay-io&apos;) {
+        podpincher.push()
+        podpincher.push &apos;latest&apos;
+      }
+
+      stage &apos;Building prometheus image&apos;
+      def prometheus = docker.build(&quot;samsung_ag/prometheus:${env.BUILD_NUMBER}&quot;, &quot;prometheus/build/prometheus&quot;)
+      stage &apos;Pushing prometheus image&apos;
+      docker.withRegistry(&apos;https://quay.io/v1&apos;, &apos;quay-io&apos;) {
+        prometheus.push()
+        prometheus.push &apos;latest&apos;
+      }
+    }
+    sh &quot;echo &apos;Kraken services build ${currentBuild.displayName} succeeded&apos; | hipchat_room_message -f Pipelet -c red -n 1&quot;
+  } catch (e) {
+    sh &quot;echo &apos;Kraken services build ${currentBuild.displayName} failed with ${e.message}&apos; | hipchat_room_message -f Pipelet -c red&quot;
+    throw e
+  }
+}</script>
+    <sandbox>false</sandbox>
+  </definition>
+  <triggers>
+    <jenkins.triggers.ReverseBuildTrigger>
+      <spec></spec>
+      <upstreamProjects>services_kickoff, </upstreamProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </jenkins.triggers.ReverseBuildTrigger>
+  </triggers>
+</flow-definition>
