@@ -16,6 +16,7 @@ aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.key $(pwd)/config
 aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.crt $(pwd)/config/nginx/certs/
 aws s3 cp s3://sundry-automata/keys/jenkins/id_rsa $(pwd)/config/jenkins/keys/
 aws s3 cp s3://sundry-automata/keys/jenkins/id_rsa.pub $(pwd)/config/jenkins/keys/
+aws s3 cp s3://sundry-automata/secrets/ $(pwd)/config/data_volume/jenkins_config/secrets --recursive
 
 echo 'installing jenkins ssh keys'
 mkdir -p ${HOME}/.ssh/keys/krakenci
