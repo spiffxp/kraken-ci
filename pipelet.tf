@@ -45,6 +45,7 @@ resource "template_file" "vaultconfig" {
   vars {
     aws_key_id = "${var.aws_access_key}"
     aws_secret_access_key = "${var.aws_secret_key}"
+    aws_region = "${var.aws_region}"
     vault_host_ip = "${aws_instance.pipelet_ec2.private_ip}"
     vault_port = "${var.vault_port}"
   }
@@ -136,7 +137,7 @@ resource "aws_key_pair" "pipelet_keypair" {
 }
 
 resource "aws_instance" "pipelet_ec2" {
-  depends_on = ["template_file.cloudconfig", "template_file.vaultconfig" "template_file.jenkinsconfig", "template_file.credentialsfile", "template_file.hipchatconfig"]
+  depends_on = ["template_file.cloudconfig", "template_file.jenkinsconfig", "template_file.credentialsfile", "template_file.hipchatconfig"]
   ami = "${var.coreos_ami}"
   instance_type = "${var.aws_instance_type}"
   key_name = "${aws_key_pair.pipelet_keypair.key_name}"
@@ -152,29 +153,29 @@ resource "aws_instance" "pipelet_ec2" {
     Name = "${var.ci_hostname}"
   }
 
-  provisioner "file" {
-    source = "config"
-    destination = "~"
-    connection {
-      type="ssh"
-      host = "${self.public_ip}"
-      user = "core"
-      key_file ="~/.ssh/keys/krakenci/id_rsa"
-    }
-  }
-
   provisioner "local-exec" {
     command = "ansible-galaxy install defunctzombie.coreos-bootstrap --force"
   }
 }
 
 resource "aws_route53_record" "pipelet_route" {
-  depends_on = ["aws_instance.pipelet_ec2", "template_file.ansible_inventory"]
+  depends_on = ["aws_instance.pipelet_ec2", "template_file.ansible_inventory", "template_file.vaultconfig"]
   zone_id = "${var.route53_zone_id}"
   name = "${var.ci_hostname}"
   type = "A"
   ttl = "30"
   records = ["${aws_instance.pipelet_ec2.public_ip}"]
+
+  provisioner "file" {
+    source = "config"
+    destination = "~"
+    connection {
+      type="ssh"
+      host = "${aws_instance.pipelet_ec2.public_ip}"
+      user = "core"
+      key_file ="~/.ssh/keys/krakenci/id_rsa"
+    }
+  }
 
   provisioner "local-exec" {
     command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vvv"

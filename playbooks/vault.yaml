@@ -5,27 +5,16 @@
   tasks:
     - name: Install docker-py
       pip: name=docker-py
+    - name: Install httplib2
+      pip: name=httplib2
     - name: HashiCorp Vault Build
       raw: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
     - name: Vault server
-      docker:
-        name: vault
-        docker_api_version: "{{ docker_api_version }}"
-        image: samsung_ag/hashicorp-vault
-        state: started
-        pull: missing
-        cap_add: IPC_LOCK
-        command: server -config=/config.hcl -log-level=info
-        ports:
-          - "8200:8200"
-        env:
-          VIRTUAL_HOST: vault.kubeme.io
-          VIRTUAL_PORT: 8200
-        volumes:
-          - /home/core/config/vault/config.hcl:/config.hcl
+      raw: docker run -d -p 8200:8200 --name=hashicorp_vault --env VIRTUAL_HOST=vault.kubeme.io --env VIRTUAL_PORT=8200 --cap-add=IPC_LOCK --volume /home/core/config/vault/config.hcl:/config.hcl samsung_ag/hashicorp-vault server -config=/config.hcl -log-level=info -tls-skip-verify
     - name: Initialize Vault
       uri:
         url: "{{vault_uri}}/v1/sys/init"
+        validate_certs: no
         method: PUT
         body: '{"secret_shares":1, "secret_threshold":1}'
         return_content: yes
@@ -36,5 +25,6 @@
     - name: Unseal Vault
       uri:
         url: "{{vault_uri}}/v1/sys/unseal"
+        validate_certs: no
         method: GET
         body: '{"key": "{{vault_init_data.keys.0}}"}'
