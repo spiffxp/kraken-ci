@@ -39,6 +39,21 @@ resource "template_file" "credentialsfile" {
   }
 }
 
+resource "template_file" "vaultconfig" {
+  filename = "templates/vault.hcl.tpl"
+
+  vars {
+    aws_key_id = "${var.aws_access_key}"
+    aws_secret_access_key = "${var.aws_secret_key}"
+    vault_host_ip = "${aws_instance.pipelet_ec2.private_ip}"
+    vault_port = "${var.vault_port}"
+  }
+
+  provisioner "local-exec" {
+    command = "cat << 'EOF' > config/vault/config.hcl\n${self.rendered}\nEOF"
+  }
+}
+
 resource "template_file" "hipchatconfig" {
   filename = "templates/jenkins.plugins.hipchat.HipChatNotifier.xml.tpl"
 
@@ -60,6 +75,7 @@ resource "template_file" "ansible_inventory" {
     docker_api_version = "${var.docker_api_version}"
     hipchat_api_token = "${var.hipchat_api_token}"
     hipchat_room_id = "${var.hipchat_room_id}"
+    vault_uri = "https://${var.vault_hostname}"
   }
 
   provisioner "local-exec" {
@@ -120,7 +136,7 @@ resource "aws_key_pair" "pipelet_keypair" {
 }
 
 resource "aws_instance" "pipelet_ec2" {
-  depends_on = ["template_file.cloudconfig"]
+  depends_on = ["template_file.cloudconfig", "template_file.vaultconfig" "template_file.jenkinsconfig", "template_file.credentialsfile", "template_file.hipchatconfig"]
   ami = "${var.coreos_ami}"
   instance_type = "${var.aws_instance_type}"
   key_name = "${aws_key_pair.pipelet_keypair.key_name}"
@@ -146,10 +162,14 @@ resource "aws_instance" "pipelet_ec2" {
       key_file ="~/.ssh/keys/krakenci/id_rsa"
     }
   }
+
+  provisioner "local-exec" {
+    command = "ansible-galaxy install defunctzombie.coreos-bootstrap --force"
+  }
 }
 
 resource "aws_route53_record" "pipelet_route" {
-  depends_on = ["template_file.ansible_inventory", "template_file.jenkinsconfig", "template_file.credentialsfile", "template_file.hipchatconfig"]
+  depends_on = ["aws_instance.pipelet_ec2", "template_file.ansible_inventory"]
   zone_id = "${var.route53_zone_id}"
   name = "${var.ci_hostname}"
   type = "A"
@@ -157,11 +177,20 @@ resource "aws_route53_record" "pipelet_route" {
   records = ["${aws_instance.pipelet_ec2.public_ip}"]
 
   provisioner "local-exec" {
-    command = "ansible-galaxy install defunctzombie.coreos-bootstrap --force"
+    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vvv"
   }
+}
+
+resource "aws_route53_record" "vault_route" {
+  depends_on = ["aws_instance.pipelet_ec2"]
+  zone_id = "${var.route53_zone_id}"
+  name = "${var.vault_hostname}"
+  type = "A"
+  ttl = "30"
+  records = ["${aws_instance.pipelet_ec2.public_ip}"]
 
   provisioner "local-exec" {
-    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vvv"
+    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/vault.yaml -vvv"
   }
 }
 

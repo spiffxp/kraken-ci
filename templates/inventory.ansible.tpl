@@ -9,3 +9,4 @@ ansible_python_interpreter="PATH=/home/core/bin:$PATH python"
 docker_api_version=${docker_api_version}
 hipchat_api_token=${hipchat_api_token}
 hipchat_room_id=${hipchat_room_id}
+vault_uri=${vault_uri}

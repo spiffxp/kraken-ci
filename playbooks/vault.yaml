@@ -1,0 +1,40 @@
+- hosts: coreos
+  gather_facts: False
+  roles:
+    - defunctzombie.coreos-bootstrap
+  tasks:
+    - name: Install docker-py
+      pip: name=docker-py
+    - name: HashiCorp Vault Build
+      raw: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
+    - name: Vault server
+      docker:
+        name: vault
+        docker_api_version: "{{ docker_api_version }}"
+        image: samsung_ag/hashicorp-vault
+        state: started
+        pull: missing
+        cap_add: IPC_LOCK
+        command: server -config=/config.hcl -log-level=info
+        ports:
+          - "8200:8200"
+        env:
+          VIRTUAL_HOST: vault.kubeme.io
+          VIRTUAL_PORT: 8200
+        volumes:
+          - /home/core/config/vault/config.hcl:/config.hcl
+    - name: Initialize Vault
+      uri:
+        url: "{{vault_uri}}/v1/sys/init"
+        method: PUT
+        body: '{"secret_shares":1, "secret_threshold":1}'
+        return_content: yes
+      register: result
+    - name: Parse init output
+      set_fact: 
+        vault_init_data: "{{ result.content|from_json }}"
+    - name: Unseal Vault
+      uri:
+        url: "{{vault_uri}}/v1/sys/unseal"
+        method: GET
+        body: '{"key": "{{vault_init_data.keys.0}}"}'

@@ -30,6 +30,9 @@ variable "ci_hostname" {
 variable "vault_hostname" {
   default = "vault.kubeme.io"
 }
+variable "vault_port" {
+  default = "8200"
+}
 variable "aws_key_name" {
   default = "pipelet_key"
 }
