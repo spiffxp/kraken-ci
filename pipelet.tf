@@ -79,8 +79,10 @@ resource "template_file" "ansible_inventory" {
     hipchat_room_id = "${var.hipchat_room_id}"
     vault_uri = "https://${var.vault_hostname}"
     vault_bucket = ${${var.vault_backend_bucket}}
-    access_key = "${var.aws_access_key}"
-    secret_key = "${var.aws_secret_key}"
+    aws_access_key = "${var.aws_access_key}"
+    aws_secret_key = "${var.aws_secret_key}"
+    aws_region = "${var.aws_region}"
+    github_org = "${var.github_org}"
   }
 
   provisioner "local-exec" {

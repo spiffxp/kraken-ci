@@ -48,3 +48,6 @@ variable "aws_instance_type" {
 variable "docker_api_version" {
   default = "1.18"
 }
+variable "github_org" {
+  default = "Samsung-AG"
+}
