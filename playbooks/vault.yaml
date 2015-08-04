@@ -5,26 +5,105 @@
   tasks:
     - name: Install docker-py
       pip: name=docker-py
+
     - name: Install httplib2
       pip: name=httplib2
+
+    - name: Install boto
+      pip: name=boto
+
     - name: HashiCorp Vault Build
-      raw: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
+      shell: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault 
+
+    - name: Kill off Vault container
+      shell: docker rm -f hashicorp_vault
+      ignore_errors: yes
+
     - name: Vault server
-      raw: docker run -d -p 8200:8200 --name=hashicorp_vault --env VIRTUAL_HOST=vault.kubeme.io --env VIRTUAL_PORT=8200 --cap-add=IPC_LOCK --volume /home/core/config/vault/config.hcl:/config.hcl samsung_ag/hashicorp-vault server -config=/config.hcl -log-level=info -tls-skip-verify
+      shell: docker run -d -p 8200:8200 --name=hashicorp_vault --env VIRTUAL_HOST=vault.kubeme.io --env VIRTUAL_PORT=8200 --cap-add=IPC_LOCK --volume /home/core/config/vault/config.hcl:/config.hcl samsung_ag/hashicorp-vault server -config=/config.hcl -log-level=info -tls-skip-verify
+
+    - name: Wait untils Vault web API is available
+      uri:
+        url: "{{vault_uri}}/v1/sys/health"
+        validate_certs: no
+        method: GET
+        return_content: yes
+        status_code: 200,429,500
+      register: result
+      until: result["status"] != 502
+      retries: 10
+      delay: 5
+
+    - name: Check if Vault is already initialized
+      uri:
+        url: "{{vault_uri}}/v1/sys/init"
+        validate_certs: no
+        method: GET
+        return_content: yes
+      register: result
+
+    - name: Remember vault init status
+      set_fact: 
+        vault_init_status: '{{ result.content|from_json }}'
+
     - name: Initialize Vault
       uri:
         url: "{{vault_uri}}/v1/sys/init"
         validate_certs: no
         method: PUT
         body: '{"secret_shares":1, "secret_threshold":1}'
+        HEADER_Content-Type: application/json
         return_content: yes
       register: result
-    - name: Parse init output
+      when: vault_init_status["initialized"] != true
+
+    - name: Save init output in vault keyfile
+      copy: content={{ result.content }} dest=~/config/vault/vault.keys
+      when: vault_init_status["initialized"] != true
+
+    - name: Download the vault keyfile if already initialized
+      s3: bucket={{ vault_bucket }} object=vault.keys dest=~/config/vault/vault.keys mode=get aws_access_key={{access_key}} aws_secret_key={{secret_key}}
+      when: vault_init_status["initialized"] == true
+
+    - name: Output keyfile 
+      shell: cat ~/config/vault/vault.keys
+      register: keyfile_contents
+
+    - name: Read in the vault keyfile
+      set_fact:
+        vault_init_data: "{{ keyfile_contents.stdout|from_json }}"
+
+    - name: Check if Vault is sealed
+      uri:
+        url: "{{vault_uri}}/v1/sys/seal-status"
+        validate_certs: no
+        method: GET
+        return_content: yes
+      register: result
+
+    - name: Remember vault seal status
       set_fact: 
-        vault_init_data: "{{ result.content|from_json }}"
+        vault_seal_status: "{{ result.content|from_json }}" 
+
+    - name: Build unseal request body
+      set_fact: 
+        unseal_req_body: {
+          key: "{{vault_init_data['keys'][0]}}"
+        }
+
     - name: Unseal Vault
       uri:
         url: "{{vault_uri}}/v1/sys/unseal"
         validate_certs: no
-        method: GET
-        body: '{"key": "{{vault_init_data.keys.0}}"}'
+        method: PUT
+        body: "{{unseal_req_body|to_json}}"
+        HEADER_Content-Type: application/json
+      when: vault_seal_status["sealed"] == true
+
+    - name: Upload Vault keyset to S3
+      s3: bucket={{ vault_bucket }} object=vault.keys src=~/config/vault/vault.keys mode=put aws_access_key={{access_key}} aws_secret_key={{secret_key}}
+      when: vault_init_status["initialized"] != true
+
+    - name: delete key file
+      shell: rm ~/config/vault/vault.keys
+      ignore_errors: yes

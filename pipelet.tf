@@ -43,10 +43,11 @@ resource "template_file" "vaultconfig" {
   filename = "templates/vault.hcl.tpl"
 
   vars {
+    vault_backend_bucket = "${var.vault_backend_bucket}"
     aws_key_id = "${var.aws_access_key}"
     aws_secret_access_key = "${var.aws_secret_key}"
     aws_region = "${var.aws_region}"
-    vault_host_ip = "${aws_instance.pipelet_ec2.private_ip}"
+    vault_host_ip = "0.0.0.0"
     vault_port = "${var.vault_port}"
   }
 
@@ -77,6 +78,9 @@ resource "template_file" "ansible_inventory" {
     hipchat_api_token = "${var.hipchat_api_token}"
     hipchat_room_id = "${var.hipchat_room_id}"
     vault_uri = "https://${var.vault_hostname}"
+    vault_bucket = ${${var.vault_backend_bucket}}
+    access_key = "${var.aws_access_key}"
+    secret_key = "${var.aws_secret_key}"
   }
 
   provisioner "local-exec" {

@@ -1,5 +1,5 @@
 backend "s3" {
-  bucket = "kube-vault"
+  bucket = "${vault_backend_bucket}"
   access_key = "${aws_key_id}"
   secret_key = "${aws_secret_access_key}"
   region = "${aws_region}"
@@ -7,6 +7,5 @@ backend "s3" {
 
 listener "tcp" {
   address = "${vault_host_ip}:${vault_port}"
-  tls_cert_file = /vault_tls.crt
-  tls_key_file = /vault_tls.key
+  tls_disable = 1
 }

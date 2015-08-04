@@ -33,6 +33,9 @@ variable "vault_hostname" {
 variable "vault_port" {
   default = "8200"
 }
+variable "vault_backend_bucket" {
+  default = "kube-vault"
+}
 variable "aws_key_name" {
   default = "pipelet_key"
 }
