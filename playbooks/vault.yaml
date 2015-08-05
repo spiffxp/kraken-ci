@@ -13,7 +13,7 @@
       pip: name=boto
 
     - name: HashiCorp Vault Build
-      shell: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault 
+      shell: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
 
     - name: Kill off Vault container
       shell: docker rm -f hashicorp_vault
@@ -30,7 +30,7 @@
         return_content: yes
         status_code: 200,429,500
       register: result
-      until: result["status"] != 502
+      until: result is defined and result["status"] != 502
       retries: 10
       delay: 5
 
@@ -43,7 +43,7 @@
       register: result
 
     - name: Remember vault init status
-      set_fact: 
+      set_fact:
         vault_init_status: '{{ result.content|from_json }}'
 
     - name: Initialize Vault
@@ -58,14 +58,14 @@
       when: vault_init_status["initialized"] != true
 
     - name: Save init output in vault keyfile
-      copy: content={{ result.content }} dest=~/config/vault/vault.keys
+      copy: content={{ result.content }} dest=/home/core/config/vault/vault.keys
       when: vault_init_status["initialized"] != true
 
     - name: Download the vault keyfile if already initialized
-      s3: bucket={{ vault_bucket }} object=vault.keys dest=~/config/vault/vault.keys mode=get aws_access_key={{aws_access_key}} aws_secret_key={{aws_secret_key}}
+      s3: bucket={{ vault_bucket }} object=vault.keys dest=/home/core/config/vault/vault.keys mode=get aws_access_key={{aws_access_key}} aws_secret_key={{aws_secret_key}}
       when: vault_init_status["initialized"] == true
 
-    - name: Output keyfile 
+    - name: Output keyfile
       shell: cat ~/config/vault/vault.keys
       register: keyfile_contents
 
@@ -82,11 +82,11 @@
       register: result
 
     - name: Remember vault seal status
-      set_fact: 
-        vault_seal_status: "{{ result.content|from_json }}" 
+      set_fact:
+        vault_seal_status: "{{ result.content|from_json }}"
 
     - name: Build unseal request body
-      set_fact: 
+      set_fact:
         unseal_req_body:
           key: "{{vault_init_data['keys'][0]}}"
           _hack: null
@@ -101,7 +101,7 @@
       when: vault_seal_status["sealed"] == true
 
     - name: Upload Vault keyset to S3
-      s3: bucket={{ vault_bucket }} object=vault.keys src=~/config/vault/vault.keys mode=put aws_access_key={{aws_access_key}} aws_secret_key={{aws_secret_key}}
+      s3: bucket={{ vault_bucket }} object=vault.keys src=/home/core/config/vault/vault.keys mode=put aws_access_key={{aws_access_key}} aws_secret_key={{aws_secret_key}}
       when: vault_init_status["initialized"] != true
 
     - name: delete key file
@@ -110,7 +110,7 @@
 
     - name: Delete github auth backend
       uri:
-        url: "{{vault_uri}}/v1/sys/auth/gh"
+        url: "{{vault_uri}}/v1/sys/auth/github"
         validate_certs: no
         method: DELETE
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
@@ -118,37 +118,37 @@
 
     - name: Mount github auth backend
       uri:
-        url: "{{vault_uri}}/v1/sys/auth/gh"
+        url: "{{vault_uri}}/v1/sys/auth/github"
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: '{"type": "github", "description": "GitHub authentication"}'          
+        body: '{"type": "github", "description": "GitHub authentication"}'
         HEADER_Content-Type: application/json
-        status_code: 204 
+        status_code: 204
 
     - name: Build GitHub org request body
-      set_fact: 
+      set_fact:
         github_org_req_body:
           organization: "{{github_org}}"
           _hack: null
 
     - name: Add GitHub org
       uri:
-        url: "{{vault_uri}}/v1/auth/gh/config"
+        url: "{{vault_uri}}/v1/auth/github/config"
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: "{{github_org_req_body|to_json}}"         
+        body: "{{github_org_req_body|to_json}}"
         HEADER_Content-Type: application/json
         status_code: 204
 
     - name: Add GitHub team
       uri:
-        url: "{{vault_uri}}/v1/auth/gh/map/teams/owners"
+        url: "{{vault_uri}}/v1/auth/github/map/teams/owners"
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: '{"value": "root"}'         
+        body: '{"value": "root"}'
         HEADER_Content-Type: application/json
         status_code: 204
 
@@ -166,7 +166,7 @@
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: '{"type": "generic", "description": "AWS secrets"}'    
+        body: '{"type": "generic", "description": "AWS secrets"}'
         HEADER_Content-Type: application/json
         status_code: 204
 
@@ -184,12 +184,12 @@
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: '{"type": "aws", "description": "AWS secrets"}'    
+        body: '{"type": "aws", "description": "AWS secrets"}'
         HEADER_Content-Type: application/json
         status_code: 204
 
     - name: Build AWS request body
-      set_fact: 
+      set_fact:
         aws_backend_req_body:
           access_key: "{{aws_access_key}}"
           secret_key: "{{aws_secret_key}}"
@@ -202,7 +202,7 @@
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: "{{aws_backend_req_body | to_json}}"    
+        body: "{{aws_backend_req_body | to_json}}"
         HEADER_Content-Type: application/json
         status_code: 204
 
@@ -212,7 +212,7 @@
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: '{ "lease": "24h", "lease_max": "127h" }'   
+        body: '{ "lease": "24h", "lease_max": "127h" }'
         HEADER_Content-Type: application/json
         status_code: 204
 
@@ -222,7 +222,7 @@
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: '{"policy": "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":\"iam:*\",\"Resource\":\"*\"}}}"'
+        body: '{"policy": "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":\"iam:*\",\"Resource\":\"*\"}}"}'
         HEADER_Content-Type: application/json
         status_code: 204
 
