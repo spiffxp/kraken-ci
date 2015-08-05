@@ -1,0 +1,228 @@
+- hosts: coreos
+  gather_facts: False
+  roles:
+    - defunctzombie.coreos-bootstrap
+  tasks:
+    - name: Install docker-py
+      pip: name=docker-py
+
+    - name: Install httplib2
+      pip: name=httplib2
+
+    - name: Install boto
+      pip: name=boto
+
+    - name: HashiCorp Vault Build
+      shell: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
+
+    - name: Kill off Vault container
+      shell: docker rm -f hashicorp_vault
+      ignore_errors: yes
+
+    - name: Vault server
+      shell: docker run -d -p 8200:8200 --name=hashicorp_vault --env VIRTUAL_HOST=vault.kubeme.io --env VIRTUAL_PORT=8200 --cap-add=IPC_LOCK --volume /home/core/config/vault/config.hcl:/config.hcl samsung_ag/hashicorp-vault server -config=/config.hcl -log-level=info -tls-skip-verify
+
+    - name: Wait untils Vault web API is available
+      uri:
+        url: "{{vault_uri}}/v1/sys/health"
+        validate_certs: no
+        method: GET
+        return_content: yes
+        status_code: 200,429,500
+      register: result
+      until: result is defined and result["status"] != 502
+      retries: 10
+      delay: 5
+
+    - name: Check if Vault is already initialized
+      uri:
+        url: "{{vault_uri}}/v1/sys/init"
+        validate_certs: no
+        method: GET
+        return_content: yes
+      register: result
+
+    - name: Remember vault init status
+      set_fact:
+        vault_init_status: '{{ result.content|from_json }}'
+
+    - name: Initialize Vault
+      uri:
+        url: "{{vault_uri}}/v1/sys/init"
+        validate_certs: no
+        method: PUT
+        body: '{"secret_shares":1, "secret_threshold":1}'
+        HEADER_Content-Type: application/json
+        return_content: yes
+      register: result
+      when: vault_init_status["initialized"] != true
+
+    - name: Save init output in vault keyfile
+      copy: content={{ result.content }} dest=/home/core/config/vault/vault.keys
+      when: vault_init_status["initialized"] != true
+
+    - name: Download the vault keyfile if already initialized
+      s3: bucket={{ vault_bucket }} object=vault.keys dest=/home/core/config/vault/vault.keys mode=get aws_access_key={{aws_access_key}} aws_secret_key={{aws_secret_key}}
+      when: vault_init_status["initialized"] == true
+
+    - name: Output keyfile
+      shell: cat ~/config/vault/vault.keys
+      register: keyfile_contents
+
+    - name: Read in the vault keyfile
+      set_fact:
+        vault_init_data: "{{ keyfile_contents.stdout|from_json }}"
+
+    - name: Check if Vault is sealed
+      uri:
+        url: "{{vault_uri}}/v1/sys/seal-status"
+        validate_certs: no
+        method: GET
+        return_content: yes
+      register: result
+
+    - name: Remember vault seal status
+      set_fact:
+        vault_seal_status: "{{ result.content|from_json }}"
+
+    - name: Build unseal request body
+      set_fact:
+        unseal_req_body:
+          key: "{{vault_init_data['keys'][0]}}"
+          _hack: null
+
+    - name: Unseal Vault
+      uri:
+        url: "{{vault_uri}}/v1/sys/unseal"
+        validate_certs: no
+        method: PUT
+        body: "{{unseal_req_body|to_json}}"
+        HEADER_Content-Type: application/json
+      when: vault_seal_status["sealed"] == true
+
+    - name: Upload Vault keyset to S3
+      s3: bucket={{ vault_bucket }} object=vault.keys src=/home/core/config/vault/vault.keys mode=put aws_access_key={{aws_access_key}} aws_secret_key={{aws_secret_key}}
+      when: vault_init_status["initialized"] != true
+
+    - name: delete key file
+      shell: rm ~/config/vault/vault.keys
+      ignore_errors: yes
+
+    - name: Delete github auth backend
+      uri:
+        url: "{{vault_uri}}/v1/sys/auth/github"
+        validate_certs: no
+        method: DELETE
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        status_code: 204,500
+
+    - name: Mount github auth backend
+      uri:
+        url: "{{vault_uri}}/v1/sys/auth/github"
+        validate_certs: no
+        method: POST
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        body: '{"type": "github", "description": "GitHub authentication"}'
+        HEADER_Content-Type: application/json
+        status_code: 204
+
+    - name: Build GitHub org request body
+      set_fact:
+        github_org_req_body:
+          organization: "{{github_org}}"
+          _hack: null
+
+    - name: Add GitHub org
+      uri:
+        url: "{{vault_uri}}/v1/auth/github/config"
+        validate_certs: no
+        method: POST
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        body: "{{github_org_req_body|to_json}}"
+        HEADER_Content-Type: application/json
+        status_code: 204
+
+    - name: Add GitHub team
+      uri:
+        url: "{{vault_uri}}/v1/auth/github/map/teams/owners"
+        validate_certs: no
+        method: POST
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        body: '{"value": "root"}'
+        HEADER_Content-Type: application/json
+        status_code: 204
+
+    - name: Delete generic secret backend
+      uri:
+        url: "{{vault_uri}}/v1/sys/mounts/generic"
+        validate_certs: no
+        method: DELETE
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        status_code: 204,500
+
+    - name: Mount generic secret backend
+      uri:
+        url: "{{vault_uri}}/v1/sys/mounts/generic"
+        validate_certs: no
+        method: POST
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        body: '{"type": "generic", "description": "AWS secrets"}'
+        HEADER_Content-Type: application/json
+        status_code: 204
+
+    - name: Delete aws backend
+      uri:
+        url: "{{vault_uri}}/v1/sys/mounts/aws"
+        validate_certs: no
+        method: DELETE
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        status_code: 204,500
+
+    - name: Mount AWS secret backend
+      uri:
+        url: "{{vault_uri}}/v1/sys/mounts/aws"
+        validate_certs: no
+        method: POST
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        body: '{"type": "aws", "description": "AWS secrets"}'
+        HEADER_Content-Type: application/json
+        status_code: 204
+
+    - name: Build AWS request body
+      set_fact:
+        aws_backend_req_body:
+          access_key: "{{aws_access_key}}"
+          secret_key: "{{aws_secret_key}}"
+          region: "{{aws_region}}"
+          _hack: null
+
+    - name: Configure AWS backend
+      uri:
+        url: "{{vault_uri}}/v1/aws/config/root"
+        validate_certs: no
+        method: POST
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        body: "{{aws_backend_req_body | to_json}}"
+        HEADER_Content-Type: application/json
+        status_code: 204
+
+    - name: Configure AWS backend lease
+      uri:
+        url: "{{vault_uri}}/v1/aws/config/lease"
+        validate_certs: no
+        method: POST
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        body: '{ "lease": "24h", "lease_max": "127h" }'
+        HEADER_Content-Type: application/json
+        status_code: 204
+
+    - name: Configure AWS role
+      uri:
+        url: "{{vault_uri}}/v1/aws/roles/root"
+        validate_certs: no
+        method: POST
+        HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
+        body: '{"policy": "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":\"iam:*\",\"Resource\":\"*\"}}"}'
+        HEADER_Content-Type: application/json
+        status_code: 204
+

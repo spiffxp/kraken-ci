@@ -6,13 +6,16 @@
     - name: Install docker-py
       pip: name=docker-py
     - name: Jenkins Data Volume Build
-      raw: docker build -t samsung_ag/jenkins-data /home/core/config/data_volume
+      shell: docker build -t samsung_ag/jenkins-data /home/core/config/data_volume
     - name: Jenkins Server Build
-      raw: docker build -t samsung_ag/jenkins-server /home/core/config/jenkins
+      shell: docker build -t samsung_ag/jenkins-server /home/core/config/jenkins
     - name: Jenkins Backup Helper Build
-      raw: docker build -t samsung_ag/jenkins-backup /home/core/config/backup
+      shell: docker build -t samsung_ag/jenkins-backup /home/core/config/backup
     - name: HashiCorp Vault Build
-      raw: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
+      shell: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
+    - name: Kill off containers
+      shell: docker rm -f jenkins-data jenkins-backup nginx docker-gen jenkins
+      ignore_errors: yes
     - name: Jenkins Data Volume Run
       docker:
         name: jenkins-data
@@ -82,4 +85,3 @@
           - /var/run/docker.sock:/run/docker.sock
           - /usr/bin/docker:/bin/docker
           - /usr/lib/libdevmapper.so.1.02:/usr/lib/libdevmapper.so.1.02
-

@@ -30,6 +30,12 @@ variable "ci_hostname" {
 variable "vault_hostname" {
   default = "vault.kubeme.io"
 }
+variable "vault_port" {
+  default = "8200"
+}
+variable "vault_backend_bucket" {
+  default = "kube-vault"
+}
 variable "aws_key_name" {
   default = "pipelet_key"
 }
@@ -41,4 +47,7 @@ variable "aws_instance_type" {
 }
 variable "docker_api_version" {
   default = "1.18"
+}
+variable "github_org" {
+  default = "Samsung-AG"
 }
