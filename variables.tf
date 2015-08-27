@@ -7,7 +7,7 @@ variable "hipchat_room_id" {
   default = "1515130"
 }
 variable "coreos_ami" {
-  default = "ami-f5a5a5c5"
+  default = "ami-85ada4b5"
 }
 variable "aws_region" {
 	default = "us-west-2"
