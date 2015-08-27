@@ -5,89 +5,58 @@ USER root
 COPY plugins.txt /usr/share/jenkins/plugins.txt
 COPY keys /root/.ssh/
 
+# versions
+ENV TERRAFORM_VERSION 0.6.3
+ENV TERRAFORM_COREOS_VERSION v0.0.1
+ENV TERRAFORM_EXECUTE_VERSION v0.0.2
+ENV TERRAFORM_COREOSVER_VERSION v0.0.1
+ENV KUBERNETES_VERSION v1.0.3
+
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
 
-RUN apt-get update \
-    && apt-get install -y --force-yes --no-install-recommends \
-        bzip2 \
-        ca-certificates \
-        curl \
-        libffi-dev \
-        libgdbm3 \
-        libssl-dev \
-        libyaml-dev \
-        procps \
-        zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
+# get terraform
+RUN wget https://dl.bintray.com/mitchellh/terraform/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+RUN unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d terraform
 
-ENV RUBY_MAJOR 2.2
-ENV RUBY_VERSION 2.2.1
+# install custom providers
+RUN wget https://github.com/Samsung-AG/homebrew-terraform-provider-coreos/releases/download/${TERRAFORM_COREOS_VERSION}/terraform-provider-coreos_linux_amd64.tar.gz
+RUN wget https://github.com/Samsung-AG/terraform-provider-execute/releases/download/${TERRAFORM_EXECUTE_VERSION}/terraform-provider-execute_linux_amd64.tar.gz
+RUN wget https://github.com/Samsung-AG/terraform-provider-coreosver/releases/download/${TERRAFORM_COREOSVER_VERSION}/terraform-provider-coreosver_linux_amd64.tar.gz
+RUN tar -xvf terraform-provider-coreos_linux_amd64.tar.gz\
+    && tar -xvf terraform-provider-coreosver_linux_amd64.tar.gz \
+    && tar -xvf terraform-provider-execute_linux_amd64.tar.gz \
+    && rm terraform-provider-*.tar.gz \
+    && mv terraform-provider-* terraform
 
-# some of ruby's build scripts are written in ruby
-# we purge this later to make sure our final image uses what we just built
-RUN buildDeps=' \
-        autoconf \
-        bison \
-        build-essential \
-        openssl \
-        gcc \
-        libbz2-dev \
-        libgdbm-dev \
-        libglib2.0-dev \
-        libncurses-dev \
-        libreadline-dev \
-        libxml2-dev \
-        libxslt-dev \
-        libreadline6 \
-        libreadline6-dev \
-        curl \
-        git-core \
-        zlib1g \
-        zlib1g-dev \
-        libssl-dev \
-        libyaml-dev \
-        libc6-dev \
-        ncurses-dev \
-        automake \
-        libtool \
-        make \
-        ruby \
-    ' \
-    && set -x \
-    && apt-get update \
-    && apt-get install -y --force-yes --no-install-recommends $buildDeps \
-    && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /usr/src/ruby \
-    && curl -SL "http://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR/ruby-$RUBY_VERSION.tar.bz2" \
-        | tar -xjC /usr/src/ruby --strip-components=1 \
-    && cd /usr/src/ruby \
-    && autoconf \
-    && ./configure --disable-install-doc \
-    && make -j"$(nproc)" \
-    && make install \
-    && rm -r /usr/src/ruby
+# install all binaries
+RUN cp terraform/* /usr/local/bin
+
+# cleanup
+RUN rm -rf terraform
 
 # skip installing gem documentation
 RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
 
-RUN gem install bundler
+# ruby and ansible
+RUN apt-get update \
+    && apt-get install -y --force-yes software-properties-common \
+    && apt-get update \
+    && apt-get install -y --force-yes \
+      ruby \
+      ansible \
+      ruby-dev \
+      build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# install vagrant
-RUN wget https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.deb
-RUN DEBIAN_FRONTEND=noninteractive dpkg -i vagrant_1.7.2_x86_64.deb
+# install bundler and other gems
+RUN gem install bundler aruba cucumber
 
 # install kubectl
-RUN wget https://github.com/GoogleCloudPlatform/kubernetes/releases/download/v0.17.1/kubernetes.tar.gz
+RUN wget https://github.com/GoogleCloudPlatform/kubernetes/releases/download/${KUBERNETES_VERSION}/kubernetes.tar.gz
 RUN tar -xvf kubernetes.tar.gz
-RUN cp kubernetes/platforms/linux/amd64/kubectl /usr/bin
+RUN cp kubernetes/platforms/linux/amd64/kubectl /usr/bin && rm kubernetes.tar.gz
 
-# install the aws tools
-RUN wget https://s3.amazonaws.com/aws-cli/awscli-bundle.zip
-RUN unzip awscli-bundle.zip
-RUN awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
-RUN mkdir -p /root/.aws
-COPY config /root/.aws/config
-COPY credentials /root/.aws/credentials
+# install hipchat messaging script
 COPY hipchat_room_message /usr/local/bin/hipchat_room_message
 RUN chmod +x /usr/local/bin/hipchat_room_message
