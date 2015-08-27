@@ -85,10 +85,12 @@ vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify toke
 vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
 
 # set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_aws_user_prefix=&quot;pipelet&quot;
-export TF_VAR_aws_access_key=&quot;$(cat temp.json | jq &apos;.data.access_key&apos;)&quot;
-export TF_VAR_aws_secret_key=&quot;$(cat temp.json | jq &apos;.data.secret_key&apos;)&quot;
+export TF_VAR_aws_user_prefix=pipelet
+export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
+export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
 
+# wait a bit and start terraform
+sleep 30
 terraform apply -input=false -state=terraform/aws/terraform.tfstate terraform/aws
 
 # run tests
@@ -99,17 +101,20 @@ cucumber features/*_aws.feature</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command># revoke aws lease
-vault revoke -address=https://vault.kubeme.io/v1 -tls-skip-verify $(cat temp.json | jq &apos;.lease_id&apos;)
-
-# remove temp file
-export TF_VAR_aws_user_prefix=&quot;pipelet&quot;
-export TF_VAR_aws_access_key=&quot;$(cat temp.json | jq &apos;.data.access_key&apos;)&quot;
-export TF_VAR_aws_secret_key=&quot;$(cat temp.json | jq &apos;.data.secret_key&apos;)&quot;
-rm temp.json
+          <command>export TF_VAR_aws_user_prefix=pipelet
+export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
+export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
 
 # terraform destroy
 terraform destroy -input=false -force -state=terraform/aws/terraform.tfstate terraform/aws</command>
+        </hudson.tasks.Shell>
+        <hudson.tasks.Shell>
+          <command># revoke aws lease
+vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)</command>
+        </hudson.tasks.Shell>
+        <hudson.tasks.Shell>
+          <command># remove temp file
+rm temp.json</command>
         </hudson.tasks.Shell>
       </buildSteps>
       <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>

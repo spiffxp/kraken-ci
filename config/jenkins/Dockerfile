@@ -4,6 +4,7 @@ MAINTAINER Marat Garafutdinov <marat.g@samsung.com>
 USER root
 COPY plugins.txt /usr/share/jenkins/plugins.txt
 COPY keys /root/.ssh/
+RUN chmod 400 /root/.ssh/id_rsa
 
 # versions
 ENV TERRAFORM_VERSION 0.6.3
@@ -41,16 +42,27 @@ RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
 
 # ruby and ansible
 RUN apt-get update \
-    && apt-get install -y --force-yes software-properties-common \
-    && apt-get update \
     && apt-get install -y --force-yes \
       curl \
       jq \
       ruby \
-      ansible \
       ruby-dev \
       build-essential \
+      python-yaml \
+      python-jinja2 \
+      python-httplib2 \
+      python-keyczar \
+      python-paramiko \
+      python-setuptools \
+      python-pkg-resources \
+      git \
+      python-pip \
+      vim \
     && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir /etc/ansible/
+RUN pip install ansible
+COPY ansible.cfg /etc/ansible/ansible.cfg
 
 # install bundler and other gems
 RUN gem install bundler aruba cucumber
