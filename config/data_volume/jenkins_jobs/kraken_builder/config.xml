@@ -4,7 +4,7 @@
   <description>Build kraken cluster in AWS, test, tear it down</description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.11.3">
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
@@ -16,11 +16,12 @@
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.24">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.5">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -43,7 +44,7 @@
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
-    <org.jenkinsci.plugins.ghprb.GhprbTrigger plugin="ghprb@1.24.2">
+    <org.jenkinsci.plugins.ghprb.GhprbTrigger plugin="ghprb@1.26.2">
       <spec>H/5 * * * *</spec>
       <configVersion>1</configVersion>
       <adminlist>countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp</adminlist>
@@ -51,6 +52,7 @@
       <orgslist></orgslist>
       <cron>H/5 * * * *</cron>
       <triggerPhrase></triggerPhrase>
+      <buildDescTemplate></buildDescTemplate>
       <onlyTriggerPhrase>false</onlyTriggerPhrase>
       <useGitHubHooks>true</useGitHubHooks>
       <permitAll>false</permitAll>
@@ -64,17 +66,13 @@
       </whiteListTargetBranches>
       <project>kraken_builder</project>
       <__project class="project" reference="../../.."/>
-      <gitHubApiAuth>
-        <serverAPIUrl>https://api.github.com</serverAPIUrl>
-        <credentialsId>jenkins-github</credentialsId>
-        <id>a6bb6ec6-ac3f-44c6-8abb-0883024c2639</id>
-        <description>Github Jenkins Bot Account</description>
-        <secret></secret>
-      </gitHubApiAuth>
+      <gitHubAuthId>a6bb6ec6-ac3f-44c6-8abb-0883024c2639</gitHubAuthId>
       <extensions>
         <org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus>
           <commitStatusContext></commitStatusContext>
-          <completedStatus/>
+          <triggeredStatus></triggeredStatus>
+          <startedStatus></startedStatus>
+          <statusUrl></statusUrl>
         </org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus>
       </extensions>
     </org.jenkinsci.plugins.ghprb.GhprbTrigger>
@@ -82,18 +80,36 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>KRAKEN_CLUSTERS_PATH=${WORKSPACE}/kubernetes/clusters
-aws s3 cp s3://sundry-automata/settings/jenkins/clusters/aws/settings.yaml ${KRAKEN_CLUSTERS_PATH}/aws/
-bundle install
-kubernetes/kraken aws up
-kubernetes/kraken test aws</command>
+      <command># auth with vault and read credentials into a temp file
+vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
+vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
+
+# set required terraform variables to parsed out AWS creds and run terraform
+export TF_VAR_aws_user_prefix=&quot;pipelet&quot;
+export TF_VAR_aws_access_key=&quot;$(cat temp.json | jq &apos;.data.access_key&apos;)&quot;
+export TF_VAR_aws_secret_key=&quot;$(cat temp.json | jq &apos;.data.secret_key&apos;)&quot;
+
+terraform apply -input=false -state=terraform/aws/terraform.tfstate terraform/aws
+
+# run tests
+cucumber features/*_aws.feature</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>kubernetes/kraken aws destroy --force</command>
+          <command># revoke aws lease
+vault revoke -address=https://vault.kubeme.io/v1 -tls-skip-verify $(cat temp.json | jq &apos;.lease_id&apos;)
+
+# remove temp file
+export TF_VAR_aws_user_prefix=&quot;pipelet&quot;
+export TF_VAR_aws_access_key=&quot;$(cat temp.json | jq &apos;.data.access_key&apos;)&quot;
+export TF_VAR_aws_secret_key=&quot;$(cat temp.json | jq &apos;.data.secret_key&apos;)&quot;
+rm temp.json
+
+# terraform destroy
+terraform destroy -input=false -force -state=terraform/aws/terraform.tfstate terraform/aws</command>
         </hudson.tasks.Shell>
       </buildSteps>
       <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
@@ -114,5 +130,14 @@ kubernetes/kraken test aws</command>
       <completeJobMessage>Job $URL finished with $STATUS after $DURATION !</completeJobMessage>
     </jenkins.plugins.hipchat.HipChatNotifier>
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.5">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>vault-auth</credentialsId>
+          <variable>GITHUB_ORG_TOKEN</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
 </project>
