@@ -1,7 +1,4 @@
 - hosts: coreos
-  gather_facts: False
-  roles:
-    - defunctzombie.coreos-bootstrap
   tasks:
     - name: Install docker-py
       pip: name=docker-py
@@ -12,12 +9,16 @@
     - name: Install boto
       pip: name=boto
 
-    - name: HashiCorp Vault Build
-      shell: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
-
     - name: Kill off Vault container
       shell: docker rm -f hashicorp_vault
       ignore_errors: yes
+
+    - name: Kill off Vault container image
+      shell: docker rmi samsung_ag/hashicorp-vault
+      ignore_errors: yes
+
+    - name: HashiCorp Vault Build
+      shell: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
 
     - name: Vault server
       shell: docker run -d -p 8200:8200 --name=hashicorp_vault --env VIRTUAL_HOST=vault.kubeme.io --env VIRTUAL_PORT=8200 --cap-add=IPC_LOCK --volume /home/core/config/vault/config.hcl:/config.hcl samsung_ag/hashicorp-vault server -config=/config.hcl -log-level=info -tls-skip-verify
@@ -222,7 +223,7 @@
         validate_certs: no
         method: POST
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        body: '{"policy": "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":\"iam:*\",\"Resource\":\"*\"}}"}'
+        body: '{"policy": "{\"Version\":\"2012-10-17\",\"Statement\":{\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}}"}'
         HEADER_Content-Type: application/json
         status_code: 204
 
