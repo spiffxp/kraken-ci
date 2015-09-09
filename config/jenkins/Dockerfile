@@ -7,7 +7,7 @@ COPY keys /root/.ssh/
 RUN chmod 400 /root/.ssh/id_rsa
 
 # versions
-ENV TERRAFORM_VERSION 0.6.3
+ENV TERRAFORM_VERSION v0.6.3
 ENV TERRAFORM_COREOS_VERSION v0.0.1
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSVER_VERSION v0.0.1
@@ -18,24 +18,25 @@ ENV VAULT_VERSION=0.2.0
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
 
 # get terraform
-RUN wget https://dl.bintray.com/mitchellh/terraform/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-RUN unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d terraform
+RUN wget https://github.com/Samsung-AG/homebrew-terraform/releases/download/${TERRAFORM_VERSION}/terraform-${TERRAFORM_VERSION}_linux64.tar.gz
 
-# install custom providers
+# get custom providers
 RUN wget https://github.com/Samsung-AG/homebrew-terraform-provider-coreos/releases/download/${TERRAFORM_COREOS_VERSION}/terraform-provider-coreos_linux_amd64.tar.gz
 RUN wget https://github.com/Samsung-AG/terraform-provider-execute/releases/download/${TERRAFORM_EXECUTE_VERSION}/terraform-provider-execute_linux_amd64.tar.gz
 RUN wget https://github.com/Samsung-AG/terraform-provider-coreosver/releases/download/${TERRAFORM_COREOSVER_VERSION}/terraform-provider-coreosver_linux_amd64.tar.gz
-RUN tar -xvf terraform-provider-coreos_linux_amd64.tar.gz\
+
+# decompress everything
+RUN tar -xvf terraform-${TERRAFORM_VERSION}_linux64.tar.gz \
+    && tar -xvf terraform-provider-coreos_linux_amd64.tar.gz \
     && tar -xvf terraform-provider-coreosver_linux_amd64.tar.gz \
     && tar -xvf terraform-provider-execute_linux_amd64.tar.gz \
-    && rm terraform-provider-*.tar.gz \
-    && mv terraform-provider-* terraform
+    && rm terraform*.tar.gz
 
 # install all binaries
-RUN cp terraform/* /usr/local/bin
+RUN cp terraform* /usr/local/bin
 
 # cleanup
-RUN rm -rf terraform
+RUN rm terraform*
 
 # skip installing gem documentation
 RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
