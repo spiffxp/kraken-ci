@@ -1,6 +1,7 @@
+[ci]
 ci ansible_ssh_host=${public_ip}
 
-[coreos]
+[coreos:children]
 ci
 
 [coreos:vars]

@@ -91,7 +91,7 @@ export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos
 
 # wait a bit and start terraform
 sleep 30
-terraform apply -input=false -state=terraform/aws/terraform.tfstate terraform/aws
+terraform apply -input=false -state=terraform/aws/terraform.tfstate -var 'asg_wait_single=60' -var 'asg_wait_total=10' -var 'kraken_repo.commit_sha=${ghprbActualCommit}' terraform/aws 
 
 # run tests
 cucumber features/*_aws.feature</command>
