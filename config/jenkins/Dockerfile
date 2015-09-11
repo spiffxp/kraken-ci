@@ -81,3 +81,6 @@ RUN wget https://dl.bintray.com/mitchellh/vault/vault_${VAULT_VERSION}_linux_amd
 # install hipchat messaging script
 COPY hipchat_room_message /usr/local/bin/hipchat_room_message
 RUN chmod +x /usr/local/bin/hipchat_room_message
+
+# install awscli
+RUN pip install awscli
