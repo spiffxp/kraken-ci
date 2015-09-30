@@ -41,7 +41,7 @@ RUN rm terraform*
 # skip installing gem documentation
 RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
 
-# ruby and ansible
+# ruby, ansible and golang
 RUN apt-get update \
     && apt-get install -y --force-yes \
       curl \
@@ -59,8 +59,10 @@ RUN apt-get update \
       git \
       python-pip \
       vim \
+      golang \
     && rm -rf /var/lib/apt/lists/*
-
+    
+ENV GOROOT=/usr/lib/go
 RUN mkdir /etc/ansible/
 RUN pip install ansible
 COPY ansible.cfg /etc/ansible/ansible.cfg

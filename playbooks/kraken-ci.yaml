@@ -86,3 +86,4 @@
           - /usr/bin/docker:/bin/docker
           - /usr/lib/libdevmapper.so.1.02:/usr/lib/libdevmapper.so.1.02
           - /var/run:/ansible
+          - /opt/gobuild:/opt/gobuild
