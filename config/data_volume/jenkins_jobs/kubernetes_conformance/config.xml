@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Runs kubernetes conformance tests</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>100</daysToKeep>
+    <numToKeep>300</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
+      <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_TESTS_BRANCH</name>
+          <description>Kubernetes conformance tests branch</description>
+          <defaultValue>conformance-test-v1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@github.com:Samsung-AG/kraken.git</url>
+        <credentialsId>jenkins-github</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.12.0">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># auth with vault and read credentials into a temp file
+vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
+vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
+
+# set required terraform variables to parsed out AWS creds and run terraform
+export TF_VAR_aws_user_prefix=pipeletconformance
+export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
+export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+
+# wait a bit and start terraform
+sleep 30
+terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var &apos;asg_wait_single=60&apos; -var &apos;asg_wait_total=10&apos; ${WORKSPACE}/terraform/aws</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command># build the tests
+rm -rf /opt/gobuild/kubernetes
+cd /opt/gobuild
+git clone -b ${KUBE_TESTS_BRANCH} https://github.com/kubernetes/kubernetes.git
+cd kubernetes
+make clean
+yes | make quick-release
+
+# create kube config
+cat &gt; /opt/gobuild/kubernetes/kubeconfig &lt;&lt;EOF
+apiVersion: v1
+clusters:
+- cluster:
+    api-version: v1
+    server: http://pipeletconformance-master.kubeme.io:8080
+  name:
+contexts: []
+current-context: &quot;&quot;
+kind: Config
+preferences: {}
+users: []
+EOF
+
+# run the tests
+KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
+      <buildSteps>
+        <hudson.tasks.Shell>
+          <command>export TF_VAR_aws_user_prefix=pipeletconformance
+export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
+export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+
+# terraform destroy
+terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws</command>
+        </hudson.tasks.Shell>
+        <hudson.tasks.Shell>
+          <command># revoke aws lease
+vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)</command>
+        </hudson.tasks.Shell>
+        <hudson.tasks.Shell>
+          <command># remove temp file
+rm temp.json</command>
+        </hudson.tasks.Shell>
+      </buildSteps>
+      <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
+      <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
+      <markBuildUnstable>false</markBuildUnstable>
+    </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
+    <jenkins.plugins.hipchat.HipChatNotifier plugin="hipchat@0.1.9">
+      <token></token>
+      <room>Pipeline</room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <startJobMessage>Job $URL started: $CHANGES_OR_CAUSE</startJobMessage>
+      <completeJobMessage>Job $URL finished with $STATUS after $DURATION !</completeJobMessage>
+    </jenkins.plugins.hipchat.HipChatNotifier>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.5">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>vault-auth</credentialsId>
+          <variable>GITHUB_ORG_TOKEN</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>
