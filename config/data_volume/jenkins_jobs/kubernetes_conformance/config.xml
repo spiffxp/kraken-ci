@@ -90,9 +90,6 @@ EOF
 # run the tests
 KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh &gt; /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log
 
-# copy the log file to S3
-aws s3 cp /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance
-
 </command>
     </hudson.tasks.Shell>
   </builders>
@@ -100,7 +97,12 @@ aws s3 cp /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://krak
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>export TF_VAR_aws_user_prefix=pipeletconformance
+          <command># copy the log file to S3
+export AWS_ACCESS_KEY_ID=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
+export AWS_SECRET_ACCESS_KEY=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+aws s3 cp /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance
+
+export TF_VAR_aws_user_prefix=pipeletconformance
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
 
@@ -138,7 +140,8 @@ rm temp.json</command>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
+STATUS=${STATUS}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>update-gh-pages, </projects>
