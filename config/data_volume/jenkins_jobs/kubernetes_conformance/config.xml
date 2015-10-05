@@ -2,12 +2,6 @@
 <project>
   <actions/>
   <description>Runs kubernetes conformance tests</description>
-  <logRotator class="hudson.tasks.LogRotator">
-    <daysToKeep>100</daysToKeep>
-    <numToKeep>300</numToKeep>
-    <artifactDaysToKeep>-1</artifactDaysToKeep>
-    <artifactNumToKeep>-1</artifactNumToKeep>
-  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
@@ -37,7 +31,7 @@
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>*/master</name>
+        <name>master</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -94,7 +88,12 @@ users: []
 EOF
 
 # run the tests
-KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh</command>
+KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh &gt; /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log
+
+# copy the log file to S3
+aws s3 cp /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance
+
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -134,6 +133,20 @@ rm temp.json</command>
       <startJobMessage>Job $URL started: $CHANGES_OR_CAUSE</startJobMessage>
       <completeJobMessage>Job $URL finished with $STATUS after $DURATION !</completeJobMessage>
     </jenkins.plugins.hipchat.HipChatNotifier>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.27">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>update-gh-pages, </projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
   </publishers>
   <buildWrappers>
     <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.5">
