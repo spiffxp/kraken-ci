@@ -54,9 +54,9 @@
       <command>POSTNAME=$(date +&quot;%Y-%m-%d-Job-${KRAKEN_COMMIT}.md&quot;)
 TIMESTAMP=$(date +&quot;%Y-%m-%d %H:%M:%S&quot;)
 
-mkdir -p ${WORKSPACE}/gh-pages/_posts
+mkdir -p ${WORKSPACE}/_posts
 
-cat &gt; ${WORKSPACE}/gh-pages/_posts/${POSTNAME} &lt;&lt;EOF
+cat &gt; ${WORKSPACE}/_posts/${POSTNAME} &lt;&lt;EOF
 ---
 layout:     post
 title:      Commit ${KRAKEN_COMMIT}
