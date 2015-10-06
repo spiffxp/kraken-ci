@@ -60,7 +60,7 @@ summary:    Conformance test log for commit ${KRAKEN_COMMIT}.
 category:   jekyll
 ---
 
-Test run was successful: [Log File](http://s3-us-west-2.amazonaws.com/kraken-e2e-logs/conformance/kraken_${KRAKEN_COMMIT}_conformance.log)
+Test run failed: [Log File](http://s3-us-west-2.amazonaws.com/kraken-e2e-logs/conformance/kraken_${KRAKEN_COMMIT}_conformance.log)
 EOF
 
 git config user.email &quot;maratoid+samsungjenkins@gmail.com&quot;

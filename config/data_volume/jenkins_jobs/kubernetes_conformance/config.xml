@@ -88,9 +88,7 @@ users: []
 EOF
 
 # run the tests
-KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh &gt; /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log
-
-</command>
+KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh &gt; /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -100,7 +98,7 @@ KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test
           <command># copy the log file to S3
 export AWS_ACCESS_KEY_ID=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export AWS_SECRET_ACCESS_KEY=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-aws s3 cp --acl public-read /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance
+aws s3 cp --acl public-read /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
 
 export TF_VAR_aws_user_prefix=pipeletconformance
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
@@ -140,12 +138,21 @@ rm temp.json</command>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
-STATUS=${STATUS}</properties>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>update-gh-pages, </projects>
-          <condition>ALWAYS</condition>
+          <condition>SUCCESS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>update-gh-pages-failure, </projects>
+          <condition>UNSTABLE_OR_WORSE</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
       </configs>
