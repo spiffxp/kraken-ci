@@ -12,7 +12,8 @@ ENV TERRAFORM_COREOS_VERSION v0.0.1
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSVER_VERSION v0.0.1
 ENV KUBERNETES_VERSION v1.0.3
-ENV VAULT_VERSION=0.2.0
+ENV FLEET_VERSION v0.11.5
+ENV VAULT_VERSION 0.2.0
 
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
@@ -74,6 +75,12 @@ RUN gem install bundler aruba cucumber
 RUN wget https://github.com/GoogleCloudPlatform/kubernetes/releases/download/${KUBERNETES_VERSION}/kubernetes.tar.gz
 RUN tar -xvf kubernetes.tar.gz
 RUN cp kubernetes/platforms/linux/amd64/kubectl /usr/bin && rm kubernetes.tar.gz
+
+# install fleetctl
+wget https://github.com/coreos/fleet/releases/download/${FLEET_VERSION}/fleet-${FLEET_VERSION}-linux-amd64.tar.gz
+RUN tar -xvf fleet-${FLEET_VERSION}-linux-amd64.tar.gz
+RUN cp fleet-${FLEET_VERSION}-linux-amd64/fleetctl /usr/bin && rm fleet-${FLEET_VERSION}-linux-amd64.tar.gz
+
 
 # install vault cli
 RUN wget https://dl.bintray.com/mitchellh/vault/vault_${VAULT_VERSION}_linux_amd64.zip \

@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_COMMIT</name>
+          <description>commit SHA</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>export K8SROOT=/opt/gobuild/kubernetes
+cd ${K8SROOT}
+
+rm -rf ${WORKSPACE}/e2e_output
+mkdir ${WORKSPACE}/e2e_output
+
+${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
+  ${K8SROOT}/_output/dockerized/bin/linux/amd64/e2e.test \
+  -- \
+    --kubeconfig=${K8SROOT}/kubeconfig \
+    --repo-root=${K8SROOT} \
+    --num-nodes=4 \
+    --ginkgo.v=true \
+    --ginkgo.focus=&quot;should allow starting 100 pods per node&quot; \
+    --ginkgo.skip=&quot;(^Density)&quot; \
+    --provider= \
+    --gce-project= \
+    --gce-zone= \
+    --gke-cluster= \
+    --kube-master= \
+    --cluster-tag= \
+    --node-instance-group= \
+    --prefix=e2e \
+    --e2e-output-dir=${WORKSPACE}/e2e_output &gt; /opt/gobuild/kubernetes/kraken_${KRAKEN_COMMIT}_density.log</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
