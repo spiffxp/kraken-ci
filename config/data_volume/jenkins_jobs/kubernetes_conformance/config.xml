@@ -159,8 +159,8 @@ EOF</command>
           <command># copy the log file to S3
 export AWS_ACCESS_KEY_ID=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export AWS_SECRET_ACCESS_KEY=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-aws s3 cp --acl public-read /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
-aws s3 cp --acl public-read /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
+aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
+aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
 
 export TF_VAR_aws_user_prefix=pipeletconformance
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
