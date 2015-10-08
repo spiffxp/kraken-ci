@@ -201,7 +201,7 @@ rm temp.json</command>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KRAKEN_COMMIT=${GIT_COMMIT}
-TEST_RESULT=&quot;Test run succeeded&quot;</properties>
+TEST_RESULT=Test run succeeded</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>update-gh-pages,</projects>
@@ -212,7 +212,7 @@ TEST_RESULT=&quot;Test run succeeded&quot;</properties>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KRAKEN_COMMIT=${GIT_COMMIT}
-TEST_RESULT=&quot;Test run failed&quot;</properties>
+TEST_RESULT=Test run failed</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>update-gh-pages,</projects>
