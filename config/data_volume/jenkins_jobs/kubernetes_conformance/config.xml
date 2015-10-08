@@ -61,7 +61,7 @@ export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos
 
 # wait a bit and start terraform
 sleep 30
-terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var &apos;asg_wait_single=60&apos; -var &apos;asg_wait_total=10&apos; ${WORKSPACE}/terraform/aws</command>
+terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var &apos;asg_wait_single=60&apos; -var &apos;asg_wait_total=10&apos; -var &apos;aws_node_type=m3.large&apos; ${WORKSPACE}/terraform/aws</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command># build the tests
@@ -85,11 +85,72 @@ current-context: &quot;&quot;
 kind: Config
 preferences: {}
 users: []
-EOF
-
-# run the tests
-KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh &gt; /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log</command>
+EOF</command>
     </hudson.tasks.Shell>
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>kubernetes_conformance_test</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block>
+            <unstableThreshold>
+              <name>UNSTABLE</name>
+              <ordinal>1</ordinal>
+              <color>YELLOW</color>
+              <completeBuild>true</completeBuild>
+            </unstableThreshold>
+            <failureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+              <completeBuild>true</completeBuild>
+            </failureThreshold>
+          </block>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>kubernetes_density_test</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block>
+            <buildStepFailureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+              <completeBuild>true</completeBuild>
+            </buildStepFailureThreshold>
+            <unstableThreshold>
+              <name>UNSTABLE</name>
+              <ordinal>1</ordinal>
+              <color>YELLOW</color>
+              <completeBuild>true</completeBuild>
+            </unstableThreshold>
+            <failureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+              <completeBuild>true</completeBuild>
+            </failureThreshold>
+          </block>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
   </builders>
   <publishers>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
@@ -99,6 +160,7 @@ KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test
 export AWS_ACCESS_KEY_ID=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export AWS_SECRET_ACCESS_KEY=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
 aws s3 cp --acl public-read /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
+aws s3 cp --acl public-read /opt/gobuild/kubernetes/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
 
 export TF_VAR_aws_user_prefix=pipeletconformance
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
@@ -138,20 +200,22 @@ rm temp.json</command>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
+TEST_RESULT=&quot;Test run succeeded&quot;</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>update-gh-pages, </projects>
+          <projects>update-gh-pages,</projects>
           <condition>SUCCESS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
         <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
+TEST_RESULT=&quot;Test run failed&quot;</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>update-gh-pages-failure, </projects>
+          <projects>update-gh-pages,</projects>
           <condition>UNSTABLE_OR_WORSE</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
