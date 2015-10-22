@@ -11,7 +11,7 @@ ENV TERRAFORM_VERSION v0.6.3.2
 ENV TERRAFORM_COREOS_VERSION v0.0.1
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSVER_VERSION v0.0.1
-ENV KUBERNETES_VERSION v1.0.3
+ENV KUBERNETES_VERSION v1.0.6
 ENV FLEET_VERSION v0.11.5
 ENV VAULT_VERSION 0.2.0
 
@@ -77,7 +77,7 @@ RUN tar -xvf kubernetes.tar.gz
 RUN cp kubernetes/platforms/linux/amd64/kubectl /usr/bin && rm kubernetes.tar.gz
 
 # install fleetctl
-wget https://github.com/coreos/fleet/releases/download/${FLEET_VERSION}/fleet-${FLEET_VERSION}-linux-amd64.tar.gz
+RUN wget https://github.com/coreos/fleet/releases/download/${FLEET_VERSION}/fleet-${FLEET_VERSION}-linux-amd64.tar.gz
 RUN tar -xvf fleet-${FLEET_VERSION}-linux-amd64.tar.gz
 RUN cp fleet-${FLEET_VERSION}-linux-amd64/fleetctl /usr/bin && rm fleet-${FLEET_VERSION}-linux-amd64.tar.gz
 
