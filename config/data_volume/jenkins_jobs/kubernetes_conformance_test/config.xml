@@ -2,6 +2,12 @@
 <project>
   <actions/>
   <description></description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>100</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -27,8 +33,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>cd /opt/gobuild/kubernetes
-KUBECONFIG=/opt/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh &gt; /opt/gobuild/kubernetes/kraken_${KRAKEN_COMMIT}_conformance.log</command>
+      <command>cd /var/lib/docker/gobuild/kubernetes
+KUBECONFIG=/var/lib/docker/gobuild/kubernetes/kubeconfig USER=jenkins hack/conformance-test.sh &gt; /var/lib/docker/gobuild/kubernetes/kraken_${KRAKEN_COMMIT}_conformance.log</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>

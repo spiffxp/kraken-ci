@@ -2,6 +2,12 @@
 <project>
   <actions/>
   <description></description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>100</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -27,7 +33,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>export K8SROOT=/opt/gobuild/kubernetes
+      <command>export K8SROOT=/var/lib/docker/gobuild/kubernetes
 cd ${K8SROOT}
 
 rm -rf ${WORKSPACE}/e2e_output
@@ -50,7 +56,7 @@ ${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
     --cluster-tag= \
     --node-instance-group= \
     --prefix=e2e \
-    --e2e-output-dir=${WORKSPACE}/e2e_output &gt; /opt/gobuild/kubernetes/kraken_${KRAKEN_COMMIT}_density.log</command>
+    --e2e-output-dir=${WORKSPACE}/e2e_output &gt; ${K8SROOT}/kubernetes/kraken_${KRAKEN_COMMIT}_density.log</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
