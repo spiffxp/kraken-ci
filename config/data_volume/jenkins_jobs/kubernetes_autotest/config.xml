@@ -10,6 +10,12 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.1">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
@@ -33,6 +39,21 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
           <name>DENSITIES</name>
           <description>space-separated pod densities</description>
           <defaultValue>3 15 30</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>API_SERVER_COUNT</name>
+          <description>size of api server pool</description>
+          <defaultValue>1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ETCD_TYPE</name>
+          <description>etcd aws type</description>
+          <defaultValue>m4.2xlarge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>NODE_TYPE</name>
+          <description>autoscaled node aws type</description>
+          <defaultValue>m3.medium</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -81,10 +102,12 @@ export TF_VAR_asg_wait_total=10
 # autotest cluster values
 export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
 export TF_VAR_kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}
-export TF_VAR_aws_node_type=m3.medium
-export TF_VAR_aws_etcd_type=m4.2xlarge
+export TF_VAR_aws_node_type=${NODE_TYPE}
+export TF_VAR_aws_etcd_type=${ETCD_TYPE}
 export TF_VAR_aws_master_type=m4.2xlarge
 export TF_VAR_aws_apiserver_type=m4.2xlarge
+export TF_VAR_aws_storage_type_etcd=ephemeral
+export TF_VAR_apiserver_count=${API_SERVER_COUNT}
 
 # wait a bit and start terraform
 sleep 30

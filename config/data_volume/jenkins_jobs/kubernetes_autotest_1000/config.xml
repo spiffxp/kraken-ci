@@ -76,7 +76,10 @@ EOF</command>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KUBERNETES_BINARIES_URI=https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64
 NUMBER_OF_NODES=1000
-DENSITIES=&quot;3 15 30&quot;</properties>
+DENSITIES=&quot;3 15 30&quot;
+API_SERVER_COUNT=10
+ETCD_TYPE=i2.8xlarge
+NODE_TYPE=t2.micro</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -113,7 +116,10 @@ DENSITIES=&quot;3 15 30&quot;</properties>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KUBERNETES_BINARIES_URI=https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74
 NUMBER_OF_NODES=1000
-DENSITIES=&quot;3 15 30&quot;</properties>
+DENSITIES=&quot;3 15 30&quot;
+API_SERVER_COUNT=10
+ETCD_TYPE=i2.8xlarge
+NODE_TYPE=t2.micro</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -150,7 +156,10 @@ DENSITIES=&quot;3 15 30&quot;</properties>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KUBERNETES_BINARIES_URI=https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9
 NUMBER_OF_NODES=1000
-DENSITIES=&quot;3 15 30&quot;</properties>
+DENSITIES=&quot;3 15 30&quot;
+API_SERVER_COUNT=10
+ETCD_TYPE=i2.8xlarge
+NODE_TYPE=t2.micro</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
