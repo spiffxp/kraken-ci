@@ -123,12 +123,12 @@ export K8SROOT=/var/lib/docker/gobuild/kubernetes_autotest
 cd ${K8SROOT}
 
 rm -rf ${WORKSPACE}/density_out
-mkdir ${WORKSPACE}/density_out
 
 set +e
 
 for i in ${DENSITIES};
 do
+  mkdir -p ${WORKSPACE}/density_out/$i
   ${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
     ${K8SROOT}/_output/dockerized/bin/linux/amd64/e2e.test \
     -- \
@@ -146,7 +146,7 @@ do
       --cluster-tag= \
       --node-instance-group= \
       --prefix=density \
-      --e2e-output-dir=${WORKSPACE}/density_out &gt; ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
+      --e2e-output-dir=${WORKSPACE}/density_out/$i &gt; ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
 done
 
 set -e </command>
