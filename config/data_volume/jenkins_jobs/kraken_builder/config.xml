@@ -112,7 +112,7 @@ export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
 
 # terraform destroy
-terraform destroy -input=false -force -state=terraform/aws/terraform.tfstate terraform/aws</command>
+until terraform destroy -input=false -force -state=terraform/aws/terraform.tfstate terraform/aws; do echo &quot;Retrying destroy ...&quot;; sleep 5; done</command>
         </hudson.tasks.Shell>
         <hudson.tasks.Shell>
           <command># revoke aws lease

@@ -16,17 +16,12 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>KUBE_TESTS_BRANCH</name>
-          <description>Kubernetes conformance tests branch</description>
-          <defaultValue>conformance-test-v1</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>KUBERNETES_BINARIES_URI</name>
           <description>Link to kubernetes binaries. For example:
 
 https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64 for 1.0.6
 https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74 for 1.1
-https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74 for trunk</description>
+https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</description>
           <defaultValue>https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -70,30 +65,6 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74 for trunk</
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.tasks.Shell>
-      <command># build the tests
-rm -rf /var/lib/docker/gobuild/kubernetes_autotest
-cd /var/lib/docker/gobuild
-git clone -b ${KUBE_TESTS_BRANCH} https://github.com/kubernetes/kubernetes.git ./kubernetes_autotest
-cd kubernetes_autotest
-make clean
-yes | make quick-release
-
-# create kube config
-cat &gt; /var/lib/docker/gobuild/kubernetes_autotest/kubeconfig &lt;&lt;EOF
-apiVersion: v1
-clusters:
-- cluster:
-    api-version: v1
-    server: http://pipeletautotest-master.kubeme.io:8080
-  name:
-contexts: []
-current-context: &quot;&quot;
-kind: Config
-preferences: {}
-users: []
-EOF</command>
-    </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command># create the cluster
 # auth with vault and read credentials into a temp file
@@ -179,7 +150,7 @@ export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
 
 # terraform destroy
-terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws; do echo &quot;Retrying destroy ...&quot;; sleep 5; done
 
 # revoke aws lease.
 vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)

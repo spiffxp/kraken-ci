@@ -46,7 +46,7 @@ ${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
     --repo-root=${K8SROOT} \
     --num-nodes=4 \
     --ginkgo.v=true \
-    --ginkgo.focus=&quot;should allow starting 100 pods per node&quot; \
+    --ginkgo.focus=&quot;should allow starting 30 pods per node&quot; \
     --ginkgo.skip=&quot;(^Density)&quot; \
     --provider= \
     --gce-project= \
