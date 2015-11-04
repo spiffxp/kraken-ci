@@ -1,0 +1,223 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Runs kubernetes conformance tests</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>-1</daysToKeep>
+    <numToKeep>100</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.1">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
+      <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBERNETES_BINARIES_URI</name>
+          <description>Link to kubernetes binaries. For example:
+
+https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64 for 1.0.6
+https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74 for 1.1
+https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</description>
+          <defaultValue>https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>NUMBER_OF_NODES</name>
+          <description>Number of kubernetes nodes</description>
+          <defaultValue>100</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DENSITIES</name>
+          <description>space-separated pod densities</description>
+          <defaultValue>3 15 30</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>API_SERVER_COUNT</name>
+          <description>size of api server pool</description>
+          <defaultValue>1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ETCD_TYPE</name>
+          <description>etcd aws type</description>
+          <defaultValue>m4.2xlarge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>NODE_TYPE</name>
+          <description>autoscaled node aws type</description>
+          <defaultValue>m3.medium</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TOTAL_WAIT</name>
+          <description>total number of 60 second waits</description>
+          <defaultValue>10</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@github.com:Samsung-AG/kraken.git</url>
+        <credentialsId>jenkins-github</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># create the cluster
+# auth with vault and read credentials into a temp file
+vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
+vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
+
+# set required terraform variables to parsed out AWS creds and run terraform
+export TF_VAR_cluster_name=pipeletautotest_aws
+export TF_VAR_aws_user_prefix=pipeletautotest
+export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
+export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+export TF_VAR_asg_wait_single=60
+export TF_VAR_asg_wait_total=${TOTAL_WAIT}
+
+# autotest cluster values
+export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
+export TF_VAR_kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}
+export TF_VAR_aws_node_type=${NODE_TYPE}
+export TF_VAR_aws_etcd_type=${ETCD_TYPE}
+export TF_VAR_aws_master_type=m4.2xlarge
+export TF_VAR_aws_apiserver_type=m4.2xlarge
+export TF_VAR_aws_storage_type_etcd=ephemeral
+export TF_VAR_apiserver_count=${API_SERVER_COUNT}
+
+# wait a bit and start terraform
+sleep 30
+terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+
+# revoke aws lease.
+vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command># run
+
+export K8SROOT=/var/lib/docker/gobuild/kubernetes_autotest
+cd ${K8SROOT}
+
+rm -rf ${WORKSPACE}/density_out
+
+set +e
+
+pod_densities=&quot;${DENSITIES%\&quot;}&quot;
+pod_densities=&quot;${pod_densities#\&quot;}&quot;
+
+for i in $pod_densities;
+do
+  mkdir -p ${WORKSPACE}/density_out/$i
+  ${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
+    ${K8SROOT}/_output/dockerized/bin/linux/amd64/e2e.test \
+    -- \
+      --kubeconfig=${K8SROOT}/kubeconfig \
+      --repo-root=${K8SROOT} \
+      --num-nodes=${NUMBER_OF_NODES} \
+      --ginkgo.v=true \
+      --ginkgo.focus=&quot;should allow starting $i pods per node&quot; \
+      --ginkgo.skip=&quot;(^Density)&quot; \
+      --provider= \
+      --gce-project= \
+      --gce-zone= \
+      --gke-cluster= \
+      --kube-master= \
+      --cluster-tag= \
+      --node-instance-group= \
+      --prefix=density \
+      --e2e-output-dir=${WORKSPACE}/density_out/$i &gt; ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
+done
+
+set -e </command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>density_out/**/*</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+    </hudson.tasks.ArtifactArchiver>
+    <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
+      <buildSteps>
+        <hudson.tasks.Shell>
+          <command># auth with vault again and read credentials into a temp file. The previous vault lease might have expired while the tests ran.
+vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
+vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
+sleep 30
+
+export TF_VAR_cluster_name=pipeletautotest_aws
+export TF_VAR_aws_user_prefix=pipeletautotest
+export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
+export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+
+# terraform destroy
+until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws; do echo &quot;Retrying destroy ...&quot;; sleep 5; done
+
+# revoke aws lease.
+vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
+
+# remove temp file
+rm temp.json</command>
+        </hudson.tasks.Shell>
+      </buildSteps>
+      <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
+      <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
+      <markBuildUnstable>false</markBuildUnstable>
+    </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
+    <jenkins.plugins.hipchat.HipChatNotifier plugin="hipchat@0.1.9">
+      <token></token>
+      <room>Pipeline</room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <startJobMessage>Job $URL started: $CHANGES_OR_CAUSE</startJobMessage>
+      <completeJobMessage>Job $URL finished with $STATUS after $DURATION !</completeJobMessage>
+    </jenkins.plugins.hipchat.HipChatNotifier>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.5">
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+          <credentialsId>vault-auth</credentialsId>
+          <variable>GITHUB_ORG_TOKEN</variable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>
