@@ -84,7 +84,8 @@ NUMBER_OF_NODES=1000
 DENSITIES=&quot;3 15 30&quot;
 API_SERVER_COUNT=10
 ETCD_TYPE=i2.8xlarge
-NODE_TYPE=t2.micro</properties>
+NODE_TYPE=t2.micro
+TOTAL_WAIT=60</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -124,7 +125,8 @@ NUMBER_OF_NODES=1000
 DENSITIES=&quot;3 15 30&quot;
 API_SERVER_COUNT=10
 ETCD_TYPE=i2.8xlarge
-NODE_TYPE=t2.micro</properties>
+NODE_TYPE=t2.micro
+TOTAL_WAIT=60</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -164,7 +166,8 @@ NUMBER_OF_NODES=1000
 DENSITIES=&quot;3 15 30&quot;
 API_SERVER_COUNT=10
 ETCD_TYPE=i2.8xlarge
-NODE_TYPE=t2.micro</properties>
+NODE_TYPE=t2.micro
+TOTAL_WAIT=60</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>

@@ -55,6 +55,11 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
           <description>autoscaled node aws type</description>
           <defaultValue>m3.medium</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TOTAL_WAIT</name>
+          <description>total number of 60 second waits</description>
+          <defaultValue>10</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -98,7 +103,7 @@ export TF_VAR_aws_user_prefix=pipeletautotest
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
 export TF_VAR_asg_wait_single=60
-export TF_VAR_asg_wait_total=10
+export TF_VAR_asg_wait_total=${TOTAL_WAIT}
 
 # autotest cluster values
 export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
