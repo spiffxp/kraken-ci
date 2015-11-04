@@ -73,8 +73,8 @@ category:   jekyll
 
 ${TEST_RESULT}
 
-Conformance test log: [Log File](http://s3-us-west-2.amazonaws.com/kraken-e2e-logs/conformance/kraken_${KRAKEN_COMMIT}_conformance.log)
-Density test log: [Log File](http://s3-us-west-2.amazonaws.com/kraken-e2e-logs/conformance/kraken_${KRAKEN_COMMIT}_density.log)
+Conformance test log: [Log File](http://s3-us-west-2.amazonaws.com/kraken-e2e-logs/conformance/kraken_${KRAKEN_COMMIT}_conformance.log)    
+Density test log: [Log File](http://s3-us-west-2.amazonaws.com/kraken-e2e-logs/conformance/kraken_${KRAKEN_COMMIT}_density.log)    
 EOF
 
 git config user.email &quot;maratoid+samsungjenkins@gmail.com&quot;
