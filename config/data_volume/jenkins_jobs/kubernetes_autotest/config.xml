@@ -155,7 +155,7 @@ do
       --prefix=density \
       --e2e-output-dir=${WORKSPACE}/density_out/$i &gt; ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
 
-  if [$? -ne 0]; then
+  if [ $? -ne 0 ]; then
     fail_step=true
     fi
 done
