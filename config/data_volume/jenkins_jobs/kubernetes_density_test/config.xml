@@ -10,6 +10,12 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.1">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -56,7 +62,7 @@ ${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
     --cluster-tag= \
     --node-instance-group= \
     --prefix=e2e \
-    --e2e-output-dir=${WORKSPACE}/e2e_output &gt; ${K8SROOT}/kubernetes/kraken_${KRAKEN_COMMIT}_density.log</command>
+    --e2e-output-dir=${WORKSPACE}/e2e_output &gt; ${K8SROOT}/kraken_${KRAKEN_COMMIT}_density.log</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>

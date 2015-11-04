@@ -93,6 +93,7 @@ vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify toke
 vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
 
 # set required terraform variables to parsed out AWS creds and run terraform
+export TF_VAR_cluster_name=pipeletautotest_aws
 export TF_VAR_aws_user_prefix=pipeletautotest
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
@@ -126,7 +127,10 @@ rm -rf ${WORKSPACE}/density_out
 
 set +e
 
-for i in ${DENSITIES};
+pod_densities=&quot;${DENSITIES%\&quot;}&quot;
+pod_densities=&quot;${pod_densities#\&quot;}&quot;
+
+for i in $pod_densities;
 do
   mkdir -p ${WORKSPACE}/density_out/$i
   ${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
@@ -168,6 +172,7 @@ vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify toke
 vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
 sleep 30
 
+export TF_VAR_cluster_name=pipeletautotest_aws
 export TF_VAR_aws_user_prefix=pipeletautotest
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)

@@ -22,9 +22,14 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
+          <name>KUBE_TESTS_REPO</name>
+          <description>Kubernetes conformance tests repo</description>
+          <defaultValue>https://github.com/Samsung-AG/kubernetes.git</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>KUBE_TESTS_BRANCH</name>
           <description>Kubernetes conformance tests branch</description>
-          <defaultValue>conformance-test-v1</defaultValue>
+          <defaultValue>density-1.1</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -49,7 +54,7 @@
       <command># build the tests
 rm -rf /var/lib/docker/gobuild/kubernetes_autotest
 cd /var/lib/docker/gobuild
-git clone -b ${KUBE_TESTS_BRANCH} https://github.com/kubernetes/kubernetes.git ./kubernetes_autotest
+git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./kubernetes_autotest
 cd kubernetes_autotest
 make clean
 yes | make quick-release

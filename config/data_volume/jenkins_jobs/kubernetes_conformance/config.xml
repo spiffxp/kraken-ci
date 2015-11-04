@@ -10,6 +10,12 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.1">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
@@ -61,6 +67,7 @@ vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify toke
 vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
 
 # set required terraform variables to parsed out AWS creds and run terraform
+export TF_VAR_cluster_name=pipeletconformance_aws
 export TF_VAR_aws_user_prefix=pipeletconformance
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
@@ -105,12 +112,6 @@ EOF</command>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <block>
-            <unstableThreshold>
-              <name>UNSTABLE</name>
-              <ordinal>1</ordinal>
-              <color>YELLOW</color>
-              <completeBuild>true</completeBuild>
-            </unstableThreshold>
             <failureThreshold>
               <name>FAILURE</name>
               <ordinal>2</ordinal>
@@ -172,12 +173,15 @@ sleep 30
 </command>
         </hudson.tasks.Shell>
         <hudson.tasks.Shell>
-          <command># copy the log file to S3
+          <command>set +e
+# copy the log file to S3
 export AWS_ACCESS_KEY_ID=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export AWS_SECRET_ACCESS_KEY=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
 aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE /var/lib/docker/gobuild/kubernetes/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
 aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE /var/lib/docker/gobuild/kubernetes/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
+set -e
 
+export TF_VAR_cluster_name=pipeletconformance_aws
 export TF_VAR_aws_user_prefix=pipeletconformance
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
