@@ -63,4 +63,4 @@ git:2.4.0
 cloudbees-folder:4.9
 rebuild:1.25
 build-flow-plugin:0.18
-build-blocker-plugin:1.7.1
+build-blocker-plugin:1.6

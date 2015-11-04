@@ -10,11 +10,8 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.1">
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.6">
       <useBuildBlocker>false</useBuildBlocker>
-      <blockLevel>GLOBAL</blockLevel>
-      <scanQueueFor>DISABLED</scanQueueFor>
-      <blockingJobs></blockingJobs>
     </hudson.plugins.buildblocker.BuildBlockerProperty>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
@@ -132,6 +129,7 @@ rm -rf ${WORKSPACE}/density_out
 
 set +e
 
+fail_step=false
 pod_densities=&quot;${DENSITIES%\&quot;}&quot;
 pod_densities=&quot;${pod_densities#\&quot;}&quot;
 
@@ -156,9 +154,17 @@ do
       --node-instance-group= \
       --prefix=density \
       --e2e-output-dir=${WORKSPACE}/density_out/$i &gt; ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
+
+  if [$? -ne 0]; then
+    fail_step=true
+    fi
 done
 
-set -e </command>
+set -e
+
+if [ &quot;$fail_step&quot; = true ] ; then
+    exit 1
+fi</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -172,18 +178,37 @@ set -e </command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command># auth with vault again and read credentials into a temp file. The previous vault lease might have expired while the tests ran.
-vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-sleep 30
+          <command>vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
 
 export TF_VAR_cluster_name=pipeletautotest_aws
 export TF_VAR_aws_user_prefix=pipeletautotest
+
+# auth with vault again and read credentials into a temp file. The previous vault lease might have expired while the tests ran.
+vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
+vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
 export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
 export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+sleep 30
 
-# terraform destroy
-until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws; do echo &quot;Retrying destroy ...&quot;; sleep 5; done
+retries=10
+until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+do
+  if [ $retries -eq 0 ]; then
+    echo &quot;Destroy failed ...&quot;
+    vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
+    rm temp.json
+    exit 1
+  fi
+
+  retries=$((retries - 1))
+  echo &quot;Retrying destroy ...&quot;
+  vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
+  vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
+  vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
+  export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
+  export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+  sleep 30
+done
 
 # revoke aws lease.
 vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
