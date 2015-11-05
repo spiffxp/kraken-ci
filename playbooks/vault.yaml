@@ -52,7 +52,7 @@
         url: "{{vault_uri}}/v1/sys/init"
         validate_certs: no
         method: PUT
-        body: '{"secret_shares":1, "secret_threshold":1}'
+        body: '{"set_shares":1, "secret_threshold":1}'
         HEADER_Content-Type: application/json
         return_content: yes
       register: result
@@ -115,7 +115,7 @@
         validate_certs: no
         method: DELETE
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        status_code: 204,500
+        status_code: 204,500,400
 
     - name: Mount github auth backend
       uri:
@@ -159,7 +159,7 @@
         validate_certs: no
         method: DELETE
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        status_code: 204,500
+        status_code: 204,500,400
 
     - name: Mount generic secret backend
       uri:
@@ -177,7 +177,7 @@
         validate_certs: no
         method: DELETE
         HEADER_X-Vault-Token: "{{vault_init_data['root_token']}}"
-        status_code: 204,500
+        status_code: 204,500,400
 
     - name: Mount AWS secret backend
       uri:

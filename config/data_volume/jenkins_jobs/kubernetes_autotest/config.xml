@@ -4,7 +4,7 @@
   <description>Runs kubernetes conformance tests</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
-    <numToKeep>100</numToKeep>
+    <numToKeep>3</numToKeep>
     <artifactDaysToKeep>-1</artifactDaysToKeep>
     <artifactNumToKeep>-1</artifactNumToKeep>
   </logRotator>
@@ -90,15 +90,11 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
   <builders>
     <hudson.tasks.Shell>
       <command># create the cluster
-# auth with vault and read credentials into a temp file
-vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-
 # set required terraform variables to parsed out AWS creds and run terraform
 export TF_VAR_cluster_name=pipeletautotest_aws
 export TF_VAR_aws_user_prefix=pipeletautotest
-export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+export TF_VAR_aws_access_key=${AWS_KEY_ID}
+export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 export TF_VAR_asg_wait_single=60
 export TF_VAR_asg_wait_total=${TOTAL_WAIT}
 
@@ -112,12 +108,8 @@ export TF_VAR_aws_apiserver_type=m4.2xlarge
 export TF_VAR_aws_storage_type_etcd=ephemeral
 export TF_VAR_apiserver_count=${API_SERVER_COUNT}
 
-# wait a bit and start terraform
-sleep 30
-terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
-
-# revoke aws lease.
-vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)</command>
+# start terraform
+terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command># run
@@ -178,43 +170,23 @@ fi</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-
-export TF_VAR_cluster_name=pipeletautotest_aws
+          <command>export TF_VAR_cluster_name=pipeletautotest_aws
 export TF_VAR_aws_user_prefix=pipeletautotest
-
-# auth with vault again and read credentials into a temp file. The previous vault lease might have expired while the tests ran.
-vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-sleep 30
+export TF_VAR_aws_access_key=${AWS_KEY_ID}
+export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
 retries=10
 until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
 do
   if [ $retries -eq 0 ]; then
     echo &quot;Destroy failed ...&quot;
-    vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-    rm temp.json
     exit 1
   fi
 
   retries=$((retries - 1))
   echo &quot;Retrying destroy ...&quot;
-  vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-  vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-  vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-  export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-  export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-  sleep 30
-done
-
-# revoke aws lease.
-vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-
-# remove temp file
-rm temp.json</command>
+  sleep 10
+done</command>
         </hudson.tasks.Shell>
       </buildSteps>
       <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
@@ -236,13 +208,6 @@ rm temp.json</command>
     </jenkins.plugins.hipchat.HipChatNotifier>
   </publishers>
   <buildWrappers>
-    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.5">
-      <bindings>
-        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-          <credentialsId>vault-auth</credentialsId>
-          <variable>GITHUB_ORG_TOKEN</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-      </bindings>
-    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper/>
   </buildWrappers>
 </project>

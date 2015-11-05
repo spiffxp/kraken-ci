@@ -188,6 +188,7 @@ resource "aws_route53_record" "pipelet_route" {
   }
 }
 
+/*
 resource "aws_route53_record" "vault_route" {
   depends_on = ["aws_instance.pipelet_ec2"]
   zone_id = "${var.route53_zone_id}"
@@ -200,4 +201,5 @@ resource "aws_route53_record" "vault_route" {
     command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/vault.yaml -vvv"
   }
 }
+*/
 
