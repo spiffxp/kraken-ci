@@ -236,7 +236,7 @@ rm temp.json
 TEST_RESULT=Test run succeeded</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>update-gh-pages,</projects>
+          <projects>update-gh-pages</projects>
           <condition>SUCCESS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
@@ -247,7 +247,7 @@ TEST_RESULT=Test run succeeded</properties>
 TEST_RESULT=Test run failed</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>update-gh-pages,</projects>
+          <projects>update-gh-pages</projects>
           <condition>UNSTABLE_OR_WORSE</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
         </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
