@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description></description>
+  <description>builds ginkgo tests</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
     <numToKeep>100</numToKeep>
@@ -13,12 +13,30 @@
     <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.6">
       <useBuildBlocker>false</useBuildBlocker>
     </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
+      <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>KRAKEN_COMMIT</name>
-          <description>commit SHA</description>
-          <defaultValue></defaultValue>
+          <name>KUBE_TESTS_REPO</name>
+          <description>Kubernetes conformance tests repo</description>
+          <defaultValue>https://github.com/Samsung-AG/kubernetes.git</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_TESTS_BRANCH</name>
+          <description>Kubernetes conformance tests branch</description>
+          <defaultValue>density-1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>GINKGO_TARGET_DIR</name>
+          <description>where to clone test repo to under /var/lib/docker/gobuild/GINKGO_TARGET_DIR</description>
+          <defaultValue>/var/lib/docker/gobuild/kubernetes</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>CLUSTER_PREFIX</name>
+          <description>prefix for kubernetes cluster names</description>
+          <defaultValue>pipeletautotest</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -53,26 +71,33 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>cd /var/lib/docker/gobuild/kubernetes_conformance
-KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig USER=jenkins hack/conformance-test.sh &gt; ${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log</command>
+      <command># build the tests
+rm -rf /var/lib/docker/gobuild/${GINKGO_TARGET_DIR}
+cd /var/lib/docker/gobuild
+git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./${GINKGO_TARGET_DIR}
+cd ${GINKGO_TARGET_DIR}
+make clean
+yes | make
+
+# create kube config
+cat &gt; /var/lib/docker/gobuild/${GINKGO_TARGET_DIR}/kubeconfig &lt;&lt;EOF
+apiVersion: v1
+clusters:
+- cluster:
+    api-version: v1
+    server: http://${CLUSTER_PREFIX}-master.kubeme.io:8080
+  name:
+contexts: []
+current-context: &quot;&quot;
+kind: Config
+preferences: {}
+users: []
+EOF</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
-    <hudson.tasks.ArtifactArchiver>
-      <artifacts>kraken_${KRAKEN_COMMIT}_conformance.log</artifacts>
-      <allowEmptyArchive>false</allowEmptyArchive>
-      <onlyIfSuccessful>false</onlyIfSuccessful>
-      <fingerprint>false</fingerprint>
-      <defaultExcludes>true</defaultExcludes>
-    </hudson.tasks.ArtifactArchiver>
     <jenkins.plugins.slack.SlackNotifier plugin="slack@1.8">
     </jenkins.plugins.slack.SlackNotifier>
   </publishers>
-  <buildWrappers>
-    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.26">
-      <deleteDirs>false</deleteDirs>
-      <cleanupParameter></cleanupParameter>
-      <externalDelete></externalDelete>
-    </hudson.plugins.ws__cleanup.PreBuildCleanup>
-  </buildWrappers>
+  <buildWrappers/>
 </project>

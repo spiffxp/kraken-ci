@@ -68,6 +68,18 @@ resource "template_file" "hipchatconfig" {
   }
 }
 
+resource "template_file" "slackconfig" {
+  filename = "templates/jenkins.plugins.slack.SlackNotifier.xml.tpl"
+
+  vars {
+    slack_api_token = "${var.slack_api_token}"
+  }
+
+  provisioner "local-exec" {
+    command = "cat << 'EOF' > config/data_volume/rendered/configs/jenkins.plugins.slack.SlackNotifier.xml\n${self.rendered}\nEOF"
+  }
+}
+
 resource "template_file" "ansible_inventory" {
   filename = "templates/inventory.ansible.tpl"
 
@@ -75,6 +87,7 @@ resource "template_file" "ansible_inventory" {
     public_ip = "${aws_instance.pipelet_ec2.public_ip}"
     ci_host_dns = "${var.ci_hostname}"
     docker_api_version = "${var.docker_api_version}"
+    slack_api_token = "${var.slack_api_token}"
     hipchat_api_token = "${var.hipchat_api_token}"
     hipchat_room_id = "${var.hipchat_room_id}"
     vault_uri = "https://${var.vault_hostname}"

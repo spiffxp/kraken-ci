@@ -17,24 +17,27 @@
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
-    <hudson.model.ParametersDefinitionProperty>
-      <parameterDefinitions>
-        <hudson.model.StringParameterDefinition>
-          <name>KUBE_TESTS_REPO</name>
-          <description>Kubernetes conformance tests repo</description>
-          <defaultValue>https://github.com/Samsung-AG/kubernetes.git</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>KUBE_TESTS_BRANCH</name>
-          <description>Kubernetes conformance tests branch</description>
-          <defaultValue>density-1.1</defaultValue>
-        </hudson.model.StringParameterDefinition>
-      </parameterDefinitions>
-    </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.8">
+      <teamDomain></teamDomain>
+      <token></token>
+      <room></room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>true</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <notifyRepeatedFailure>false</notifyRepeatedFailure>
+      <includeTestSummary>false</includeTestSummary>
+      <showCommitList>false</showCommitList>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
@@ -48,123 +51,31 @@
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.tasks.Shell>
-      <command># clean up previously copied artifacts.
-rm -rf kubernetes_1.0.6
-rm -rf kubernetes_1.1
-rm -rf kubernetes_trunk
-
-# build the tests
-rm -rf /var/lib/docker/gobuild/kubernetes_autotest
-cd /var/lib/docker/gobuild
-git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./kubernetes_autotest
-cd kubernetes_autotest
-make clean
-yes | make
-
-# create kube config
-cat &gt; /var/lib/docker/gobuild/kubernetes_autotest/kubeconfig &lt;&lt;EOF
-apiVersion: v1
-clusters:
-- cluster:
-    api-version: v1
-    server: http://pipeletautotest-master.kubeme.io:8080
-  name:
-contexts: []
-current-context: &quot;&quot;
-kind: Config
-preferences: {}
-users: []
-EOF</command>
-    </hudson.tasks.Shell>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KUBERNETES_BINARIES_URI=https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64
-NUMBER_OF_NODES=100
+              <properties>NUMBER_OF_NODES=100
+KUBE_TESTS_REPO=https://github.com/Samsung-AG/kubernetes.git
+KUBE_TESTS_BRANCH=density-1.1
 DENSITIES=&quot;3 15 30&quot;
-CLUSTER_FROM_SCRATCH=true
-DESTROY_CLUSTER=false</properties>
+API_SERVER_COUNT=1
+ETCD_TYPE=m4.2xlarge
+NODE_TYPE=m3.medium
+TOTAL_WAIT=10</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>kubernetes_autotest</projects>
+          <projects>kubernetes_autotest_cycle</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <block>
-            <failureThreshold>
+            <buildStepFailureThreshold>
               <name>FAILURE</name>
               <ordinal>2</ordinal>
               <color>RED</color>
               <completeBuild>true</completeBuild>
-            </failureThreshold>
-          </block>
-          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
-        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-      </configs>
-    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
-    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
-      <project>kubernetes_autotest</project>
-      <filter></filter>
-      <target>kubernetes_1.0.6</target>
-      <excludes></excludes>
-      <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
-      <optional>true</optional>
-      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
-    </hudson.plugins.copyartifact.CopyArtifact>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
-      <configs>
-        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-          <configs>
-            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KUBERNETES_BINARIES_URI=https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74
-NUMBER_OF_NODES=100
-DENSITIES=&quot;3 15 30&quot;
-CLUSTER_FROM_SCRATCH=false
-DESTROY_CLUSTER=false</properties>
-            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-          </configs>
-          <projects>kubernetes_autotest</projects>
-          <condition>ALWAYS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
-          <block>
-            <failureThreshold>
-              <name>FAILURE</name>
-              <ordinal>2</ordinal>
-              <color>RED</color>
-              <completeBuild>true</completeBuild>
-            </failureThreshold>
-          </block>
-          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
-        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-      </configs>
-    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
-    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
-      <project>kubernetes_autotest</project>
-      <filter></filter>
-      <target>kubernetes_1.1</target>
-      <excludes></excludes>
-      <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
-      <optional>true</optional>
-      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
-    </hudson.plugins.copyartifact.CopyArtifact>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
-      <configs>
-        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-          <configs>
-            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KUBERNETES_BINARIES_URI=https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9
-NUMBER_OF_NODES=100
-DENSITIES=&quot;3 15 30&quot;
-CLUSTER_FROM_SCRATCH=false
-DESTROY_CLUSTER=true</properties>
-            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-          </configs>
-          <projects>kubernetes_autotest</projects>
-          <condition>ALWAYS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
-          <block>
+            </buildStepFailureThreshold>
             <unstableThreshold>
               <name>UNSTABLE</name>
               <ordinal>1</ordinal>
@@ -183,9 +94,9 @@ DESTROY_CLUSTER=true</properties>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
-      <project>kubernetes_autotest</project>
+      <project>kubernetes_autotest_cycle</project>
       <filter></filter>
-      <target>kubernetes_trunk</target>
+      <target>test_results</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
       <optional>true</optional>
@@ -194,12 +105,20 @@ DESTROY_CLUSTER=true</properties>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>kubernetes_1.0.6/**/*, kubernetes_1.1/**/*, kubernetes_trunk/**/*</artifacts>
+      <artifacts>test_results/**/*</artifacts>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@1.8">
+    </jenkins.plugins.slack.SlackNotifier>
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.26">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+  </buildWrappers>
 </project>
