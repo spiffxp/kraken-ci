@@ -154,8 +154,8 @@ pod_densities=&quot;${pod_densities#\&quot;}&quot;
 for i in $pod_densities;
 do
   mkdir -p ${WORKSPACE}/density_out/$i
-  ${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
-    ${K8SROOT}/_output/dockerized/bin/linux/amd64/e2e.test \
+  ${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
+    ${K8SROOT}/_output/local/bin/linux/amd64/e2e.test \
     -- \
       --kubeconfig=${K8SROOT}/kubeconfig \
       --repo-root=${K8SROOT} \

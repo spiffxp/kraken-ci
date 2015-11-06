@@ -85,7 +85,7 @@ cd /var/lib/docker/gobuild
 git clone -b ${KUBE_TESTS_BRANCH} https://github.com/kubernetes/kubernetes.git
 cd kubernetes
 make clean
-yes | make quick-release
+yes | make
 
 # create kube config
 cat &gt; /var/lib/docker/gobuild/kubernetes/kubeconfig &lt;&lt;EOF
