@@ -49,13 +49,18 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># build the tests
+      <command># clean up previously copied artifacts.
+rm -rf kubernetes_1.0.6
+rm -rf kubernetes_1.1
+rm -rf kubernetes_trunk
+
+# build the tests
 rm -rf /var/lib/docker/gobuild/kubernetes_autotest
 cd /var/lib/docker/gobuild
 git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./kubernetes_autotest
 cd kubernetes_autotest
 make clean
-yes | make quick-release
+yes | make
 
 # create kube config
 cat &gt; /var/lib/docker/gobuild/kubernetes_autotest/kubeconfig &lt;&lt;EOF
@@ -79,7 +84,9 @@ EOF</command>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KUBERNETES_BINARIES_URI=https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64
 NUMBER_OF_NODES=100
-DENSITIES=&quot;3 15 30&quot;</properties>
+DENSITIES=&quot;3 15 30&quot;
+CLUSTER_FROM_SCRATCH=true
+DESTROY_CLUSTER=false</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -103,6 +110,7 @@ DENSITIES=&quot;3 15 30&quot;</properties>
       <target>kubernetes_1.0.6</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
+      <optional>true</optional>
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
@@ -112,7 +120,9 @@ DENSITIES=&quot;3 15 30&quot;</properties>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KUBERNETES_BINARIES_URI=https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74
 NUMBER_OF_NODES=100
-DENSITIES=&quot;3 15 30&quot;</properties>
+DENSITIES=&quot;3 15 30&quot;
+CLUSTER_FROM_SCRATCH=false
+DESTROY_CLUSTER=false</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -136,6 +146,7 @@ DENSITIES=&quot;3 15 30&quot;</properties>
       <target>kubernetes_1.1</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
+      <optional>true</optional>
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
@@ -145,7 +156,9 @@ DENSITIES=&quot;3 15 30&quot;</properties>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KUBERNETES_BINARIES_URI=https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9
 NUMBER_OF_NODES=100
-DENSITIES=&quot;3 15 30&quot;</properties>
+DENSITIES=&quot;3 15 30&quot;
+CLUSTER_FROM_SCRATCH=false
+DESTROY_CLUSTER=true</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -175,15 +188,18 @@ DENSITIES=&quot;3 15 30&quot;</properties>
       <target>kubernetes_trunk</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
+      <optional>true</optional>
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
   </builders>
   <publishers>
-    <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
-      <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
-      <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
-      <markBuildUnstable>false</markBuildUnstable>
-    </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>kubernetes_1.0.6/**/*, kubernetes_1.1/**/*, kubernetes_trunk/**/*</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+    </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers/>
 </project>

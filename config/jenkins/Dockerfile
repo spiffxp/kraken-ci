@@ -61,6 +61,7 @@ RUN apt-get update \
       python-pip \
       vim \
       golang \
+      rsync \
     && rm -rf /var/lib/apt/lists/*
     
 ENV GOROOT=/usr/lib/go

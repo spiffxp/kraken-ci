@@ -18,6 +18,17 @@
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
+        <hudson.model.BooleanParameterDefinition>
+          <name>CLUSTER_FROM_SCRATCH</name>
+          <description>Create cluster from scratch? If true, create a new cluster.
+Otherwise attempt to run ansible on existing cluster to re-provision it with a different kubernetes version</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DESTROY_CLUSTER</name>
+          <description>Destroy cluster at the end of the job?</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>KUBERNETES_BINARIES_URI</name>
           <description>Link to kubernetes binaries. For example:
@@ -89,27 +100,31 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># create the cluster
-# set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_cluster_name=pipeletautotest_aws
-export TF_VAR_aws_user_prefix=pipeletautotest
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
-export TF_VAR_asg_wait_single=60
-export TF_VAR_asg_wait_total=${TOTAL_WAIT}
+      <command>if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
+  # create the cluster
+    # set required terraform variables to parsed out AWS creds and run terraform
+    export TF_VAR_cluster_name=pipeletautotest_aws
+    export TF_VAR_aws_user_prefix=pipeletautotest
+    export TF_VAR_aws_access_key=${AWS_KEY_ID}
+    export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+    export TF_VAR_asg_wait_single=60
+    export TF_VAR_asg_wait_total=${TOTAL_WAIT}
 
-# autotest cluster values
-export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
-export TF_VAR_kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}
-export TF_VAR_aws_node_type=${NODE_TYPE}
-export TF_VAR_aws_etcd_type=${ETCD_TYPE}
-export TF_VAR_aws_master_type=m4.2xlarge
-export TF_VAR_aws_apiserver_type=m4.2xlarge
-export TF_VAR_aws_storage_type_etcd=ephemeral
-export TF_VAR_apiserver_count=${API_SERVER_COUNT}
+    # autotest cluster values
+    export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
+    export TF_VAR_kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}
+    export TF_VAR_aws_node_type=${NODE_TYPE}
+    export TF_VAR_aws_etcd_type=${ETCD_TYPE}
+    export TF_VAR_aws_master_type=m4.2xlarge
+    export TF_VAR_aws_apiserver_type=m4.2xlarge
+    export TF_VAR_aws_storage_type_etcd=ephemeral
+    export TF_VAR_apiserver_count=${API_SERVER_COUNT}
 
-# start terraform
-terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws</command>
+  # start terraform
+  terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+else
+  ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f 25 -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
+fi</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command># run
@@ -170,23 +185,25 @@ fi</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>export TF_VAR_cluster_name=pipeletautotest_aws
-export TF_VAR_aws_user_prefix=pipeletautotest
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+          <command>if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
+  export TF_VAR_cluster_name=pipeletautotest_aws
+  export TF_VAR_aws_user_prefix=pipeletautotest
+  export TF_VAR_aws_access_key=${AWS_KEY_ID}
+  export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
-retries=10
-until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
-do
-  if [ $retries -eq 0 ]; then
-    echo &quot;Destroy failed ...&quot;
-    exit 1
-  fi
+  retries=10
+  until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+  do
+    if [ $retries -eq 0 ]; then
+      echo &quot;Destroy failed ...&quot;
+      exit 1
+    fi
 
-  retries=$((retries - 1))
-  echo &quot;Retrying destroy ...&quot;
-  sleep 10
-done</command>
+    retries=$((retries - 1))
+    echo &quot;Retrying destroy ...&quot;
+    sleep 10
+  done
+fi</command>
         </hudson.tasks.Shell>
       </buildSteps>
       <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>

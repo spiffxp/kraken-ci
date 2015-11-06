@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>kicks off 100 node autotest every 4 hours</description>
+  <description>kicks off 1000 node autotest every 4 hours</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
     <numToKeep>100</numToKeep>
@@ -49,13 +49,18 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># build the tests
+      <command># clean up previously copied artifacts.
+rm -rf kubernetes_1.0.6
+rm -rf kubernetes_1.1
+rm -rf kubernetes_trunk
+
+# build the tests
 rm -rf /var/lib/docker/gobuild/kubernetes_autotest
 cd /var/lib/docker/gobuild
 git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./kubernetes_autotest
 cd kubernetes_autotest
 make clean
-yes | make quick-release
+yes | make
 
 # create kube config
 cat &gt; /var/lib/docker/gobuild/kubernetes_autotest/kubeconfig &lt;&lt;EOF
@@ -83,7 +88,9 @@ DENSITIES=&quot;3 15 30&quot;
 API_SERVER_COUNT=10
 ETCD_TYPE=i2.8xlarge
 NODE_TYPE=t2.micro
-TOTAL_WAIT=60</properties>
+TOTAL_WAIT=60
+CLUSTER_FROM_SCRATCH=true
+DESTROY_CLUSTER=false</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -107,6 +114,7 @@ TOTAL_WAIT=60</properties>
       <target>kubernetes_1.0.6</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
+      <optional>true</optional>
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
@@ -120,7 +128,9 @@ DENSITIES=&quot;3 15 30&quot;
 API_SERVER_COUNT=10
 ETCD_TYPE=i2.8xlarge
 NODE_TYPE=t2.micro
-TOTAL_WAIT=60</properties>
+TOTAL_WAIT=60
+CLUSTER_FROM_SCRATCH=false
+DESTROY_CLUSTER=false</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -144,6 +154,7 @@ TOTAL_WAIT=60</properties>
       <target>kubernetes_1.1</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
+      <optional>true</optional>
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
@@ -157,7 +168,9 @@ DENSITIES=&quot;3 15 30&quot;
 API_SERVER_COUNT=10
 ETCD_TYPE=i2.8xlarge
 NODE_TYPE=t2.micro
-TOTAL_WAIT=60</properties>
+TOTAL_WAIT=60
+CLUSTER_FROM_SCRATCH=false
+DESTROY_CLUSTER=true</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -181,15 +194,18 @@ TOTAL_WAIT=60</properties>
       <target>kubernetes_trunk</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
+      <optional>true</optional>
       <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
     </hudson.plugins.copyartifact.CopyArtifact>
   </builders>
   <publishers>
-    <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
-      <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
-      <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
-      <markBuildUnstable>false</markBuildUnstable>
-    </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>kubernetes_1.0.6/**/*, kubernetes_1.1/**/*, kubernetes_trunk/**/*</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+    </hudson.tasks.ArtifactArchiver>
   </publishers>
   <buildWrappers/>
 </project>
