@@ -3,6 +3,7 @@ variable "aws_secret_key" {}
 variable "github_client_id" {}
 variable "github_client_key" {}
 variable "hipchat_api_token" {}
+variable "slack_api_token" {}
 variable "hipchat_room_id" {
   default = "1515130"
 }

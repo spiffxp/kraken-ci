@@ -13,7 +13,7 @@ ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSVER_VERSION v0.0.1
 ENV KUBERNETES_VERSION v1.0.6
 ENV FLEET_VERSION v0.11.5
-ENV VAULT_VERSION 0.2.0
+ENV VAULT_VERSION 0.3.1
 
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
@@ -61,6 +61,7 @@ RUN apt-get update \
       python-pip \
       vim \
       golang \
+      rsync \
     && rm -rf /var/lib/apt/lists/*
     
 ENV GOROOT=/usr/lib/go

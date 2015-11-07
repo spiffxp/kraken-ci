@@ -18,6 +18,17 @@
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
+        <hudson.model.BooleanParameterDefinition>
+          <name>CLUSTER_FROM_SCRATCH</name>
+          <description>Create cluster from scratch? If true, create a new cluster.
+Otherwise attempt to run ansible on existing cluster to re-provision it with a different kubernetes version</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>DESTROY_CLUSTER</name>
+          <description>Destroy cluster at the end of the job?</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>KUBERNETES_BINARIES_URI</name>
           <description>Link to kubernetes binaries. For example:
@@ -57,12 +68,49 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
           <description>total number of 60 second waits</description>
           <defaultValue>10</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>GINKGO_TARGET_DIR</name>
+          <description>where to clone test repo to under /var/lib/docker/gobuild/GINKGO_TARGET_DIR</description>
+          <defaultValue>/var/lib/docker/gobuild/kubernetes</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>CLUSTER_PREFIX</name>
+          <description>prefix for kubernetes cluster names</description>
+          <defaultValue>pipeletautotest</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>API_SERVER_TYPE</name>
+          <description>api server aws type</description>
+          <defaultValue>m4.4xlarge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MASTER_TYPE</name>
+          <description>master aws type</description>
+          <defaultValue>m4.4xlarge</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.8">
+      <teamDomain></teamDomain>
+      <token></token>
+      <room></room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>true</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <notifyRepeatedFailure>false</notifyRepeatedFailure>
+      <includeTestSummary>false</includeTestSummary>
+      <showCommitList>false</showCommitList>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
     <configVersion>2</configVersion>
@@ -89,44 +137,48 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># create the cluster
-# auth with vault and read credentials into a temp file
-vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
+      <command>if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
+  # create the cluster
+    # set required terraform variables to parsed out AWS creds and run terraform
+    export TF_VAR_cluster_name=${CLUSTER_PREFIX}_aws
+    export TF_VAR_aws_user_prefix=${CLUSTER_PREFIX}
+    export TF_VAR_aws_access_key=${AWS_KEY_ID}
+    export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+    export TF_VAR_asg_wait_single=60
+    export TF_VAR_asg_wait_total=${TOTAL_WAIT}
 
-# set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_cluster_name=pipeletautotest_aws
-export TF_VAR_aws_user_prefix=pipeletautotest
-export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-export TF_VAR_asg_wait_single=60
-export TF_VAR_asg_wait_total=${TOTAL_WAIT}
+    # autotest cluster values
+    export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
+    export TF_VAR_kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}
+    export TF_VAR_aws_node_type=${NODE_TYPE}
+    export TF_VAR_aws_etcd_type=${ETCD_TYPE}
+    export TF_VAR_aws_master_type=${MASTER_TYPE}
+    export TF_VAR_aws_apiserver_type=${API_SERVER_TYPE}
+    export TF_VAR_aws_storage_type_etcd=ephemeral
+    export TF_VAR_apiserver_count=${API_SERVER_COUNT}
 
-# autotest cluster values
-export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
-export TF_VAR_kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}
-export TF_VAR_aws_node_type=${NODE_TYPE}
-export TF_VAR_aws_etcd_type=${ETCD_TYPE}
-export TF_VAR_aws_master_type=m4.2xlarge
-export TF_VAR_aws_apiserver_type=m4.2xlarge
-export TF_VAR_aws_storage_type_etcd=ephemeral
-export TF_VAR_apiserver_count=${API_SERVER_COUNT}
+  # start terraform
+  terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+else
+  retries=10
+    until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f 25 -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
+    do
+      if [ $retries -eq 0 ]; then
+        echo &quot;Re ansible failed ...&quot;
+        exit 1
+      fi
 
-# wait a bit and start terraform
-sleep 30
-terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
-
-# revoke aws lease.
-vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)</command>
+      retries=$((retries - 1))
+      echo &quot;Retrying ansible ...&quot;
+      sleep 10
+    done
+fi</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command># run
 
-export K8SROOT=/var/lib/docker/gobuild/kubernetes_autotest
-cd ${K8SROOT}
-
 rm -rf ${WORKSPACE}/density_out
-
+export K8SROOT=/var/lib/docker/gobuild/${GINKGO_TARGET_DIR}
 set +e
 
 fail_step=false
@@ -136,8 +188,8 @@ pod_densities=&quot;${pod_densities#\&quot;}&quot;
 for i in $pod_densities;
 do
   mkdir -p ${WORKSPACE}/density_out/$i
-  ${K8SROOT}/_output/dockerized/bin/linux/amd64/ginkgo \
-    ${K8SROOT}/_output/dockerized/bin/linux/amd64/e2e.test \
+  ${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
+    ${K8SROOT}/_output/local/bin/linux/amd64/e2e.test \
     -- \
       --kubeconfig=${K8SROOT}/kubeconfig \
       --repo-root=${K8SROOT} \
@@ -178,71 +230,35 @@ fi</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
+          <command>if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
+  export TF_VAR_cluster_name=${CLUSTER_PREFIX}_aws
+  export TF_VAR_aws_user_prefix=${CLUSTER_PREFIX}
+  export TF_VAR_aws_access_key=${AWS_KEY_ID}
+  export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
-export TF_VAR_cluster_name=pipeletautotest_aws
-export TF_VAR_aws_user_prefix=pipeletautotest
+  retries=10
+  until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+  do
+    if [ $retries -eq 0 ]; then
+      echo &quot;Destroy failed ...&quot;
+      exit 1
+    fi
 
-# auth with vault again and read credentials into a temp file. The previous vault lease might have expired while the tests ran.
-vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-sleep 30
-
-retries=10
-until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
-do
-  if [ $retries -eq 0 ]; then
-    echo &quot;Destroy failed ...&quot;
-    vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-    rm temp.json
-    exit 1
-  fi
-
-  retries=$((retries - 1))
-  echo &quot;Retrying destroy ...&quot;
-  vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-  vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-  vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-  export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-  export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-  sleep 30
-done
-
-# revoke aws lease.
-vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-
-# remove temp file
-rm temp.json</command>
+    retries=$((retries - 1))
+    echo &quot;Retrying destroy ...&quot;
+    sleep 10
+  done
+fi</command>
         </hudson.tasks.Shell>
       </buildSteps>
       <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
       <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
       <markBuildUnstable>false</markBuildUnstable>
     </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
-    <jenkins.plugins.hipchat.HipChatNotifier plugin="hipchat@0.1.9">
-      <token></token>
-      <room>Pipeline</room>
-      <startNotification>true</startNotification>
-      <notifySuccess>true</notifySuccess>
-      <notifyAborted>false</notifyAborted>
-      <notifyNotBuilt>false</notifyNotBuilt>
-      <notifyUnstable>false</notifyUnstable>
-      <notifyFailure>true</notifyFailure>
-      <notifyBackToNormal>false</notifyBackToNormal>
-      <startJobMessage>Job $URL started: $CHANGES_OR_CAUSE</startJobMessage>
-      <completeJobMessage>Job $URL finished with $STATUS after $DURATION !</completeJobMessage>
-    </jenkins.plugins.hipchat.HipChatNotifier>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@1.8">
+    </jenkins.plugins.slack.SlackNotifier>
   </publishers>
   <buildWrappers>
-    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.5">
-      <bindings>
-        <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-          <credentialsId>vault-auth</credentialsId>
-          <variable>GITHUB_ORG_TOKEN</variable>
-        </org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
-      </bindings>
-    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+    <com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper/>
   </buildWrappers>
 </project>

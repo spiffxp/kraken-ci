@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>Runs kubernetes conformance tests</description>
+  <description>kicks off a full cycle of tests per density/repo</description>
   <logRotator class="hudson.tasks.LogRotator">
     <daysToKeep>-1</daysToKeep>
     <numToKeep>100</numToKeep>
@@ -11,7 +11,8 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.6">
-      <useBuildBlocker>false</useBuildBlocker>
+      <useBuildBlocker>true</useBuildBlocker>
+      <blockingJobs>kubernetes_autotest_1000</blockingJobs>
     </hudson.plugins.buildblocker.BuildBlockerProperty>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
@@ -19,9 +20,54 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
+          <name>NUMBER_OF_NODES</name>
+          <description>number of nodes</description>
+          <defaultValue>100</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_TESTS_REPO</name>
+          <description>Kubernetes conformance tests repo</description>
+          <defaultValue>https://github.com/Samsung-AG/kubernetes.git</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>KUBE_TESTS_BRANCH</name>
           <description>Kubernetes conformance tests branch</description>
-          <defaultValue>conformance-test-v1</defaultValue>
+          <defaultValue>density-1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DENSITIES</name>
+          <description>space-delimited density values</description>
+          <defaultValue>3 15 30</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>API_SERVER_COUNT</name>
+          <description>number of API servers</description>
+          <defaultValue>1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MASTER_TYPE</name>
+          <description>master node type</description>
+          <defaultValue>m4.4xlarge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>API_SERVER_TYPE</name>
+          <description>api server aws type</description>
+          <defaultValue>m4.4xlarge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ETCD_TYPE</name>
+          <description>aws type of etcd instance</description>
+          <defaultValue>m4.2xlarge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>NODE_TYPE</name>
+          <description>type of regular node</description>
+          <defaultValue>m3.medium</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TOTAL_WAIT</name>
+          <description>total number of 60 second waits</description>
+          <defaultValue>10</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -47,44 +93,22 @@
       <customMessage></customMessage>
     </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
-    <configVersion>2</configVersion>
-    <userRemoteConfigs>
-      <hudson.plugins.git.UserRemoteConfig>
-        <url>git@github.com:Samsung-AG/kraken.git</url>
-        <credentialsId>jenkins-github</credentialsId>
-      </hudson.plugins.git.UserRemoteConfig>
-    </userRemoteConfigs>
-    <branches>
-      <hudson.plugins.git.BranchSpec>
-        <name>master</name>
-      </hudson.plugins.git.BranchSpec>
-    </branches>
-    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-    <submoduleCfg class="list"/>
-    <extensions/>
-  </scm>
+  <scm class="hudson.scm.NullSCM"/>
   <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
-    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.12.0">
-      <spec></spec>
-    </com.cloudbees.jenkins.GitHubPushTrigger>
-  </triggers>
+  <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KUBE_TESTS_BRANCH=conformance-test-v1
-KUBE_TESTS_REPO=https://github.com/kubernetes/kubernetes.git
-GINKGO_TARGET_DIR=kubernetes_conformance
-CLUSTER_PREFIX=pipeletconformance
-</properties>
+              <properties>GINKGO_TARGET_DIR=kubernetes_autotest_${NUMBER_OF_NODES}
+CLUSTER_PREFIX=pipelet-autotest-${NUMBER_OF_NODES}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_build_tests</projects>
@@ -114,28 +138,20 @@ CLUSTER_PREFIX=pipeletconformance
         </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
-    <hudson.tasks.Shell>
-      <command># set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_cluster_name=pipeletconformance_aws
-export TF_VAR_aws_user_prefix=pipeletconformance
-export TF_VAR_asg_wait_single=60
-export TF_VAR_asg_wait_total=10
-export TF_VAR_aws_node_type=m3.medium
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
-
-# start terraform
-terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws</command>
-    </hudson.tasks.Shell>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KUBERNETES_BINARIES_URI=https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64
+CLUSTER_FROM_SCRATCH=true
+DESTROY_CLUSTER=false
+GINKGO_TARGET_DIR=kubernetes_autotest_${NUMBER_OF_NODES}
+CLUSTER_PREFIX=pipelet-autotest-${NUMBER_OF_NODES}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>kubernetes_conformance_test</projects>
+          <projects>kubernetes_autotest</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <block>
@@ -151,9 +167,9 @@ terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
-      <project>kubernetes_conformance_test</project>
+      <project>kubernetes_autotest</project>
       <filter></filter>
-      <target>tests_out</target>
+      <target>kubernetes_1.0.6</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
       <optional>true</optional>
@@ -163,11 +179,16 @@ terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KUBERNETES_BINARIES_URI=https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74
+CLUSTER_FROM_SCRATCH=false
+DESTROY_CLUSTER=false
+GINKGO_TARGET_DIR=kubernetes_autotest_${NUMBER_OF_NODES}
+CLUSTER_PREFIX=pipelet-autotest-${NUMBER_OF_NODES}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
-          <projects>kubernetes_density_test</projects>
+          <projects>kubernetes_autotest</projects>
           <condition>ALWAYS</condition>
           <triggerWithNoParameters>false</triggerWithNoParameters>
           <block>
@@ -183,9 +204,52 @@ terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
-      <project>kubernetes_density_test</project>
+      <project>kubernetes_autotest</project>
       <filter></filter>
-      <target>tests_out</target>
+      <target>kubernetes_1.1</target>
+      <excludes></excludes>
+      <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
+      <optional>true</optional>
+      <doNotFingerprintArtifacts>false</doNotFingerprintArtifacts>
+    </hudson.plugins.copyartifact.CopyArtifact>
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>KUBERNETES_BINARIES_URI=https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9
+CLUSTER_FROM_SCRATCH=false
+DESTROY_CLUSTER=true
+GINKGO_TARGET_DIR=kubernetes_autotest_${NUMBER_OF_NODES}
+CLUSTER_PREFIX=pipelet-autotest-${NUMBER_OF_NODES}</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>kubernetes_autotest</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block>
+            <unstableThreshold>
+              <name>UNSTABLE</name>
+              <ordinal>1</ordinal>
+              <color>YELLOW</color>
+              <completeBuild>true</completeBuild>
+            </unstableThreshold>
+            <failureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+              <completeBuild>true</completeBuild>
+            </failureThreshold>
+          </block>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
+      <project>kubernetes_autotest</project>
+      <filter></filter>
+      <target>kubernetes_trunk</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
       <optional>true</optional>
@@ -193,71 +257,21 @@ terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate
     </hudson.plugins.copyartifact.CopyArtifact>
   </builders>
   <publishers>
-    <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
-      <buildSteps>
-        <hudson.tasks.Shell>
-          <command>export TF_VAR_cluster_name=pipeletconformance_aws
-export TF_VAR_aws_user_prefix=pipeletconformance
-
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
-
-set +e
-# copy the log file to S3
-export AWS_ACCESS_KEY_ID=${AWS_KEY_ID}
-export AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
-aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/tests_out/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
-aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/tests_out/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
-set -e
-
-retries=10
-until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
-do
-  if [ $retries -eq 0 ]; then
-    echo &quot;Destroy failed ...&quot;
-    exit 1
-  fi
-
-  retries=$((retries - 1))
-  echo &quot;Retrying destroy ...&quot;
-  sleep 30
-done</command>
-        </hudson.tasks.Shell>
-      </buildSteps>
-      <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
-      <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
-      <markBuildUnstable>false</markBuildUnstable>
-    </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
-    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.27">
-      <configs>
-        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-          <configs>
-            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
-TEST_RESULT=Test run succeeded</properties>
-            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-          </configs>
-          <projects>update-gh-pages</projects>
-          <condition>SUCCESS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
-        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-          <configs>
-            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
-TEST_RESULT=Test run failed</properties>
-            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-          </configs>
-          <projects>update-gh-pages</projects>
-          <condition>UNSTABLE_OR_WORSE</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
-        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
-      </configs>
-    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>kubernetes_1.0.6/**/*, kubernetes_1.1/**/*, kubernetes_trunk/**/*</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+    </hudson.tasks.ArtifactArchiver>
     <jenkins.plugins.slack.SlackNotifier plugin="slack@1.8">
     </jenkins.plugins.slack.SlackNotifier>
   </publishers>
   <buildWrappers>
-    <com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper/>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.26">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
   </buildWrappers>
 </project>

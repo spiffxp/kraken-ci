@@ -29,6 +29,23 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.8">
+      <teamDomain></teamDomain>
+      <token></token>
+      <room></room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>true</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <notifyRepeatedFailure>false</notifyRepeatedFailure>
+      <includeTestSummary>false</includeTestSummary>
+      <showCommitList>false</showCommitList>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
     <configVersion>2</configVersion>
@@ -89,19 +106,16 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># auth with vault and read credentials into a temp file
-vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-
-# set required terraform variables to parsed out AWS creds and run terraform
+      <command># set required terraform variables to parsed out AWS creds and run terraform
 export TF_VAR_cluster_name=pipelet_aws
 export TF_VAR_aws_user_prefix=pipelet
-export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
+export TF_VAR_asg_wait_single=60
+export TF_VAR_asg_wait_total=10
+export TF_VAR_aws_access_key=${AWS_KEY_ID}
+export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
-# wait a bit and start terraform
-sleep 30
-terraform apply -input=false -state=terraform/aws/terraform.tfstate -var &apos;asg_wait_single=60&apos; -var &apos;asg_wait_total=10&apos; -var &quot;kraken_repo.commit_sha=${ghprbActualCommit}&quot; terraform/aws
+# start terraform
+terraform apply -input=false -state=terraform/aws/terraform.tfstate -var &quot;kraken_repo.commit_sha=${ghprbActualCommit}&quot; terraform/aws
 
 # run tests
 cucumber CUKE_CLUSTER=pipelet_aws features/*_aws.feature</command>
@@ -111,64 +125,33 @@ cucumber CUKE_CLUSTER=pipelet_aws features/*_aws.feature</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-
-export TF_VAR_cluster_name=pipelet_aws
+          <command>export TF_VAR_cluster_name=pipelet_aws
 export TF_VAR_aws_user_prefix=pipelet
-
-# auth with vault again and read credentials into a temp file. The previous vault lease might have expired while the tests ran.
-vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-sleep 30
+export TF_VAR_aws_access_key=${AWS_KEY_ID}
+export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
 retries=10
 until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
 do
   if [ $retries -eq 0 ]; then
     echo &quot;Destroy failed ...&quot;
-    vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-    rm temp.json
     exit 1
   fi
 
   retries=$((retries - 1))
   echo &quot;Retrying destroy ...&quot;
-  vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-  vault auth -method=github -address=https://vault.kubeme.io -tls-skip-verify token=${GITHUB_ORG_TOKEN}
-  vault read -address=https://vault.kubeme.io -tls-skip-verify -format=json aws/creds/root &gt; temp.json
-  export TF_VAR_aws_access_key=$(cat temp.json | jq -r &apos;.data.access_key&apos;)
-  export TF_VAR_aws_secret_key=$(cat temp.json | jq -r &apos;.data.secret_key&apos;)
-  sleep 30
-done
-
-# revoke aws lease.
-vault revoke -address=https://vault.kubeme.io -tls-skip-verify $(cat temp.json | jq -r &apos;.lease_id&apos;)
-
-# remove temp file
-rm temp.json</command>
+done</command>
         </hudson.tasks.Shell>
       </buildSteps>
       <scriptOnlyIfSuccess>false</scriptOnlyIfSuccess>
       <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
       <markBuildUnstable>false</markBuildUnstable>
     </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
-    <jenkins.plugins.hipchat.HipChatNotifier plugin="hipchat@0.1.9">
-      <token></token>
-      <room>Pipeline</room>
-      <startNotification>true</startNotification>
-      <notifySuccess>true</notifySuccess>
-      <notifyAborted>false</notifyAborted>
-      <notifyNotBuilt>false</notifyNotBuilt>
-      <notifyUnstable>false</notifyUnstable>
-      <notifyFailure>true</notifyFailure>
-      <notifyBackToNormal>false</notifyBackToNormal>
-      <startJobMessage>Job $URL started: $CHANGES_OR_CAUSE</startJobMessage>
-      <completeJobMessage>Job $URL finished with $STATUS after $DURATION !</completeJobMessage>
-    </jenkins.plugins.hipchat.HipChatNotifier>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@1.8">
+    </jenkins.plugins.slack.SlackNotifier>
   </publishers>
   <buildWrappers>
+    <com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper/>
     <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.5">
       <bindings>
         <org.jenkinsci.plugins.credentialsbinding.impl.StringBinding>
