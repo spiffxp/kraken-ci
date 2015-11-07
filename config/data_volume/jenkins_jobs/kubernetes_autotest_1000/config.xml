@@ -63,7 +63,7 @@ KUBE_TESTS_BRANCH=density-1.1
 DENSITIES=&quot;3 15 30&quot;
 API_SERVER_COUNT=10
 ETCD_TYPE=i2.8xlarge
-NODE_TYPE=t2.micro
+NODE_TYPE=m3.medium
 TOTAL_WAIT=60</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
