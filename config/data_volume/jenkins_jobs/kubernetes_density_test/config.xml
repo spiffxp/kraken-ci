@@ -56,6 +56,9 @@
       <command>export K8SROOT=/var/lib/docker/gobuild/kubernetes_conformance
 cd ${K8SROOT}
 
+-rm -rf ${WORKSPACE}/e2e_output
+mkdir ${WORKSPACE}/e2e_output
+
 ${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
   ${K8SROOT}/_output/local/bin/linux/amd64/e2e.test \
   -- \
