@@ -25,6 +25,11 @@ Otherwise attempt to run ansible on existing cluster to re-provision it with a d
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
+          <name>RUN_ANSIBLE_DURING_SETUP</name>
+          <description>Whether to run ansible-playbook during setup, prior to running tests</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
           <name>DESTROY_CLUSTER</name>
           <description>Destroy cluster at the end of the job?</description>
           <defaultValue>true</defaultValue>
@@ -159,7 +164,7 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
 
   # start terraform
   terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
-else
+elif [ &quot;$RUN_ANSIBLE_DURING_SETUP&quot; = true ]; then
   retries=10
     until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f 25 -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
     do
@@ -187,6 +192,7 @@ pod_densities=&quot;${pod_densities#\&quot;}&quot;
 
 for i in $pod_densities;
 do
+  KUBECONFIG=${K8SROOT}/kubeconfig ${WORKSPACE}/hack/terminate-namespace.sh density
   mkdir -p ${WORKSPACE}/density_out/$i
   ${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
     ${K8SROOT}/_output/local/bin/linux/amd64/e2e.test \
