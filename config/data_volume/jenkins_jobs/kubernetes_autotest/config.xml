@@ -29,6 +29,16 @@ Otherwise attempt to run ansible on existing cluster to re-provision it with a d
           <description>Whether to run ansible-playbook during setup, prior to running tests</description>
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ANSIBLE_FORKS</name>
+          <description>Number of forks to use when running ansible-playbook</description>
+          <defaultValue>25</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>RUN_TESTS</name>
+          <description>Whether to run the tests, after setup, before teardown</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>DESTROY_CLUSTER</name>
           <description>Destroy cluster at the end of the job?</description>
@@ -142,8 +152,9 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
-  # create the cluster
+      <command>
+if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
+    # create the cluster
     # set required terraform variables to parsed out AWS creds and run terraform
     export TF_VAR_cluster_name=${CLUSTER_PREFIX}_aws
     export TF_VAR_aws_user_prefix=${CLUSTER_PREFIX}
@@ -164,20 +175,23 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
 
   # start terraform
   terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
-elif [ &quot;$RUN_ANSIBLE_DURING_SETUP&quot; = true ]; then
+fi
+  
+if [ &quot;$RUN_ANSIBLE_DURING_SETUP&quot; = true ]; then
   retries=10
-    until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f 25 -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
-    do
-      if [ $retries -eq 0 ]; then
-        echo &quot;Re ansible failed ...&quot;
-        exit 1
-      fi
+  until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f ${ANSIBLE_FORKS} -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
+  do
+    if [ $retries -eq 0 ]; then
+      echo &quot;Re ansible failed ...&quot;
+      exit 1
+    fi
 
-      retries=$((retries - 1))
-      echo &quot;Retrying ansible ...&quot;
-      sleep 10
-    done
-fi</command>
+    retries=$((retries - 1))
+    echo &quot;Retrying ansible ...&quot;
+    sleep 10
+  done
+fi
+  </command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command># run
