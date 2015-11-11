@@ -25,21 +25,6 @@ Otherwise attempt to run ansible on existing cluster to re-provision it with a d
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
-          <name>RUN_ANSIBLE_DURING_SETUP</name>
-          <description>Whether to run ansible-playbook during setup, prior to running tests</description>
-          <defaultValue>true</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>ANSIBLE_FORKS</name>
-          <description>Number of forks to use when running ansible-playbook</description>
-          <defaultValue>25</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>RUN_TESTS</name>
-          <description>Whether to run the tests, after setup, before teardown</description>
-          <defaultValue>true</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
           <name>DESTROY_CLUSTER</name>
           <description>Destroy cluster at the end of the job?</description>
           <defaultValue>true</defaultValue>
@@ -103,6 +88,21 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
           <description>master aws type</description>
           <defaultValue>m4.4xlarge</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>RUN_ANSIBLE_DURING_SETUP</name>
+          <description>whether to run ansible prior to running tests</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>RUN_TESTS</name>
+          <description>whether to run the tests</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ANSIBLE_FORKS</name>
+          <description>number of forks to use when running ansible-playbook</description>
+          <defaultValue>25</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -152,9 +152,8 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>
-if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
-    # create the cluster
+      <command>if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
+  # create the cluster
     # set required terraform variables to parsed out AWS creds and run terraform
     export TF_VAR_cluster_name=${CLUSTER_PREFIX}_aws
     export TF_VAR_aws_user_prefix=${CLUSTER_PREFIX}
@@ -175,67 +174,90 @@ if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
 
   # start terraform
   terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
-fi
-  
+fi;
+
 if [ &quot;$RUN_ANSIBLE_DURING_SETUP&quot; = true ]; then
   retries=10
-  until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f ${ANSIBLE_FORKS} -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
-  do
-    if [ $retries -eq 0 ]; then
-      echo &quot;Re ansible failed ...&quot;
-      exit 1
-    fi
+    until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f ${ANSIBLE_FORKS} -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
+    do
+      if [ $retries -eq 0 ]; then
+        echo &quot;Re ansible failed ...&quot;
+        exit 1
+      fi
 
-    retries=$((retries - 1))
-    echo &quot;Retrying ansible ...&quot;
-    sleep 10
-  done
-fi
-  </command>
+      retries=$((retries - 1))
+      echo &quot;Retrying ansible ...&quot;
+      sleep 10
+    done
+fi</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command># run
 
-rm -rf ${WORKSPACE}/density_out
-export K8SROOT=/var/lib/docker/gobuild/${GINKGO_TARGET_DIR}
-set +e
+if [ &quot;$RUN_TESTS&quot; = true ]; then
 
-fail_step=false
-pod_densities=&quot;${DENSITIES%\&quot;}&quot;
-pod_densities=&quot;${pod_densities#\&quot;}&quot;
+  rm -rf ${WORKSPACE}/density_out
+  export K8SROOT=/var/lib/docker/gobuild/${GINKGO_TARGET_DIR}
+  set +e
 
-for i in $pod_densities;
-do
-  KUBECONFIG=${K8SROOT}/kubeconfig ${WORKSPACE}/hack/terminate-namespace.sh density
-  mkdir -p ${WORKSPACE}/density_out/$i
-  ${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
-    ${K8SROOT}/_output/local/bin/linux/amd64/e2e.test \
-    -- \
-      --kubeconfig=${K8SROOT}/kubeconfig \
-      --repo-root=${K8SROOT} \
-      --num-nodes=${NUMBER_OF_NODES} \
-      --ginkgo.v=true \
-      --ginkgo.focus=&quot;should allow starting $i pods per node&quot; \
-      --ginkgo.skip=&quot;(^Density)&quot; \
-      --provider= \
-      --gce-project= \
-      --gce-zone= \
-      --gke-cluster= \
-      --kube-master= \
-      --cluster-tag= \
-      --node-instance-group= \
-      --prefix=density \
-      --e2e-output-dir=${WORKSPACE}/density_out/$i &gt; ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
+  fail_step=false
+  pod_densities=&quot;${DENSITIES%\&quot;}&quot;
+  pod_densities=&quot;${pod_densities#\&quot;}&quot;
 
-  if [ $? -ne 0 ]; then
-    fail_step=true
-    fi
-done
+  for i in $pod_densities;
+  do
+    # KUBECONFIG=${K8SROOT}/kubeconfig ${WORKSPACE}/hack/terminate-namespace.sh density
+    KUBECONFIG=${K8SROOT}/kubeconfig
 
-set -e
+    kubeconfig=${KUBECONFIG:-&quot;${HOME}/.kube/config&quot;}
+    regex=density
+    poll_delay_secs=5
 
-if [ &quot;$fail_step&quot; = true ] ; then
-    exit 1
+    # Delete all Active namespaces that match the regex
+    for ns in $(kubectl --kubeconfig=${kubeconfig} get namespaces | grep ${regex} | grep Active | awk &apos;{print $1}&apos;); do
+      kubectl --kubeconfig=${kubeconfig} delete namespace $ns;
+    done
+
+    # The namepace is going to sit around in Terminating state until k8s has removed all resources
+    # therein, including pods, rcs, events, etc.
+    while (kubectl --kubeconfig=${kubeconfig} get namespaces | grep ${regex}); do
+      sleep ${poll_delay_secs};
+      date -u
+    done
+    #
+
+    mkdir -p ${WORKSPACE}/density_out/$i
+    ${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
+      ${K8SROOT}/_output/local/bin/linux/amd64/e2e.test \
+      -- \
+        --kubeconfig=${K8SROOT}/kubeconfig \
+        --repo-root=${K8SROOT} \
+        --num-nodes=${NUMBER_OF_NODES} \
+        --ginkgo.v=true \
+        --ginkgo.focus=&quot;should allow starting $i pods per node&quot; \
+        --ginkgo.skip=&quot;(^Density)&quot; \
+        --provider= \
+        --gce-project= \
+        --gce-zone= \
+        --gke-cluster= \
+        --kube-master= \
+        --cluster-tag= \
+        --node-instance-group= \
+        --prefix=density \
+        --e2e-output-dir=${WORKSPACE}/density_out/$i | tee ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
+
+      ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${CLUSTER_PREFIX}_aws
+      if [ $? -ne 0 ]; then
+          fail_step=true
+      fi
+  done
+
+  set -e
+
+  if [ &quot;$fail_step&quot; = true ] ; then
+      exit 1
+  fi
+
 fi</command>
     </hudson.tasks.Shell>
   </builders>
