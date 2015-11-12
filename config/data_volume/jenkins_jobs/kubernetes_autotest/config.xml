@@ -246,10 +246,11 @@ if [ &quot;$RUN_TESTS&quot; = true ]; then
         --prefix=density \
         --e2e-output-dir=${WORKSPACE}/density_out/$i | tee ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
 
-      ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${CLUSTER_PREFIX}_aws
       if [ $? -ne 0 ]; then
           fail_step=true
       fi
+
+      ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${CLUSTER_PREFIX}_aws
   done
 
   set -e
