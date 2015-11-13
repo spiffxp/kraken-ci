@@ -125,7 +125,11 @@ export TF_VAR_aws_access_key=${AWS_KEY_ID}
 export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
 # start terraform
-terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws</command>
+terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+
+# clear tests out folder
+rm -rf ${WORKSPACE}/tests_out
+mkdir ${WORKSPACE}/tests_out</command>
     </hudson.tasks.Shell>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
       <configs>
@@ -193,6 +197,13 @@ terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate
     </hudson.plugins.copyartifact.CopyArtifact>
   </builders>
   <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>tests_out/**/*</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+    </hudson.tasks.ArtifactArchiver>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
