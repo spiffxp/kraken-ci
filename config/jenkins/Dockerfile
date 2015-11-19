@@ -7,37 +7,14 @@ COPY keys /root/.ssh/
 RUN chmod 400 /root/.ssh/id_rsa
 
 # versions
-ENV TERRAFORM_VERSION v0.6.3.2
-ENV TERRAFORM_COREOS_VERSION v0.0.1
+ENV TERRAFORM_VERSION 0.6.6
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
-ENV TERRAFORM_COREOSVER_VERSION v0.0.1
+ENV TERRAFORM_COREOSBOX_VERSION v0.0.1
 ENV KUBERNETES_VERSION v1.1.1
-ENV FLEET_VERSION v0.11.5
 ENV VAULT_VERSION 0.3.1
 
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
-
-# get terraform
-RUN wget https://github.com/Samsung-AG/homebrew-terraform/releases/download/${TERRAFORM_VERSION}/terraform-${TERRAFORM_VERSION}_linux64.tar.gz
-
-# get custom providers
-RUN wget https://github.com/Samsung-AG/homebrew-terraform-provider-coreos/releases/download/${TERRAFORM_COREOS_VERSION}/terraform-provider-coreos_linux_amd64.tar.gz
-RUN wget https://github.com/Samsung-AG/terraform-provider-execute/releases/download/${TERRAFORM_EXECUTE_VERSION}/terraform-provider-execute_linux_amd64.tar.gz
-RUN wget https://github.com/Samsung-AG/terraform-provider-coreosver/releases/download/${TERRAFORM_COREOSVER_VERSION}/terraform-provider-coreosver_linux_amd64.tar.gz
-
-# decompress everything
-RUN tar -xvf terraform-${TERRAFORM_VERSION}_linux64.tar.gz \
-    && tar -xvf terraform-provider-coreos_linux_amd64.tar.gz \
-    && tar -xvf terraform-provider-coreosver_linux_amd64.tar.gz \
-    && tar -xvf terraform-provider-execute_linux_amd64.tar.gz \
-    && rm terraform*.tar.gz
-
-# install all binaries
-RUN cp terraform* /usr/local/bin
-
-# cleanup
-RUN rm terraform*
 
 # skip installing gem documentation
 RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
@@ -46,6 +23,7 @@ RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
 RUN apt-get update \
     && apt-get install -y --force-yes \
       curl \
+      unzip \
       jq \
       ruby \
       ruby-dev \
@@ -72,16 +50,28 @@ COPY ansible.cfg /etc/ansible/ansible.cfg
 # install bundler and other gems
 RUN gem install bundler aruba cucumber
 
+# get terraform
+RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+# get custom providers
+RUN wget https://github.com/Samsung-AG/terraform-provider-execute/releases/download/${TERRAFORM_EXECUTE_VERSION}/terraform-provider-execute_linux_amd64.tar.gz
+RUN wget https://github.com/Samsung-AG/terraform-provider-coreosbox/releases/download/${TERRAFORM_COREOSBOX_VERSION}/terraform-provider-coreosbox_linux_amd64.tar.gz
+
+# decompress everything
+RUN unzip -o terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin \
+    && tar -xvf terraform-provider-coreosbox_linux_amd64.tar.gz \
+    && tar -xvf terraform-provider-execute_linux_amd64.tar.gz
+
+# install all binaries
+RUN cp terraform* /usr/local/bin
+
+# cleanup
+RUN rm terraform*
+
 # install kubectl
 RUN wget https://github.com/GoogleCloudPlatform/kubernetes/releases/download/${KUBERNETES_VERSION}/kubernetes.tar.gz
 RUN tar -xvf kubernetes.tar.gz
 RUN cp kubernetes/platforms/linux/amd64/kubectl /usr/bin && rm kubernetes.tar.gz
-
-# install fleetctl
-RUN wget https://github.com/coreos/fleet/releases/download/${FLEET_VERSION}/fleet-${FLEET_VERSION}-linux-amd64.tar.gz
-RUN tar -xvf fleet-${FLEET_VERSION}-linux-amd64.tar.gz
-RUN cp fleet-${FLEET_VERSION}-linux-amd64/fleetctl /usr/bin && rm fleet-${FLEET_VERSION}-linux-amd64.tar.gz
-
 
 # install vault cli
 RUN wget https://dl.bintray.com/mitchellh/vault/vault_${VAULT_VERSION}_linux_amd64.zip \
