@@ -29,8 +29,8 @@
           <defaultValue>density-1.1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>GINKGO_TARGET_DIR</name>
-          <description>where to clone test repo to under /var/lib/docker/gobuild/GINKGO_TARGET_DIR</description>
+          <name>KUBE_TESTS_DIR</name>
+          <description>where to clone test repo to under /var/lib/docker/gobuild/KUBE_TESTS_DIR</description>
           <defaultValue>/var/lib/docker/gobuild/kubernetes</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -72,15 +72,15 @@
   <builders>
     <hudson.tasks.Shell>
       <command># build the tests
-rm -rf /var/lib/docker/gobuild/${GINKGO_TARGET_DIR}
+rm -rf /var/lib/docker/gobuild/${KUBE_TESTS_DIR}
 cd /var/lib/docker/gobuild
-git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./${GINKGO_TARGET_DIR}
-cd ${GINKGO_TARGET_DIR}
+git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./${KUBE_TESTS_DIR}
+cd ${KUBE_TESTS_DIR}
 make clean
 yes | make
 
 # create kube config
-cat &gt; /var/lib/docker/gobuild/${GINKGO_TARGET_DIR}/kubeconfig &lt;&lt;EOF
+cat &gt; /var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig &lt;&lt;EOF
 apiVersion: v1
 clusters:
 - cluster:

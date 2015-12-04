@@ -69,8 +69,8 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
           <defaultValue>10</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>GINKGO_TARGET_DIR</name>
-          <description>where to clone test repo to under /var/lib/docker/gobuild/GINKGO_TARGET_DIR</description>
+          <name>KUBE_TESTS_DIR</name>
+          <description>where to clone test repo to under /var/lib/docker/gobuild/KUBE_TESTS_DIR</description>
           <defaultValue>/var/lib/docker/gobuild/kubernetes</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -197,7 +197,7 @@ fi</command>
 if [ &quot;$RUN_TESTS&quot; = true ]; then
 
   rm -rf ${WORKSPACE}/density_out
-  export K8SROOT=/var/lib/docker/gobuild/${GINKGO_TARGET_DIR}
+  export K8SROOT=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}
   set +e
 
   fail_step=false

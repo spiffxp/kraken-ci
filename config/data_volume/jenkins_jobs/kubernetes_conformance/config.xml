@@ -82,7 +82,7 @@
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KUBE_TESTS_BRANCH=conformance-test-v1
 KUBE_TESTS_REPO=https://github.com/kubernetes/kubernetes.git
-GINKGO_TARGET_DIR=kubernetes_conformance
+KUBE_TESTS_DIR=kubernetes_conformance
 CLUSTER_PREFIX=pipeletconformance
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
