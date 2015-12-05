@@ -118,10 +118,16 @@ export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 terraform apply -no-color -input=false -state=terraform/aws/terraform.tfstate -var &quot;kraken_repo.commit_sha=${ghprbActualCommit}&quot; terraform/aws
 
 # run tests
-cucumber --no-color CUKE_CLUSTER=pipelet_aws features/*_aws.feature</command>
+bundle install
+bundle exec cucumber --format pretty --format junit --out output/cucumber/junit CUKE_CLUSTER=pipelet_aws features/*_aws.feature</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.7">
+      <testResults>output/cucumber/junit/*</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <healthScaleFactor>1.0</healthScaleFactor>
+    </hudson.tasks.junit.JUnitResultArchiver>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
