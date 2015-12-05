@@ -1,5 +1,5 @@
 # Dockerfile
-FROM busybox
+FROM busybox:1.24.1
 MAINTAINER Marat Garafutdinov <marat.g@samsung.com>
 
 VOLUME /var/jenkins_home

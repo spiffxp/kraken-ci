@@ -1,4 +1,4 @@
-FROM jenkins
+FROM jenkins:1.625.2
 MAINTAINER Marat Garafutdinov <marat.g@samsung.com>
 
 USER root
