@@ -125,7 +125,7 @@ export TF_VAR_aws_access_key=${AWS_KEY_ID}
 export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
 # start terraform
-terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
 
 # clear tests out folder
 rm -rf ${WORKSPACE}/tests_out
@@ -222,7 +222,7 @@ aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLA
 set -e
 
 retries=10
-until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
 do
   if [ $retries -eq 0 ]; then
     echo &quot;Destroy failed ...&quot;

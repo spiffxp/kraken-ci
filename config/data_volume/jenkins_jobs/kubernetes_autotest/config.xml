@@ -173,7 +173,7 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
     export TF_VAR_apiserver_count=${API_SERVER_COUNT}
 
   # start terraform
-  terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+  terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
 fi;
 
 if [ &quot;$RUN_ANSIBLE_DURING_SETUP&quot; = true ]; then
@@ -280,7 +280,7 @@ fi</command>
   export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
   retries=10
-  until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+  until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
   do
     if [ $retries -eq 0 ]; then
       echo &quot;Destroy failed ...&quot;
