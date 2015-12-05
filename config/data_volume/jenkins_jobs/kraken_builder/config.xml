@@ -118,7 +118,7 @@ export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 terraform apply -no-color -input=false -state=terraform/aws/terraform.tfstate -var &quot;kraken_repo.commit_sha=${ghprbActualCommit}&quot; terraform/aws
 
 # run tests
-cucumber CUKE_CLUSTER=pipelet_aws features/*_aws.feature</command>
+cucumber --no-color CUKE_CLUSTER=pipelet_aws features/*_aws.feature</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
