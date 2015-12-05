@@ -1,5 +1,6 @@
 ant:1.2
 antisamy-markup-formatter:1.3
+ansicolor:0.4.2
 authentication-tokens:1.1
 build-blocker-plugin:1.6
 build-flow-plugin:0.18
