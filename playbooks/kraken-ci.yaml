@@ -23,6 +23,7 @@
         image: samsung_ag/jenkins-data
         state: started
         pull: missing
+        net: host 
     - name: Jenkins Backup Helper Run
       docker:
         name: jenkins-backup
@@ -30,6 +31,7 @@
         image: samsung_ag/jenkins-backup
         state: started
         pull: missing
+        net: host 
         command: s3://pipelet 60 /var/jenkins_home/jobs/
         volumes_from:
           - jenkins-data
@@ -44,6 +46,7 @@
         state: started
         pull: missing
         tty: yes
+        net: host 
         ports:
           - "80:80"
           - "443:443"
@@ -58,6 +61,7 @@
         state: started
         pull: missing
         tty: yes
+        net: host 
         command: -notify-sighup nginx -watch -only-exposed /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
         volumes_from:
           - nginx
@@ -71,6 +75,7 @@
         image: samsung_ag/jenkins-server
         state: started
         pull: missing
+        net: host 
         ports:
           - "8080:8080"
           - "50000:50000"
