@@ -54,7 +54,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>cd /var/lib/docker/gobuild/kubernetes_conformance
-KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig USER=jenkins hack/conformance-test.sh &gt; ${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log</command>
+KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig USER=jenkins hack/conformance-test.sh | tee ${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

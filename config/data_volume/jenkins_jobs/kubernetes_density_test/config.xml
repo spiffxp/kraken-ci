@@ -76,7 +76,7 @@ ${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
     --cluster-tag= \
     --node-instance-group= \
     --prefix=e2e \
-    --e2e-output-dir=${WORKSPACE}/e2e_output &gt; ${WORKSPACE}/kraken_${KRAKEN_COMMIT}_density.log</command>
+    --e2e-output-dir=${WORKSPACE}/e2e_output | tee ${WORKSPACE}/kraken_${KRAKEN_COMMIT}_density.log</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
