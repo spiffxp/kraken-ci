@@ -37,6 +37,7 @@ mask-passwords:2.8
 matrix-auth:1.2
 matrix-project:1.6
 maven-plugin:2.10
+next-build-number:1.1
 multiple-scms:0.5
 nant:1.4.3
 pam-auth:1.2
