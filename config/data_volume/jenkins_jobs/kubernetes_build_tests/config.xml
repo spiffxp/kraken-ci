@@ -34,8 +34,9 @@
           <defaultValue>kubernetes</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>CLUSTER_PREFIX</name>
-          <description>prefix for kubernetes cluster names</description>
+          <name>KRAKEN_CLUSTER_NAME</name>
+          <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.
+TODO: this is used to generate a kubeconfig, it should happen in the same place the cluster is built, not here</description>
           <defaultValue>pipeletautotest</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -87,7 +88,7 @@ apiVersion: v1
 clusters:
 - cluster:
     api-version: v1
-    server: http://${CLUSTER_PREFIX}-master.kubeme.io:8080
+    server: http://${KRAKEN_CLUSTER_NAME}-master.kubeme.io:8080
   name:
 contexts: []
 current-context: &quot;&quot;

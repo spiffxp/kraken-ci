@@ -113,7 +113,7 @@
             <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>KUBE_TESTS_DIR=kubernetes_autotest_${NUMBER_OF_NODES}
-CLUSTER_PREFIX=pipelet-autotest-${NUMBER_OF_NODES}</properties>
+KRAKEN_CLUSTER_NAME=pipelet-autotest-${NUMBER_OF_NODES}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_build_tests</projects>
@@ -156,7 +156,7 @@ RUN_ANSIBLE_DURING_SETUP=false
 RUN_TESTS=true
 ANSIBLE_FORKS=${ANSIBLE_FORKS}
 KUBE_TESTS_DIR=kubernetes_autotest_${NUMBER_OF_NODES}
-CLUSTER_PREFIX=pipelet-autotest-${NUMBER_OF_NODES}</properties>
+KRAKEN_CLUSTER_NAME=pipelet-autotest-${NUMBER_OF_NODES}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>
@@ -196,7 +196,7 @@ RUN_ANSIBLE_DURING_SETUP=true
 RUN_TESTS=true
 ANSIBLE_FORKS=${ANSIBLE_FORKS}
 KUBE_TESTS_DIR=kubernetes_autotest_${NUMBER_OF_NODES}
-CLUSTER_PREFIX=pipelet-autotest-${NUMBER_OF_NODES}</properties>
+KRAKEN_CLUSTER_NAME=pipelet-autotest-${NUMBER_OF_NODES}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_autotest</projects>

@@ -74,9 +74,9 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
           <defaultValue>/var/lib/docker/gobuild/kubernetes</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>CLUSTER_PREFIX</name>
-          <description>prefix for kubernetes cluster names</description>
-          <defaultValue>pipeletautotest</defaultValue>
+          <name>KRAKEN_CLUSTER_NAME</name>
+          <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
+          <defaultValue>pipeletconformance</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>API_SERVER_TYPE</name>
@@ -155,8 +155,8 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
       <command>if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
   # create the cluster
     # set required terraform variables to parsed out AWS creds and run terraform
-    export TF_VAR_cluster_name=${CLUSTER_PREFIX}_aws
-    export TF_VAR_aws_user_prefix=${CLUSTER_PREFIX}
+    export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
+    export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
     export TF_VAR_aws_access_key=${AWS_KEY_ID}
     export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
     export TF_VAR_asg_wait_single=60
@@ -250,7 +250,7 @@ if [ &quot;$RUN_TESTS&quot; = true ]; then
           fail_step=true
       fi
 
-      ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${CLUSTER_PREFIX}_aws
+      ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${KRAKEN_CLUSTER_NAME}_aws
   done
 
   set -e
@@ -274,8 +274,8 @@ fi</command>
       <buildSteps>
         <hudson.tasks.Shell>
           <command>if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
-  export TF_VAR_cluster_name=${CLUSTER_PREFIX}_aws
-  export TF_VAR_aws_user_prefix=${CLUSTER_PREFIX}
+  export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
+  export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
   export TF_VAR_aws_access_key=${AWS_KEY_ID}
   export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 

@@ -29,7 +29,7 @@
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>KRAKEN_CLUSTER_NAME</name>
-          <description>Used by kraken for a few cluster resources: AWS resources, context name, DNS records, etc.</description>
+          <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
           <defaultValue>pipeletconformance</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -92,7 +92,7 @@
               <properties>KUBE_TESTS_BRANCH=${KUBE_CONFORMANCE_BRANCH}
 KUBE_TESTS_REPO=https://github.com/kubernetes/kubernetes.git
 KUBE_TESTS_DIR=kubernetes_conformance
-CLUSTER_PREFIX=${KRAKEN_CLUSTER_NAME}
+KRAKEN_CLUSTER_NAME=${KRAKEN_CLUSTER_NAME}
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
@@ -125,7 +125,7 @@ CLUSTER_PREFIX=${KRAKEN_CLUSTER_NAME}
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.tasks.Shell>
       <command># set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_cluster_name=pipeletconformance_aws
+export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
 export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
 export TF_VAR_asg_wait_single=60
 export TF_VAR_asg_wait_total=10

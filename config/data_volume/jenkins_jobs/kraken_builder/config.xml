@@ -23,6 +23,11 @@
           <description>Commit Id</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_CLUSTER_NAME</name>
+          <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
+          <defaultValue>pipelet</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -107,19 +112,19 @@
   <builders>
     <hudson.tasks.Shell>
       <command># set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_cluster_name=pipelet_aws
-export TF_VAR_aws_user_prefix=pipelet
-export TF_VAR_asg_wait_single=60
-export TF_VAR_asg_wait_total=10
+export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
+export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
 export TF_VAR_aws_access_key=${AWS_KEY_ID}
 export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+export TF_VAR_asg_wait_single=60
+export TF_VAR_asg_wait_total=10
 
 # start terraform
 terraform apply -no-color -input=false -state=terraform/aws/terraform.tfstate -var &quot;kraken_repo.commit_sha=${ghprbActualCommit}&quot; terraform/aws
 
 # run tests
 bundle install
-bundle exec cucumber --format pretty --format junit --out output/cucumber/junit CUKE_CLUSTER=pipelet_aws features/*_aws.feature</command>
+bundle exec cucumber --format pretty --format junit --out output/cucumber/junit CUKE_CLUSTER=${KRAKEN_CLUSTER_NAME}_aws features/*_aws.feature</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -131,8 +136,8 @@ bundle exec cucumber --format pretty --format junit --out output/cucumber/junit 
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>export TF_VAR_cluster_name=pipelet_aws
-export TF_VAR_aws_user_prefix=pipelet
+          <command>export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
+export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
 export TF_VAR_aws_access_key=${AWS_KEY_ID}
 export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 
