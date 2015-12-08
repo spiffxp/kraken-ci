@@ -197,7 +197,7 @@ resource "aws_route53_record" "pipelet_route" {
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vvv"
+    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vv --diff"
   }
 }
 
@@ -211,7 +211,7 @@ resource "aws_route53_record" "vault_route" {
   records = ["${aws_instance.pipelet_ec2.public_ip}"]
 
   provisioner "local-exec" {
-    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/vault.yaml -vvv"
+    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/vault.yaml -vv --diff"
   }
 }
 */
