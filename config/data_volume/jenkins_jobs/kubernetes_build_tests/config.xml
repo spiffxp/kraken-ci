@@ -31,7 +31,7 @@
         <hudson.model.StringParameterDefinition>
           <name>KUBE_TESTS_DIR</name>
           <description>where to clone test repo to under /var/lib/docker/gobuild/KUBE_TESTS_DIR</description>
-          <defaultValue>/var/lib/docker/gobuild/kubernetes</defaultValue>
+          <defaultValue>kubernetes</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>CLUSTER_PREFIX</name>
@@ -72,15 +72,18 @@
   <builders>
     <hudson.tasks.Shell>
       <command># build the tests
-rm -rf /var/lib/docker/gobuild/${KUBE_TESTS_DIR}
 cd /var/lib/docker/gobuild
+rm -rf ${KUBE_TESTS_DIR}
 git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./${KUBE_TESTS_DIR}
 cd ${KUBE_TESTS_DIR}
 make clean
+# TODO: what's the yes for
 yes | make
 
+# TODO: something else should be making this config
+
 # create kube config
-cat &gt; /var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig &lt;&lt;EOF
+cat &gt; ./kubeconfig &lt;&lt;EOF
 apiVersion: v1
 clusters:
 - cluster:
