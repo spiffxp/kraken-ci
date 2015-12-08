@@ -81,7 +81,6 @@ make clean
 yes | make
 
 # TODO: something else should be making this config
-
 # create kube config
 cat &gt; ./kubeconfig &lt;&lt;EOF
 apiVersion: v1

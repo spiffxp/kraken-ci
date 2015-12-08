@@ -20,6 +20,11 @@
           <description>commit SHA</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_CONFORMANCE_BRANCH</name>
+          <description>branch from which to build/run conformance tests</description>
+          <defaultValue>release-1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -44,7 +49,22 @@
       <customMessage></customMessage>
     </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
-  <scm class="hudson.scm.NullSCM"/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>git@github.com:spiffxp/kraken.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>hack-scripts</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
   <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -53,8 +73,13 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>cd /var/lib/docker/gobuild/kubernetes_conformance
-KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig USER=jenkins hack/conformance-test.sh | tee ${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log</command>
+      <command>
+export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
+export KUBE_CONFORMANCE_CONFIG=${KUBE_ROOT}/kubeconfig
+KUBE_CONFORMANCE_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log
+# TODO: unclear what part of k8s scripts require USER to be set
+# TODO: should we just drop test build functionality
+REBUILD_TESTS=false USER=jenkins hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
