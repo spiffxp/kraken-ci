@@ -6,6 +6,7 @@ build-blocker-plugin:1.6
 build-flow-plugin:0.18
 buildgraph-view:1.1.1
 cloudbees-folder:4.9
+conditional-buildstep:1.3.3
 config-file-provider:2.8.1
 copyartifact:1.37
 credentials-binding:1.5
@@ -47,6 +48,7 @@ postbuildscript:0.17
 promoted-builds:2.21
 rabbitmq-consumer:2.7
 rebuild:1.25
+run-condition:1.0
 scm-api:0.2
 script-security:1.14
 slack:1.8
@@ -54,7 +56,7 @@ ssh-agent:1.7
 ssh-credentials:1.11
 ssh-slaves:1.9
 subversion:2.5.1
-token-macro:1.10
+token-macro:1.11
 translation:1.12
 vsphere-cloud:2.6
 windows-slaves:1.1
