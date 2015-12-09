@@ -75,16 +75,18 @@
     <hudson.tasks.Shell>
       <command>
 export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
-export KUBE_CONFORMANCE_CONFIG=${KUBE_ROOT}/kubeconfig
+export KUBE_CONFORMANCE_KUBECONFIG=${KUBE_ROOT}/kubeconfig
+export KUBE_CONFORMANCE_OUTPUT_DIR=${WORKSPACE}/output/conformance
+
 KUBE_CONFORMANCE_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log
 # TODO: unclear what part of k8s scripts require USER to be set
 # TODO: should we just drop test build functionality
-REBUILD_TESTS=false USER=jenkins hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}</command>
+REBUILD_TESTS=false USER=jenkins ./hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>kraken_${KRAKEN_COMMIT}_conformance.log</artifacts>
+      <artifacts>kraken_${KRAKEN_COMMIT}_conformance.log, output/**/*</artifacts>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
