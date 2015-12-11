@@ -103,8 +103,7 @@ export KUBE_DENSITY_NUM_NODES=4
 export KUBE_DENSITY_OUTPUT_DIR=${WORKSPACE}/output/density
 KUBE_DENSITY_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_density.log
 # TODO: unclear what part of k8s scripts require USER to be set
-# TODO: should we just drop test build functionality
-REBUILD_TESTS=false USER=jenkins ./hack/density.sh ${KUBE_DENSITY_BRANCH} ${KUBE_DENSITY_PODS_PER_NODE} | tee ${KUBE_DENSITY_LOG}
+USER=jenkins ./hack/density.sh ${KUBE_DENSITY_BRANCH} ${KUBE_DENSITY_PODS_PER_NODE} | tee ${KUBE_DENSITY_LOG}
       </command>
     </hudson.tasks.Shell>
   </builders>

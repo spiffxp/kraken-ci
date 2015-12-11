@@ -134,14 +134,18 @@ KRAKEN_CLUSTER_NAME=${KRAKEN_CLUSTER_NAME}
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.tasks.Shell>
-      <command># set required terraform variables to parsed out AWS creds and run terraform
+      <command># TODO: use a shared 'clusters' directory instead
+KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig
+
+# set required terraform variables to parsed out AWS creds and run terraform
 export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
 export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
 export TF_VAR_aws_access_key=${AWS_KEY_ID}
 export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
 export TF_VAR_asg_wait_single=60
-export TF_VAR_asg_wait_total=10
 export TF_VAR_aws_node_type=m3.medium
+export TF_VAR_asg_wait_total=10
+export TF_VAR_kubeconfig=${KUBECONFIG}
 
 # start terraform
 terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
@@ -226,7 +230,10 @@ mkdir -p ${WORKSPACE}/output</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>set +e
+          <command># TODO: use a shared 'clusters' directory instead
+KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig
+
+set +e
 # copy the log file to S3
 export AWS_ACCESS_KEY_ID=${AWS_KEY_ID}
 export AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
@@ -239,6 +246,7 @@ export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
 export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
 export TF_VAR_aws_access_key=${AWS_KEY_ID}
 export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+export TF_VAR_kubeconfig=${KUBECONFIG}
 
 retries=10
 until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws

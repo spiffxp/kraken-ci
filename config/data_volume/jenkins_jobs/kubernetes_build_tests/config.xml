@@ -79,23 +79,7 @@ git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./${KUBE_TESTS_DIR}
 cd ${KUBE_TESTS_DIR}
 make clean
 # TODO: what's the yes for
-yes | make
-
-# TODO: something else should be making this config
-# create kube config
-cat &gt; ./kubeconfig &lt;&lt;EOF
-apiVersion: v1
-clusters:
-- cluster:
-    api-version: v1
-    server: http://${KRAKEN_CLUSTER_NAME}-master.kubeme.io:8080
-  name:
-contexts: []
-current-context: &quot;&quot;
-kind: Config
-preferences: {}
-users: []
-EOF</command>
+yes | make</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

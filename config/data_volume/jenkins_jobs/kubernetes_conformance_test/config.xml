@@ -90,8 +90,7 @@ export KUBE_CONFORMANCE_OUTPUT_DIR=${WORKSPACE}/output/conformance
 
 KUBE_CONFORMANCE_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log
 # TODO: unclear what part of k8s scripts require USER to be set
-# TODO: should we just drop test build functionality
-REBUILD_TESTS=false USER=jenkins ./hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}</command>
+USER=jenkins ./hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

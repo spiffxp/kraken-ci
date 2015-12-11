@@ -169,13 +169,17 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command> # create the cluster
+      <command># TODO: use a shared 'clusters' directory instead
+KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
+
+# create the cluster
 if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
   # set required terraform variables to parsed out AWS creds and run terraform
   export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
   export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
   export TF_VAR_aws_access_key=${AWS_KEY_ID}
   export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+  export TF_VAR_kubeconfig=${KUBECONFIG}
 
   export TF_VAR_asg_wait_single=60
   export TF_VAR_asg_wait_total=${TOTAL_WAIT}
@@ -249,7 +253,9 @@ KRAKEN_CLUSTER_NAME=${KRAKEN_CLUSTER_NAME}
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.tasks.Shell>
-      <command># run
+      <command>
+
+# run
 if [ &quot;$RUN_TESTS&quot; = true ]; then
 
   export KUBE_ROOT=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}
@@ -299,12 +305,16 @@ fi</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command># destroy the cluster
+          <command># TODO: use a shared 'clusters' directory instead
+KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
+
+# destroy the cluster
 if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
   export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
   export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
   export TF_VAR_aws_access_key=${AWS_KEY_ID}
   export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+  export TF_VAR_aws_kubeconfig=${KUBECONFIG}
 
   retries=10
   until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
