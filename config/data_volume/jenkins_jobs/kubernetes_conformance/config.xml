@@ -28,6 +28,16 @@
           <defaultValue>release-1.1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_REPO</name>
+          <description></description>
+          <defaultValue>git@github.com:samsung-ag/kraken</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_BRANCH</name>
+          <description></description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>KRAKEN_CLUSTER_NAME</name>
           <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
           <defaultValue>pipeletconformance</defaultValue>
@@ -60,13 +70,13 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>git@github.com:Samsung-AG/kraken.git</url>
+        <url>${KRAKEN_REPO}</url>
         <credentialsId>jenkins-github</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>master</name>
+        <name>${KRAKEN_BRANCH}</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>

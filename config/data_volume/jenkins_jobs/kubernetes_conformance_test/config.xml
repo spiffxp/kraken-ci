@@ -21,6 +21,16 @@
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_REPO</name>
+          <description></description>
+          <defaultValue>git@github.com:samsung-ag/kraken</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_BRANCH</name>
+          <description></description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>KUBE_CONFORMANCE_BRANCH</name>
           <description>branch from which to build/run conformance tests</description>
           <defaultValue>release-1.1</defaultValue>
@@ -53,12 +63,12 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>git@github.com:spiffxp/kraken.git</url>
+        <url>${KRAKEN_REPO}</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>hack-scripts</name>
+        <name>${KRAKEN_BRANCH}</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
