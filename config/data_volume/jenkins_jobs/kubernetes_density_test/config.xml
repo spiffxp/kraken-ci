@@ -21,16 +21,6 @@
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>KRAKEN_REPO</name>
-          <description></description>
-          <defaultValue>git@github.com:samsung-ag/kraken</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>KRAKEN_BRANCH</name>
-          <description></description>
-          <defaultValue>master</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
           <name>KUBE_DENSITY_BRANCH</name>
           <description>branch from which to build/run density tests; suggested values:
 - conformance-test-v1
@@ -76,12 +66,12 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>${KRAKEN_REPO}</url>
+        <url>git@github.com:samsung-ag/kraken</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-        <name>${KRAKEN_BRANCH}</name>
+        <name>master</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
