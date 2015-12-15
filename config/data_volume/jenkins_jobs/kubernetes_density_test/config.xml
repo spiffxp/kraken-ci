@@ -36,7 +36,7 @@
 - 30
 - 100
           </description>
-          <defaultValue>release-1.1</defaultValue>
+          <defaultValue>30</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
