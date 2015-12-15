@@ -201,6 +201,11 @@ resource "aws_route53_record" "pipelet_route" {
   }
 }
 
+resource "aws_s3_bucket" "pipelet_clusters_bucket" {
+  bucket = "pipelet-clusters"
+  acl = "private"
+}
+
 /*
 resource "aws_route53_record" "vault_route" {
   depends_on = ["aws_instance.pipelet_ec2"]
