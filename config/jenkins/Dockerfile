@@ -84,3 +84,6 @@ RUN chmod +x /usr/local/bin/hipchat_room_message
 
 # install awscli
 RUN pip install awscli
+
+# preload host keys for github.com
+RUN ssh-keyscan -H github.com >> ~/.ssh/known_hosts
