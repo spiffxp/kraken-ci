@@ -60,7 +60,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>$git@github.com:samsung-ag/kraken</url>
+        <url>git@github.com:samsung-ag/kraken</url>
         <credentialsId>jenkins-github</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
@@ -128,17 +128,19 @@ KRAKEN_CLUSTER_NAME=${KRAKEN_CLUSTER_NAME}
 KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig
 
 # set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
-export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
-export TF_VAR_asg_wait_single=60
-export TF_VAR_aws_node_type=m3.medium
-export TF_VAR_asg_wait_total=10
-export TF_VAR_kubeconfig=${KUBECONFIG}
+cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
+cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
+aws_access_key = &quot;${AWS_KEY_ID}&quot;
+aws_secret_key = &quot;${AWS_ACCESS_KEY}&quot;
+kubeconfig = &quot;${KUBECONFIG}&quot;
+asg_wait_single = 60
+asg_wait_total = 10
+node_type = &quot;m3.medium&quot;
+EOF
 
 # start terraform
-terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
 
 # clear output folder
 rm -rf ${WORKSPACE}/output
@@ -231,15 +233,8 @@ aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLA
 aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/output/density/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
 set -e
 
-# set required terraform variables to parsed out AWS creds and run terrafor
-export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
-export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
-export TF_VAR_kubeconfig=${KUBECONFIG}
-
 retries=10
-until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
 do
   if [ $retries -eq 0 ]; then
     echo &quot;Destroy failed ...&quot;

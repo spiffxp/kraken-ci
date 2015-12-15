@@ -164,28 +164,33 @@ KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
 
 # create the cluster
 if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
-  # set required terraform variables to parsed out AWS creds and run terraform
-  export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
-  export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
-  export TF_VAR_aws_access_key=${AWS_KEY_ID}
-  export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
-  export TF_VAR_kubeconfig=${KUBECONFIG}
 
-  export TF_VAR_asg_wait_single=60
-  export TF_VAR_asg_wait_total=${TOTAL_WAIT}
+  # set required terraform variables to parsed out AWS creds and run terraform
+  cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
+  cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+  aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
+  aws_access_key = &quot;${AWS_KEY_ID}&quot;
+  aws_secret_key = &quot;${AWS_ACCESS_KEY}&quot;
+  kubeconfig = &quot;${KUBECONFIG}&quot;
+  asg_wait_single = 60
+  asg_wait_total = ${TOTAL_WAIT}
+  EOF
 
   # autotest cluster values
-  export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
-  export TF_VAR_kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}
-  export TF_VAR_aws_node_type=${NODE_TYPE}
-  export TF_VAR_aws_etcd_type=${ETCD_TYPE}
-  export TF_VAR_aws_storage_type_etcd=ephemeral
-  export TF_VAR_aws_master_type=${MASTER_TYPE}
-  export TF_VAR_aws_apiserver_type=${API_SERVER_TYPE}
-  export TF_VAR_apiserver_count=${API_SERVER_COUNT}
+  cat &gt;&gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
+  kubernetes_binaries_uri = &quot;${KUBERNETES_BINARIES_URI}&quot;
+  node_count = $((NUMBER_OF_NODES - 1))
+  aws_node_type = &quot;${NODE_TYPE}&quot;
+  aws_etcd_type = &quot;${ETCD_TYPE}&quot;
+  aws_storage_type_etcd = &quot;ephemeral&quot;
+  aws_master_type = &quot;${MASTER_TYPE}&quot;
+  apiserver_count = ${API_SERVER_COUNT}
+  aws_apiserver_type = &quot;${API_SERVER_TYPE}&quot;
+  EOF
 
   # start terraform
-  terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+  terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
+
 fi;
 
 if [ &quot;$RUN_ANSIBLE&quot; = true ]; then
@@ -300,14 +305,9 @@ KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
 
 # destroy the cluster
 if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
-  export TF_VAR_cluster_name=${KRAKEN_CLUSTER_NAME}_aws
-  export TF_VAR_aws_user_prefix=${KRAKEN_CLUSTER_NAME}
-  export TF_VAR_aws_access_key=${AWS_KEY_ID}
-  export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
-  export TF_VAR_aws_kubeconfig=${KUBECONFIG}
 
   retries=10
-  until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+  until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
   do
     if [ $retries -eq 0 ]; then
       echo &quot;Destroy failed ...&quot;
