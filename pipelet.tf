@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 resource "template_file" "cloudconfig" {
-  filename = "templates/systemd.config.tpl"
+  template = "templates/systemd.config.tpl"
 
   vars {
     hostname = "${var.ci_hostname}"
@@ -14,7 +14,7 @@ resource "template_file" "cloudconfig" {
 }
 
 resource "template_file" "jenkinsconfig" {
-  filename = "templates/config/data_volume/rendered/configs/config.xml.tpl"
+  template = "templates/config/data_volume/rendered/configs/config.xml.tpl"
 
   vars {
     github_client_id = "${var.github_client_id}"
@@ -27,7 +27,7 @@ resource "template_file" "jenkinsconfig" {
 }
 
 resource "template_file" "credentialsfile" {
-  filename = "templates/config/jenkins/credentials.tpl"
+  template = "templates/config/jenkins/credentials.tpl"
 
   vars {
     aws_key_id = "${var.aws_access_key}"
@@ -40,7 +40,7 @@ resource "template_file" "credentialsfile" {
 }
 
 resource "template_file" "vaultconfig" {
-  filename = "templates/config/vault/vault.hcl.tpl"
+  template = "templates/config/vault/vault.hcl.tpl"
 
   vars {
     vault_backend_bucket = "${var.vault_backend_bucket}"
@@ -57,7 +57,7 @@ resource "template_file" "vaultconfig" {
 }
 
 resource "template_file" "hipchatconfig" {
-  filename = "templates/config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml.tpl"
+  template = "templates/config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml.tpl"
 
   vars {
     hipchat_api_token = "${var.hipchat_api_token}"
@@ -69,7 +69,7 @@ resource "template_file" "hipchatconfig" {
 }
 
 resource "template_file" "slackconfig" {
-  filename = "templates/config/data_volume/rendered/configs/jenkins.plugins.slack.SlackNotifier.xml.tpl"
+  template = "templates/config/data_volume/rendered/configs/jenkins.plugins.slack.SlackNotifier.xml.tpl"
 
   vars {
     slack_api_token = "${var.slack_api_token}"
@@ -81,7 +81,7 @@ resource "template_file" "slackconfig" {
 }
 
 resource "template_file" "ansible_inventory" {
-  filename = "templates/inventory.ansible.tpl"
+  template = "templates/inventory.ansible.tpl"
 
   vars {
     public_ip = "${aws_instance.pipelet_ec2.public_ip}"
