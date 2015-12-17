@@ -104,6 +104,8 @@ export KUBE_DENSITY_OUTPUT_DIR=${WORKSPACE}/output/density
 KUBE_DENSITY_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_density.log
 # TODO: unclear what part of k8s scripts require USER to be set
 USER=jenkins ./hack/density.sh ${KUBE_DENSITY_BRANCH} ${KUBE_DENSITY_PODS_PER_NODE} | tee ${KUBE_DENSITY_LOG}
+# tee isn&apos;t exiting &gt;0 as expected, so use the exit status of the script directly
+exit ${PIPESTATUS[0]}
       </command>
     </hudson.tasks.Shell>
   </builders>
