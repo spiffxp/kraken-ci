@@ -71,9 +71,8 @@ cd /var/lib/docker/gobuild
 rm -rf ${KUBE_TESTS_DIR}
 git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./${KUBE_TESTS_DIR}
 cd ${KUBE_TESTS_DIR}
-make clean
-# TODO: what's the yes for
-yes | make</command>
+make
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
