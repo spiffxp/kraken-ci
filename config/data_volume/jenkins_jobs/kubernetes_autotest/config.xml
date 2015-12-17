@@ -103,7 +103,7 @@
         <hudson.model.StringParameterDefinition>
           <name>KRAKEN_CLUSTER_NAME</name>
           <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
-          <defaultValue>pipeletconformance</defaultValue>
+          <defaultValue>kubernetes_autotest</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>DENSITIES</name>
@@ -216,7 +216,6 @@ fi</command>
               <properties>KUBE_TESTS_BRANCH=${KUBE_TESTS_BRANCH}
 KUBE_TESTS_REPO=https://github.com/kubernetes/kubernetes.git
 KUBE_TESTS_DIR=${KUBE_TESTS_DIR}
-KRAKEN_CLUSTER_NAME=${KRAKEN_CLUSTER_NAME}
 </properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>

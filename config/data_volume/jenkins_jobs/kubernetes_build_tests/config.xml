@@ -33,12 +33,6 @@
           <description>where to clone test repo to under /var/lib/docker/gobuild/KUBE_TESTS_DIR</description>
           <defaultValue>kubernetes</defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>KRAKEN_CLUSTER_NAME</name>
-          <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.
-TODO: this is used to generate a kubeconfig, it should happen in the same place the cluster is built, not here</description>
-          <defaultValue>pipeletautotest</defaultValue>
-        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">

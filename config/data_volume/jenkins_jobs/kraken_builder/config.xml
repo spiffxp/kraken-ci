@@ -26,7 +26,7 @@
         <hudson.model.StringParameterDefinition>
           <name>KRAKEN_CLUSTER_NAME</name>
           <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
-          <defaultValue>pipelet</defaultValue>
+          <defaultValue>kraken_builder</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>

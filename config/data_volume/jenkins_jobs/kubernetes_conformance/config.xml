@@ -30,7 +30,7 @@
         <hudson.model.StringParameterDefinition>
           <name>KRAKEN_CLUSTER_NAME</name>
           <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
-          <defaultValue>pipeletconformance</defaultValue>
+          <defaultValue>kubernetes_conformance</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>REBUILD_TESTS</name>
@@ -101,7 +101,7 @@
                 <properties>KUBE_TESTS_BRANCH=${KUBE_CONFORMANCE_BRANCH}
 KUBE_TESTS_REPO=https://github.com/kubernetes/kubernetes.git
 KUBE_TESTS_DIR=kubernetes_conformance
-KRAKEN_CLUSTER_NAME=${KRAKEN_CLUSTER_NAME}</properties>
+</properties>
               </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
             </configs>
             <projects>kubernetes_build_tests</projects>
