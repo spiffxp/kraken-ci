@@ -19,6 +19,16 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_REPO</name>
+          <description></description>
+          <defaultValue>git@github.com:samsung-ag/kraken</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_BRANCH</name>
+          <description></description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>KUBE_CONFORMANCE_BRANCH</name>
           <description>Kubernetes conformance tests branch.  Recommended possible values:
 - conformance-test-v1
@@ -161,7 +171,9 @@ mkdir -p ${WORKSPACE}/output</command>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
+                KRAKEN_REPO=${KRAKEN_REPO}
+                KRAKEN_BRANCH=${KRAKEN_BRANCH}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_conformance_test</projects>
@@ -193,7 +205,9 @@ mkdir -p ${WORKSPACE}/output</command>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
+                KRAKEN_REPO=${KRAKEN_REPO}
+                KRAKEN_BRANCH=${KRAKEN_BRANCH}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_density_test</projects>
