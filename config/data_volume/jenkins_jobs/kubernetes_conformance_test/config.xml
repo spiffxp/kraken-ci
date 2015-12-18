@@ -83,7 +83,8 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>
+      <command>#!/bin/bash
+
 export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
 export KUBE_CONFORMANCE_KUBECONFIG=${KUBE_ROOT}/kubeconfig
 export KUBE_CONFORMANCE_OUTPUT_DIR=${WORKSPACE}/output/conformance
