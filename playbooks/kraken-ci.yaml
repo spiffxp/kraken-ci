@@ -5,6 +5,11 @@
   tasks:
     - name: Install docker-py
       pip: name=docker-py
+    - name: Copy config/ dir over
+      synchronize:
+        src: ../config/
+        dest: ~/config/
+        recursive: yes
     - name: Jenkins Data Volume Build
       shell: docker build -t samsung_ag/jenkins-data /home/core/config/data_volume
     - name: Jenkins Server Build

@@ -26,10 +26,9 @@ Should be a valid job. Try running it.
 
 Should be a valid job. It should run every time someone opens a PR in the kraken repo
 
-# To update
+# To update in place
 
-    terraform taint aws_route53_record.pipelet_route
-    terraform apply -input=false
+    ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vv --diff
 
 Will sync local changes to jenkins instance, rebuild containers, and restart all processes.
 

@@ -185,17 +185,6 @@ resource "aws_route53_record" "pipelet_route" {
   ttl = "30"
   records = ["${aws_instance.pipelet_ec2.public_ip}"]
 
-  provisioner "file" {
-    source = "config"
-    destination = "~"
-    connection {
-      type="ssh"
-      host = "${aws_instance.pipelet_ec2.public_ip}"
-      user = "core"
-      key_file ="~/.ssh/keys/krakenci/id_rsa"
-    }
-  }
-
   provisioner "local-exec" {
     command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vv --diff"
   }
