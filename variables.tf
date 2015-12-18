@@ -44,7 +44,7 @@ variable "aws_secgroup_name" {
   default = "pipelet_secgroup"
 }
 variable "aws_instance_type" {
-  default = "m3.large"
+  default = "m3.xlarge"
 }
 variable "docker_api_version" {
   default = "1.18"

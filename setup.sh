@@ -6,7 +6,6 @@
 : ${AWS_DEFAULT_REGION:?"Set AWS_DEFAULT_REGION first"}
 : ${TF_VAR_github_client_id:?"Set TF_VAR_github_client_id first"}
 : ${TF_VAR_github_client_key:?"Set TF_VAR_github_client_key first"}
-# : ${TF_VAR_github_org_token:?"Set TF_VAR_github_org_token first"}
 : ${TF_VAR_hipchat_api_token:?"Set TF_VAR_hipchat_api_token first"}
 : ${TF_VAR_slack_api_token:?"Set TF_VAR_slack_api_token first"}
 

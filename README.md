@@ -26,6 +26,17 @@ Should be a valid job. Try running it.
 
 Should be a valid job. It should run every time someone opens a PR in the kraken repo
 
+# To update
+
+    terraform taint aws_route53_record.pipelet_route
+    terraform apply -input=false
+
+Will sync local changes to jenkins instance, rebuild containers, and restart all processes.
+
+TODO: you will likely need to Reload Configuration From Disk to pick up build history, it's unclear why that's not properly read in on startup.
+
+No graceful termination / draining is in place, so coordinate with your team members accordingly
+
 # To destroy
 Run the terraform destroy command:
 

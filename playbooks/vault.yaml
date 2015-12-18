@@ -52,7 +52,7 @@
         url: "{{vault_uri}}/v1/sys/init"
         validate_certs: no
         method: PUT
-        body: '{"set_shares":1, "secret_threshold":1}'
+        body: '{"secret_shares":1, "secret_threshold":1}'
         HEADER_Content-Type: application/json
         return_content: yes
       register: result

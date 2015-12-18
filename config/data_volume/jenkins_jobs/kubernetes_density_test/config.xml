@@ -20,6 +20,34 @@
           <description>commit SHA</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_REPO</name>
+          <description></description>
+          <defaultValue>git@github.com:samsung-ag/kraken</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_BRANCH</name>
+          <description></description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_DENSITY_BRANCH</name>
+          <description>branch from which to build/run density tests; suggested values:
+- conformance-test-v1
+- release-1.0
+- release-1.1
+- master</description>
+          <defaultValue>release-1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_DENSITY_PODS_PER_NODE</name>
+          <description>pods per node to use for density test; suggested values:
+- 3
+- 30
+- 100
+          </description>
+          <defaultValue>30</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -44,7 +72,22 @@
       <customMessage></customMessage>
     </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
-  <scm class="hudson.scm.NullSCM"/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>${KRAKEN_REPO}</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${KRAKEN_BRANCH}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
   <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -53,35 +96,23 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>export K8SROOT=/var/lib/docker/gobuild/kubernetes_conformance
-cd ${K8SROOT}
+      <command>#!/bin/bash
 
-rm -rf ${WORKSPACE}/e2e_output
-mkdir ${WORKSPACE}/e2e_output
-
-${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
-  ${K8SROOT}/_output/local/bin/linux/amd64/e2e.test \
-  -- \
-    --kubeconfig=${K8SROOT}/kubeconfig \
-    --repo-root=${K8SROOT} \
-    --num-nodes=4 \
-    --ginkgo.v=true \
-    --ginkgo.focus=&quot;should allow starting 30 pods per node&quot; \
-    --ginkgo.skip=&quot;(^Density)&quot; \
-    --provider= \
-    --gce-project= \
-    --gce-zone= \
-    --gke-cluster= \
-    --kube-master= \
-    --cluster-tag= \
-    --node-instance-group= \
-    --prefix=e2e \
-    --e2e-output-dir=${WORKSPACE}/e2e_output &gt; ${WORKSPACE}/kraken_${KRAKEN_COMMIT}_density.log</command>
+export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
+export KUBE_DENSITY_KUBECONFIG=${KUBE_ROOT}/kubeconfig
+export KUBE_DENSITY_NUM_NODES=4
+export KUBE_DENSITY_OUTPUT_DIR=${WORKSPACE}/output/density
+KUBE_DENSITY_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_density.log
+# TODO: unclear what part of k8s scripts require USER to be set
+USER=jenkins ./hack/density.sh ${KUBE_DENSITY_BRANCH} ${KUBE_DENSITY_PODS_PER_NODE} | tee ${KUBE_DENSITY_LOG}
+# tee isn&apos;t exiting &gt;0 as expected, so use the exit status of the script directly
+exit ${PIPESTATUS[0]}
+      </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>kraken_${KRAKEN_COMMIT}_density.log, e2e_output/**/*</artifacts>
+      <artifacts>kraken_${KRAKEN_COMMIT}_density.log, output/**/*</artifacts>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>

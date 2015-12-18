@@ -20,6 +20,21 @@
           <description>commit SHA</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_REPO</name>
+          <description></description>
+          <defaultValue>git@github.com:samsung-ag/kraken</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_BRANCH</name>
+          <description></description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_CONFORMANCE_BRANCH</name>
+          <description>branch from which to build/run conformance tests</description>
+          <defaultValue>release-1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -44,7 +59,22 @@
       <customMessage></customMessage>
     </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
-  <scm class="hudson.scm.NullSCM"/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>${KRAKEN_REPO}</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${KRAKEN_BRANCH}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
   <canRoam>true</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -53,13 +83,22 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>cd /var/lib/docker/gobuild/kubernetes_conformance
-KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig USER=jenkins hack/conformance-test.sh &gt; ${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log</command>
+      <command>#!/bin/bash
+
+export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
+export KUBE_CONFORMANCE_KUBECONFIG=${KUBE_ROOT}/kubeconfig
+export KUBE_CONFORMANCE_OUTPUT_DIR=${WORKSPACE}/output/conformance
+
+KUBE_CONFORMANCE_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log
+# TODO: unclear what part of k8s scripts require USER to be set
+USER=jenkins ./hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}</command>
+# tee isn&apos;t exiting &gt;0 as expected, so use the exit status of the script directly
+exit ${PIPESTATUS[0]}
     </hudson.tasks.Shell>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>kraken_${KRAKEN_COMMIT}_conformance.log</artifacts>
+      <artifacts>kraken_${KRAKEN_COMMIT}_conformance.log, output/**/*</artifacts>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>

@@ -14,9 +14,6 @@
       <useBuildBlocker>true</useBuildBlocker>
       <blockingJobs>kubernetes_autotest_100</blockingJobs>
     </hudson.plugins.buildblocker.BuildBlockerProperty>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
-      <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
-    </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
@@ -82,7 +79,7 @@ ANSIBLE_FORKS=50</properties>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
       <project>kubernetes_autotest_cycle</project>
       <filter></filter>
-      <target>test_results</target>
+      <target>output/autotest</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
       <optional>true</optional>
@@ -91,7 +88,7 @@ ANSIBLE_FORKS=50</properties>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>test_results/**/*</artifacts>
+      <artifacts>output/**/*</artifacts>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>

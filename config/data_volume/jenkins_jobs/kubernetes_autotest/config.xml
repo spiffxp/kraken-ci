@@ -19,44 +19,42 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.BooleanParameterDefinition>
-          <name>CLUSTER_FROM_SCRATCH</name>
-          <description>Create cluster from scratch? If true, create a new cluster.
-Otherwise attempt to run ansible on existing cluster to re-provision it with a different kubernetes version</description>
+          <name>CREATE_CLUSTER</name>
+          <description>create cluster at the start of the job</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>RUN_ANSIBLE</name>
+          <description>whether to run ansible prior to running tests</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ANSIBLE_FORKS</name>
+          <description>number of forks to use when running ansible-playbook</description>
+          <defaultValue>25</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>RUN_TESTS</name>
+          <description>whether to run the tests</description>
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>DESTROY_CLUSTER</name>
-          <description>Destroy cluster at the end of the job?</description>
+          <description>Destroy cluster at the end of the job</description>
           <defaultValue>true</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>KUBERNETES_BINARIES_URI</name>
-          <description>Link to kubernetes binaries. For example:
-
-https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64 for 1.0.6
-https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/1524d74 for 1.1
-https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</description>
-          <defaultValue>https://storage.googleapis.com/kubernetes-release/release/v1.0.6/bin/linux/amd64</defaultValue>
+          <description>Link to kubernetes binaries. Suggested values:
+- https://storage.googleapis.com/kubernetes-release/release/v1.0.7/bin/linux/amd64 for 1.0.x
+- https://storage.googleapis.com/kubernetes-release/release/v1.1.2/bin/linux/amd64 for 1.1.x
+</description>
+          <defaultValue>https://storage.googleapis.com/kubernetes-release/release/v1.1.2/bin/linux/amd64</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>NUMBER_OF_NODES</name>
           <description>Number of kubernetes nodes</description>
-          <defaultValue>100</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>DENSITIES</name>
-          <description>space-separated pod densities</description>
-          <defaultValue>3 15 30</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>API_SERVER_COUNT</name>
-          <description>size of api server pool</description>
-          <defaultValue>1</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>ETCD_TYPE</name>
-          <description>etcd aws type</description>
-          <defaultValue>m4.2xlarge</defaultValue>
+          <defaultValue>10</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>NODE_TYPE</name>
@@ -64,19 +62,9 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
           <defaultValue>m3.medium</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>TOTAL_WAIT</name>
-          <description>total number of 60 second waits</description>
-          <defaultValue>10</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>GINKGO_TARGET_DIR</name>
-          <description>where to clone test repo to under /var/lib/docker/gobuild/GINKGO_TARGET_DIR</description>
-          <defaultValue>/var/lib/docker/gobuild/kubernetes</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>CLUSTER_PREFIX</name>
-          <description>prefix for kubernetes cluster names</description>
-          <defaultValue>pipeletautotest</defaultValue>
+          <name>API_SERVER_COUNT</name>
+          <description>size of api server pool</description>
+          <defaultValue>1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>API_SERVER_TYPE</name>
@@ -84,24 +72,43 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
           <defaultValue>m4.4xlarge</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>ETCD_TYPE</name>
+          <description>etcd aws type</description>
+          <defaultValue>m4.2xlarge</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>MASTER_TYPE</name>
           <description>master aws type</description>
           <defaultValue>m4.4xlarge</defaultValue>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>RUN_ANSIBLE_DURING_SETUP</name>
-          <description>whether to run ansible prior to running tests</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
-          <name>RUN_TESTS</name>
-          <description>whether to run the tests</description>
-          <defaultValue>true</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>ANSIBLE_FORKS</name>
-          <description>number of forks to use when running ansible-playbook</description>
-          <defaultValue>25</defaultValue>
+          <name>TOTAL_WAIT</name>
+          <description>total number of 60 second waits</description>
+          <defaultValue>10</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_TESTS_BRANCH</name>
+          <description>branch from which to build/run tests; suggested values:
+- conformance-test-v1
+- release-1.0
+- release-1.1
+- master</description>
+          <defaultValue>release-1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_TESTS_DIR</name>
+          <description>where to clone test repo to under /var/lib/docker/gobuild/KUBE_TESTS_DIR</description>
+          <defaultValue>kubernetes</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_CLUSTER_NAME</name>
+          <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
+          <defaultValue>kubernetes_autotest</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DENSITIES</name>
+          <description>space separated list of density test cases to run</description>
+          <defaultValue>3 15 30</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -131,7 +138,7 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>git@github.com:Samsung-AG/kraken.git</url>
+        <url>git@github.com:samsung-ag/kraken</url>
         <credentialsId>jenkins-github</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
@@ -152,31 +159,41 @@ https://s3-us-west-2.amazonaws.com/sundry-automata/hyperkube/dbb37d9 for trunk</
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>if [ &quot;$CLUSTER_FROM_SCRATCH&quot; = true ]; then
-  # create the cluster
-    # set required terraform variables to parsed out AWS creds and run terraform
-    export TF_VAR_cluster_name=${CLUSTER_PREFIX}_aws
-    export TF_VAR_aws_user_prefix=${CLUSTER_PREFIX}
-    export TF_VAR_aws_access_key=${AWS_KEY_ID}
-    export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
-    export TF_VAR_asg_wait_single=60
-    export TF_VAR_asg_wait_total=${TOTAL_WAIT}
+      <command># TODO: use a shared 'clusters' directory instead
+KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
 
-    # autotest cluster values
-    export TF_VAR_node_count=$((NUMBER_OF_NODES-1))
-    export TF_VAR_kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}
-    export TF_VAR_aws_node_type=${NODE_TYPE}
-    export TF_VAR_aws_etcd_type=${ETCD_TYPE}
-    export TF_VAR_aws_master_type=${MASTER_TYPE}
-    export TF_VAR_aws_apiserver_type=${API_SERVER_TYPE}
-    export TF_VAR_aws_storage_type_etcd=ephemeral
-    export TF_VAR_apiserver_count=${API_SERVER_COUNT}
+# create the cluster
+if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
+
+  # set required terraform variables to parsed out AWS creds and run terraform
+  cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
+  cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+  aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
+  aws_access_key = &quot;${AWS_KEY_ID}&quot;
+  aws_secret_key = &quot;${AWS_ACCESS_KEY}&quot;
+  kubeconfig = &quot;${KUBECONFIG}&quot;
+  asg_wait_single = 60
+  asg_wait_total = ${TOTAL_WAIT}
+  EOF
+
+  # autotest cluster values
+  cat &gt;&gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
+  kubernetes_binaries_uri = &quot;${KUBERNETES_BINARIES_URI}&quot;
+  node_count = $((NUMBER_OF_NODES - 1))
+  aws_node_type = &quot;${NODE_TYPE}&quot;
+  aws_etcd_type = &quot;${ETCD_TYPE}&quot;
+  aws_storage_type_etcd = &quot;ephemeral&quot;
+  aws_master_type = &quot;${MASTER_TYPE}&quot;
+  apiserver_count = ${API_SERVER_COUNT}
+  aws_apiserver_type = &quot;${API_SERVER_TYPE}&quot;
+  EOF
 
   # start terraform
-  terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+  terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
+
 fi;
 
-if [ &quot;$RUN_ANSIBLE_DURING_SETUP&quot; = true ]; then
+if [ &quot;$RUN_ANSIBLE&quot; = true ]; then
   retries=10
     until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f ${ANSIBLE_FORKS} -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
     do
@@ -191,66 +208,75 @@ if [ &quot;$RUN_ANSIBLE_DURING_SETUP&quot; = true ]; then
     done
 fi</command>
     </hudson.tasks.Shell>
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>KUBE_TESTS_BRANCH=${KUBE_TESTS_BRANCH}
+KUBE_TESTS_REPO=https://github.com/kubernetes/kubernetes.git
+KUBE_TESTS_DIR=${KUBE_TESTS_DIR}
+</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>kubernetes_build_tests</projects>
+          <condition>ALWAYS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <block>
+            <buildStepFailureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+              <completeBuild>true</completeBuild>
+            </buildStepFailureThreshold>
+            <unstableThreshold>
+              <name>UNSTABLE</name>
+              <ordinal>1</ordinal>
+              <color>YELLOW</color>
+              <completeBuild>true</completeBuild>
+            </unstableThreshold>
+            <failureThreshold>
+              <name>FAILURE</name>
+              <ordinal>2</ordinal>
+              <color>RED</color>
+              <completeBuild>true</completeBuild>
+            </failureThreshold>
+          </block>
+          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.tasks.Shell>
-      <command># run
+      <command>
 
+# run
 if [ &quot;$RUN_TESTS&quot; = true ]; then
 
-  rm -rf ${WORKSPACE}/density_out
-  export K8SROOT=/var/lib/docker/gobuild/${GINKGO_TARGET_DIR}
-  set +e
+  export KUBE_ROOT=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}
+  export KUBE_DENSITY_KUBECONFIG=${KUBE_ROOT}/kubeconfig
+  export KUBE_DENSITY_NUM_NODES=4
 
   fail_step=false
   pod_densities=&quot;${DENSITIES%\&quot;}&quot;
   pod_densities=&quot;${pod_densities#\&quot;}&quot;
 
-  for i in $pod_densities;
-  do
-    # KUBECONFIG=${K8SROOT}/kubeconfig ${WORKSPACE}/hack/terminate-namespace.sh density
-    KUBECONFIG=${K8SROOT}/kubeconfig
+  set +e
 
-    kubeconfig=${KUBECONFIG:-&quot;${HOME}/.kube/config&quot;}
-    regex=density
-    poll_delay_secs=5
+  rm -rf ${WORKSPACE}/output
 
-    # Delete all Active namespaces that match the regex
-    for ns in $(kubectl --kubeconfig=${kubeconfig} get namespaces | grep ${regex} | grep Active | awk &apos;{print $1}&apos;); do
-      kubectl --kubeconfig=${kubeconfig} delete namespace $ns;
-    done
+  for i in $pod_densities; do
+    KUBECONFIG=${KUBE_DENSITY_KUBECONFIG} ${WORKSPACE}/hack/terminate-namespace.sh density
+    export KUBE_DENSITY_OUTPUT_DIR=${WORKSPACE}/output/density-$i
+    KUBE_DENSITY_LOG=${KUBE_DENSITY_OUTPUT_DIR}/kubernetes_autotest_$i.log
+    # TODO: unclear what part of k8s scripts require USER to be set
+    # TODO: should we just drop test build functionality
+    REBUILD_TESTS=false USER=jenkins hack/density.sh ${KUBE_TESTS_BRANCH} $i | tee ${KUBE_DENSITY_LOG}
 
-    # The namepace is going to sit around in Terminating state until k8s has removed all resources
-    # therein, including pods, rcs, events, etc.
-    while (kubectl --kubeconfig=${kubeconfig} get namespaces | grep ${regex}); do
-      sleep ${poll_delay_secs};
-      date -u
-    done
-    #
+    if [ $? -ne 0 ]; then
+        fail_step=true
+    fi
 
-    mkdir -p ${WORKSPACE}/density_out/$i
-    ${K8SROOT}/_output/local/bin/linux/amd64/ginkgo \
-      ${K8SROOT}/_output/local/bin/linux/amd64/e2e.test \
-      -- \
-        --kubeconfig=${K8SROOT}/kubeconfig \
-        --repo-root=${K8SROOT} \
-        --num-nodes=${NUMBER_OF_NODES} \
-        --ginkgo.v=true \
-        --ginkgo.focus=&quot;should allow starting $i pods per node&quot; \
-        --ginkgo.skip=&quot;(^Density)&quot; \
-        --provider= \
-        --gce-project= \
-        --gce-zone= \
-        --gke-cluster= \
-        --kube-master= \
-        --cluster-tag= \
-        --node-instance-group= \
-        --prefix=density \
-        --e2e-output-dir=${WORKSPACE}/density_out/$i | tee ${WORKSPACE}/density_out/kubernetes_autotest_$i.log
-
-      if [ $? -ne 0 ]; then
-          fail_step=true
-      fi
-
-      ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${CLUSTER_PREFIX}_aws
+    ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${KRAKEN_CLUSTER_NAME}_aws
   done
 
   set -e
@@ -264,7 +290,7 @@ fi</command>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>density_out/**/*</artifacts>
+      <artifacts>output/**/*</artifacts>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
@@ -273,14 +299,14 @@ fi</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
-  export TF_VAR_cluster_name=${CLUSTER_PREFIX}_aws
-  export TF_VAR_aws_user_prefix=${CLUSTER_PREFIX}
-  export TF_VAR_aws_access_key=${AWS_KEY_ID}
-  export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+          <command># TODO: use a shared 'clusters' directory instead
+KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
+
+# destroy the cluster
+if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
 
   retries=10
-  until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+  until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
   do
     if [ $retries -eq 0 ]; then
       echo &quot;Destroy failed ...&quot;
@@ -302,6 +328,11 @@ fi</command>
     </jenkins.plugins.slack.SlackNotifier>
   </publishers>
   <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.26">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
     <com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper/>
   </buildWrappers>
 </project>

@@ -1,4 +1,4 @@
-FROM gliderlabs/alpine
+FROM gliderlabs/alpine:3.2
 RUN apk --update add curl
 ENV VAULT_VERSION=0.3.1
 ENV VAULT_FILE=vault_${VAULT_VERSION}_linux_amd64.zip

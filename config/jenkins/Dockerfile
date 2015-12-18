@@ -1,4 +1,4 @@
-FROM jenkins
+FROM jenkins:1.625.2
 MAINTAINER Marat Garafutdinov <marat.g@samsung.com>
 
 USER root
@@ -69,7 +69,7 @@ RUN cp terraform* /usr/local/bin
 RUN rm terraform*
 
 # install kubectl
-RUN wget https://github.com/GoogleCloudPlatform/kubernetes/releases/download/${KUBERNETES_VERSION}/kubernetes.tar.gz
+RUN wget https://github.com/kubernetes/kubernetes/releases/download/${KUBERNETES_VERSION}/kubernetes.tar.gz
 RUN tar -xvf kubernetes.tar.gz
 RUN cp kubernetes/platforms/linux/amd64/kubectl /usr/bin && rm kubernetes.tar.gz
 
@@ -84,3 +84,6 @@ RUN chmod +x /usr/local/bin/hipchat_room_message
 
 # install awscli
 RUN pip install awscli
+
+# preload host keys for github.com
+RUN ssh-keyscan -H github.com >> ~/.ssh/known_hosts

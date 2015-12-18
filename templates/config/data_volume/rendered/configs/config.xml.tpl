@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <hudson>
   <disabledAdministrativeMonitors/>
-  <version>1.609.1</version>
+  <version>1.625.2</version>
   <numExecutors>5</numExecutors>
   <mode>NORMAL</mode>
   <useSecurity>true</useSecurity>
@@ -59,5 +59,17 @@
   <slaveAgentPort>5000</slaveAgentPort>
   <label></label>
   <nodeProperties/>
-  <globalNodeProperties/>
+  <globalNodeProperties>
+    <hudson.slaves.EnvironmentVariablesNodeProperty>
+      <envVars serialization="custom">
+        <unserializable-parents/>
+        <tree-map>
+          <default>
+            <comparator class="hudson.util.CaseInsensitiveComparator"/>
+          </default>
+          <int>0</int>
+        </tree-map>
+      </envVars>
+    </hudson.slaves.EnvironmentVariablesNodeProperty>
+  </globalNodeProperties>
 </hudson>

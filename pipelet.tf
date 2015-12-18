@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 resource "template_file" "cloudconfig" {
-  filename = "templates/systemd.config.tpl"
+  template = "templates/systemd.config.tpl"
 
   vars {
     hostname = "${var.ci_hostname}"
@@ -14,7 +14,7 @@ resource "template_file" "cloudconfig" {
 }
 
 resource "template_file" "jenkinsconfig" {
-  filename = "templates/config.xml.tpl"
+  template = "templates/config/data_volume/rendered/configs/config.xml.tpl"
 
   vars {
     github_client_id = "${var.github_client_id}"
@@ -27,7 +27,7 @@ resource "template_file" "jenkinsconfig" {
 }
 
 resource "template_file" "credentialsfile" {
-  filename = "templates/credentials.tpl"
+  template = "templates/config/jenkins/credentials.tpl"
 
   vars {
     aws_key_id = "${var.aws_access_key}"
@@ -40,7 +40,7 @@ resource "template_file" "credentialsfile" {
 }
 
 resource "template_file" "vaultconfig" {
-  filename = "templates/vault.hcl.tpl"
+  template = "templates/config/vault/vault.hcl.tpl"
 
   vars {
     vault_backend_bucket = "${var.vault_backend_bucket}"
@@ -57,31 +57,31 @@ resource "template_file" "vaultconfig" {
 }
 
 resource "template_file" "hipchatconfig" {
-  filename = "templates/jenkins.plugins.hipchat.HipChatNotifier.xml.tpl"
+  template = "templates/config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml.tpl"
 
   vars {
     hipchat_api_token = "${var.hipchat_api_token}"
   }
 
   provisioner "local-exec" {
-    command = "cat << 'EOF' > config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml\n${self.rendered}\nEOF"
+    command = "mkdir -p config/data_volume/rendered/configs; cat << 'EOF' > config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml\n${self.rendered}\nEOF"
   }
 }
 
 resource "template_file" "slackconfig" {
-  filename = "templates/jenkins.plugins.slack.SlackNotifier.xml.tpl"
+  template = "templates/config/data_volume/rendered/configs/jenkins.plugins.slack.SlackNotifier.xml.tpl"
 
   vars {
     slack_api_token = "${var.slack_api_token}"
   }
 
   provisioner "local-exec" {
-    command = "cat << 'EOF' > config/data_volume/rendered/configs/jenkins.plugins.slack.SlackNotifier.xml\n${self.rendered}\nEOF"
+    command = "mkdir -p config/data_volume/rendered/configs; cat << 'EOF' > config/data_volume/rendered/configs/jenkins.plugins.slack.SlackNotifier.xml\n${self.rendered}\nEOF"
   }
 }
 
 resource "template_file" "ansible_inventory" {
-  filename = "templates/inventory.ansible.tpl"
+  template = "templates/inventory.ansible.tpl"
 
   vars {
     public_ip = "${aws_instance.pipelet_ec2.public_ip}"
@@ -197,8 +197,13 @@ resource "aws_route53_record" "pipelet_route" {
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vvv"
+    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/kraken-ci.yaml -vv --diff"
   }
+}
+
+resource "aws_s3_bucket" "pipelet_clusters_bucket" {
+  bucket = "pipelet-clusters"
+  acl = "private"
 }
 
 /*
@@ -211,7 +216,7 @@ resource "aws_route53_record" "vault_route" {
   records = ["${aws_instance.pipelet_ec2.public_ip}"]
 
   provisioner "local-exec" {
-    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/vault.yaml -vvv"
+    command = "ansible-playbook --inventory-file=inventory.ansible --private-key=~/.ssh/keys/krakenci/id_rsa playbooks/vault.yaml -vv --diff"
   }
 }
 */

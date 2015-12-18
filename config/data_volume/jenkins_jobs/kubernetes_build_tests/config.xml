@@ -21,22 +21,17 @@
         <hudson.model.StringParameterDefinition>
           <name>KUBE_TESTS_REPO</name>
           <description>Kubernetes conformance tests repo</description>
-          <defaultValue>https://github.com/Samsung-AG/kubernetes.git</defaultValue>
+          <defaultValue>git@github.com/kubernetes/kubernetes.git</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>KUBE_TESTS_BRANCH</name>
           <description>Kubernetes conformance tests branch</description>
-          <defaultValue>density-1.1</defaultValue>
+          <defaultValue>release-1.1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>GINKGO_TARGET_DIR</name>
-          <description>where to clone test repo to under /var/lib/docker/gobuild/GINKGO_TARGET_DIR</description>
-          <defaultValue>/var/lib/docker/gobuild/kubernetes</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>CLUSTER_PREFIX</name>
-          <description>prefix for kubernetes cluster names</description>
-          <defaultValue>pipeletautotest</defaultValue>
+          <name>KUBE_TESTS_DIR</name>
+          <description>where to clone test repo to under /var/lib/docker/gobuild/KUBE_TESTS_DIR</description>
+          <defaultValue>kubernetes</defaultValue>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -72,27 +67,12 @@
   <builders>
     <hudson.tasks.Shell>
       <command># build the tests
-rm -rf /var/lib/docker/gobuild/${GINKGO_TARGET_DIR}
 cd /var/lib/docker/gobuild
-git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./${GINKGO_TARGET_DIR}
-cd ${GINKGO_TARGET_DIR}
-make clean
-yes | make
-
-# create kube config
-cat &gt; /var/lib/docker/gobuild/${GINKGO_TARGET_DIR}/kubeconfig &lt;&lt;EOF
-apiVersion: v1
-clusters:
-- cluster:
-    api-version: v1
-    server: http://${CLUSTER_PREFIX}-master.kubeme.io:8080
-  name:
-contexts: []
-current-context: &quot;&quot;
-kind: Config
-preferences: {}
-users: []
-EOF</command>
+rm -rf ${KUBE_TESTS_DIR}
+git clone -b ${KUBE_TESTS_BRANCH} ${KUBE_TESTS_REPO} ./${KUBE_TESTS_DIR}
+cd ${KUBE_TESTS_DIR}
+KUBE_SKIP_CONFIRMATIONS=y build/run.sh hack/build-go.sh
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

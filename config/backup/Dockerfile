@@ -15,4 +15,5 @@ RUN apt-get update && \
 ADD ./s3cfg /.s3cfg
 ADD ./run.sh /run.sh
 RUN chmod +x /run.sh
+ADD ./exclude-regexes ./exclude-regexes
 ENTRYPOINT ["/run.sh"]

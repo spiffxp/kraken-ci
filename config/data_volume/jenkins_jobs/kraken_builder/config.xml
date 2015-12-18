@@ -23,6 +23,11 @@
           <description>Commit Id</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_CLUSTER_NAME</name>
+          <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
+          <defaultValue>kraken_builder</defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -106,32 +111,41 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_cluster_name=pipelet_aws
-export TF_VAR_aws_user_prefix=pipelet
-export TF_VAR_asg_wait_single=60
-export TF_VAR_asg_wait_total=10
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+      <command>KUBECONFIG=${WORKSPACE}/kubeconfig
+
+# set required terraform variables to parsed out AWS creds and run terraform
+cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
+cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
+aws_access_key = &quot;${AWS_KEY_ID}&quot;
+aws_secret_key = &quot;${AWS_ACCESS_KEY}&quot;
+kubeconfig = &quot;${KUBECONFIG}&quot;
+asg_wait_single = 60
+asg_wait_total = 10
+kraken_repo.commit_sha = &quot;${ghprbActualCommit}&quot;
+EOF
 
 # start terraform
-terraform apply -input=false -state=terraform/aws/terraform.tfstate -var &quot;kraken_repo.commit_sha=${ghprbActualCommit}&quot; terraform/aws
+terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
 
 # run tests
-cucumber CUKE_CLUSTER=pipelet_aws features/*_aws.feature</command>
+bundle install
+bundle exec cucumber --format pretty --format junit --out output/cucumber/junit KUBECONFIG=${KUBECONFIG} CUKE_CLUSTER=${KRAKEN_CLUSTER_NAME}_aws features/*_aws.feature</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.7">
+      <testResults>output/cucumber/junit/*</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <healthScaleFactor>1.0</healthScaleFactor>
+    </hudson.tasks.junit.JUnitResultArchiver>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>export TF_VAR_cluster_name=pipelet_aws
-export TF_VAR_aws_user_prefix=pipelet
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+          <command>KUBECONFIG=${WORKSPACE}/kubeconfig
 
 retries=10
-until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
 do
   if [ $retries -eq 0 ]; then
     echo &quot;Destroy failed ...&quot;
@@ -151,6 +165,11 @@ done</command>
     </jenkins.plugins.slack.SlackNotifier>
   </publishers>
   <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.26">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
     <com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsBuildWrapper/>
     <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper plugin="credentials-binding@1.5">
       <bindings>

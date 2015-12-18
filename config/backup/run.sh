@@ -38,7 +38,7 @@ ntpdate pool.ntp.org
 # start by restoring the last backup:
 # This could fail if there's nothing to restore.
 
-s3cmd --config=/.s3cfg --skip-existing sync $1 $3
+s3cmd --config=/.s3cfg --rexclude-from=./exclude-regexes --skip-existing sync $1 $3
 
 # Now, start waiting for file system events on this path.
 # After an event, wait for a quiet period of N seconds before doing a backup
@@ -50,6 +50,6 @@ while inotifywait -r -e $inotifywait_events . ; do
   done
   
   echo "starting backup"
-  s3cmd --config=/.s3cfg --delete-removed sync $3 $1
+  s3cmd --config=/.s3cfg --rexclude-from=./exclude-regexes --delete-removed sync $3 $1
   echo "done"
 done

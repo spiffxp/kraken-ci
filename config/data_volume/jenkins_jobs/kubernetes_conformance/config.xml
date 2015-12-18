@@ -14,15 +14,39 @@
       <useBuildBlocker>false</useBuildBlocker>
     </hudson.plugins.buildblocker.BuildBlockerProperty>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
-      <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
+      <projectUrl>https://github.com/samsung-ag/kraken/</projectUrl>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>KUBE_TESTS_BRANCH</name>
-          <description>Kubernetes conformance tests branch</description>
-          <defaultValue>conformance-test-v1</defaultValue>
+          <name>KRAKEN_REPO</name>
+          <description></description>
+          <defaultValue>git@github.com:samsung-ag/kraken</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_BRANCH</name>
+          <description></description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KUBE_CONFORMANCE_BRANCH</name>
+          <description>Kubernetes conformance tests branch.  Recommended possible values:
+- conformance-test-v1
+- release-1.0
+- release-1.1
+- master</description>
+          <defaultValue>release-1.1</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KRAKEN_CLUSTER_NAME</name>
+          <description>Used by kraken to name a few cluster resources: AWS resources, context name, DNS records, etc.</description>
+          <defaultValue>kubernetes_conformance</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>REBUILD_TESTS</name>
+          <description>Set this to false to disable test rebuilds.  NB: the rest of the job assumes the correct tests have been built, setting this to false may result in unpredictable behavior</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.25">
@@ -51,7 +75,7 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>git@github.com:Samsung-AG/kraken.git</url>
+        <url>git@github.com:samsung-ag/kraken</url>
         <credentialsId>jenkins-github</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
@@ -75,68 +99,81 @@
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
-      <configs>
-        <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-          <configs>
-            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KUBE_TESTS_BRANCH=conformance-test-v1
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.3">
+      <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition" plugin="run-condition@1.0">
+        <token>${REBUILD_TESTS}</token>
+      </condition>
+      <buildStep class="hudson.plugins.parameterizedtrigger.TriggerBuilder" plugin="parameterized-trigger@2.27">
+        <configs>
+          <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+            <configs>
+              <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+                <properties>KUBE_TESTS_BRANCH=${KUBE_CONFORMANCE_BRANCH}
 KUBE_TESTS_REPO=https://github.com/kubernetes/kubernetes.git
-GINKGO_TARGET_DIR=kubernetes_conformance
-CLUSTER_PREFIX=pipeletconformance
+KUBE_TESTS_DIR=kubernetes_conformance
 </properties>
-            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-          </configs>
-          <projects>kubernetes_build_tests</projects>
-          <condition>ALWAYS</condition>
-          <triggerWithNoParameters>false</triggerWithNoParameters>
-          <block>
-            <buildStepFailureThreshold>
-              <name>FAILURE</name>
-              <ordinal>2</ordinal>
-              <color>RED</color>
-              <completeBuild>true</completeBuild>
-            </buildStepFailureThreshold>
-            <unstableThreshold>
-              <name>UNSTABLE</name>
-              <ordinal>1</ordinal>
-              <color>YELLOW</color>
-              <completeBuild>true</completeBuild>
-            </unstableThreshold>
-            <failureThreshold>
-              <name>FAILURE</name>
-              <ordinal>2</ordinal>
-              <color>RED</color>
-              <completeBuild>true</completeBuild>
-            </failureThreshold>
-          </block>
-          <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
-        </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
-      </configs>
-    </hudson.plugins.parameterizedtrigger.TriggerBuilder>
+              </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+            </configs>
+            <projects>kubernetes_build_tests</projects>
+            <condition>ALWAYS</condition>
+            <triggerWithNoParameters>false</triggerWithNoParameters>
+            <block>
+              <buildStepFailureThreshold>
+                <name>FAILURE</name>
+                <ordinal>2</ordinal>
+                <color>RED</color>
+                <completeBuild>true</completeBuild>
+              </buildStepFailureThreshold>
+              <unstableThreshold>
+                <name>UNSTABLE</name>
+                <ordinal>1</ordinal>
+                <color>YELLOW</color>
+                <completeBuild>true</completeBuild>
+              </unstableThreshold>
+              <failureThreshold>
+                <name>FAILURE</name>
+                <ordinal>2</ordinal>
+                <color>RED</color>
+                <completeBuild>true</completeBuild>
+              </failureThreshold>
+            </block>
+            <buildAllNodesWithLabel>false</buildAllNodesWithLabel>
+          </hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
+        </configs>
+      </buildStep>
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <hudson.tasks.Shell>
-      <command># set required terraform variables to parsed out AWS creds and run terraform
-export TF_VAR_cluster_name=pipeletconformance_aws
-export TF_VAR_aws_user_prefix=pipeletconformance
-export TF_VAR_asg_wait_single=60
-export TF_VAR_asg_wait_total=10
-export TF_VAR_aws_node_type=m3.medium
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+      <command># TODO: use a shared 'clusters' directory instead
+KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig
+
+# set required terraform variables to parsed out AWS creds and run terraform
+cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
+cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
+aws_access_key = &quot;${AWS_KEY_ID}&quot;
+aws_secret_key = &quot;${AWS_ACCESS_KEY}&quot;
+kubeconfig = &quot;${KUBECONFIG}&quot;
+asg_wait_single = 60
+asg_wait_total = 10
+node_type = &quot;m3.medium&quot;
+EOF
 
 # start terraform
-terraform apply -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
 
-# clear tests out folder
-rm -rf ${WORKSPACE}/tests_out
-mkdir ${WORKSPACE}/tests_out</command>
+# clear output folder
+rm -rf ${WORKSPACE}/output
+mkdir -p ${WORKSPACE}/output</command>
     </hudson.tasks.Shell>
     <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
+                KRAKEN_REPO=${KRAKEN_REPO}
+                KRAKEN_BRANCH=${KRAKEN_BRANCH}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_conformance_test</projects>
@@ -157,7 +194,7 @@ mkdir ${WORKSPACE}/tests_out</command>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
       <project>kubernetes_conformance_test</project>
       <filter></filter>
-      <target>tests_out</target>
+      <target>./output/conformance</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
       <optional>true</optional>
@@ -168,7 +205,9 @@ mkdir ${WORKSPACE}/tests_out</command>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-              <properties>KRAKEN_COMMIT=${GIT_COMMIT}</properties>
+              <properties>KRAKEN_COMMIT=${GIT_COMMIT}
+                KRAKEN_REPO=${KRAKEN_REPO}
+                KRAKEN_BRANCH=${KRAKEN_BRANCH}</properties>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
           </configs>
           <projects>kubernetes_density_test</projects>
@@ -189,7 +228,7 @@ mkdir ${WORKSPACE}/tests_out</command>
     <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.37">
       <project>kubernetes_density_test</project>
       <filter></filter>
-      <target>tests_out</target>
+      <target>./output/density</target>
       <excludes></excludes>
       <selector class="hudson.plugins.copyartifact.LastCompletedBuildSelector"/>
       <optional>true</optional>
@@ -198,7 +237,7 @@ mkdir ${WORKSPACE}/tests_out</command>
   </builders>
   <publishers>
     <hudson.tasks.ArtifactArchiver>
-      <artifacts>tests_out/**/*</artifacts>
+      <artifacts>output/**/*</artifacts>
       <allowEmptyArchive>false</allowEmptyArchive>
       <onlyIfSuccessful>false</onlyIfSuccessful>
       <fingerprint>false</fingerprint>
@@ -207,22 +246,19 @@ mkdir ${WORKSPACE}/tests_out</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>export TF_VAR_cluster_name=pipeletconformance_aws
-export TF_VAR_aws_user_prefix=pipeletconformance
-
-export TF_VAR_aws_access_key=${AWS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_ACCESS_KEY}
+          <command># TODO: use a shared 'clusters' directory instead
+KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig
 
 set +e
 # copy the log file to S3
 export AWS_ACCESS_KEY_ID=${AWS_KEY_ID}
 export AWS_SECRET_ACCESS_KEY=${AWS_ACCESS_KEY}
-aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/tests_out/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
-aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/tests_out/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
+aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/output/conformance/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
+aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/output/density/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
 set -e
 
 retries=10
-until terraform destroy -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate ${WORKSPACE}/terraform/aws
+until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
 do
   if [ $retries -eq 0 ]; then
     echo &quot;Destroy failed ...&quot;
