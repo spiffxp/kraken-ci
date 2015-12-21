@@ -104,6 +104,12 @@ exit ${PIPESTATUS[0]}
       <fingerprint>false</fingerprint>
       <defaultExcludes>true</defaultExcludes>
     </hudson.tasks.ArtifactArchiver>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.10">
+      <testResults>output/**/junit*.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <healthScaleFactor>1.0</healthScaleFactor>
+      <allowEmptyResults>false</allowEmptyResults>
+    </hudson.tasks.junit.JUnitResultArchiver>
     <jenkins.plugins.slack.SlackNotifier plugin="slack@1.8">
     </jenkins.plugins.slack.SlackNotifier>
   </publishers>
