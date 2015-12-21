@@ -126,7 +126,7 @@ kraken_repo.commit_sha = &quot;${ghprbActualCommit}&quot;
 EOF
 
 # start terraform
-terraform apply -no-color -input=false -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
+hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} apply -no-color
 
 # run tests
 bundle install
@@ -145,7 +145,7 @@ bundle exec cucumber --format pretty --format junit --out output/cucumber/junit 
           <command>KUBECONFIG=${WORKSPACE}/kubeconfig
 
 retries=10
-until terraform destroy -no-color -input=false -force -state=${WORKSPACE}/terraform/aws/terraform.tfstate -var-file=${WORKSPACE}/terraform/aws/terraform.tfvars ${WORKSPACE}/terraform/aws
+until hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} destroy -no-color
 do
   if [ $retries -eq 0 ]; then
     echo &quot;Destroy failed ...&quot;
