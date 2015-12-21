@@ -91,9 +91,10 @@ export KUBE_CONFORMANCE_OUTPUT_DIR=${WORKSPACE}/output/conformance
 
 KUBE_CONFORMANCE_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log
 # TODO: unclear what part of k8s scripts require USER to be set
-USER=jenkins ./hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}</command>
+USER=jenkins ./hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}
 # tee isn&apos;t exiting &gt;0 as expected, so use the exit status of the script directly
 exit ${PIPESTATUS[0]}
+      </command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
