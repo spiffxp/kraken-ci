@@ -189,6 +189,8 @@ if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
   EOF
 
   # start terraform
+  # TODO: supply region elsewhere
+  export AWS_DEFAULT_REGION=us-west-2
   hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} apply -no-color
 
 fi;
@@ -306,6 +308,8 @@ KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
 if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
 
   retries=10
+  # TODO: supply region elsewhere
+  export AWS_DEFAULT_REGION=us-west-2
   until hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} destroy -no-color
   do
     if [ $retries -eq 0 ]; then
