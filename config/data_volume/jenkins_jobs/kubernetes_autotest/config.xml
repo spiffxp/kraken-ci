@@ -159,8 +159,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command># TODO: use a shared 'clusters' directory instead
-KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
+      <command>KUBECONFIG=${WORKSPACE}/kubeconfig
 
 # create the cluster
 if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
@@ -255,7 +254,7 @@ KUBE_TESTS_DIR=${KUBE_TESTS_DIR}
 if [ &quot;$RUN_TESTS&quot; = true ]; then
 
   export KUBE_ROOT=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}
-  export KUBE_DENSITY_KUBECONFIG=${KUBE_ROOT}/kubeconfig
+  export KUBE_DENSITY_KUBECONFIG=${WORKSPACE}/kubeconfig
   export KUBE_DENSITY_NUM_NODES=4
 
   fail_step=false
@@ -301,8 +300,7 @@ fi</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command># TODO: use a shared 'clusters' directory instead
-KUBECONFIG=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}/kubeconfig
+          <command>KUBECONFIG=${WORKSPACE}/kubeconfig
 
 # destroy the cluster
 if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then

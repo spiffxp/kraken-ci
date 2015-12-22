@@ -153,7 +153,7 @@ KUBE_TESTS_DIR=kubernetes_conformance
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <hudson.tasks.Shell>
-      <command>KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig
+      <command>KUBECONFIG=${WORKSPACE}/kubeconfig
 
 # set required terraform variables to parsed out AWS creds and run terraform
 cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
@@ -181,7 +181,7 @@ mkdir -p ${WORKSPACE}/output</command>
 
 export KRAKEN_COMMIT=${GIT_COMMIT}
 export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
-export KUBE_CONFORMANCE_KUBECONFIG=${KUBE_ROOT}/kubeconfig
+export KUBE_CONFORMANCE_KUBECONFIG=${WORKSPACE}/kubeconfig
 export KUBE_CONFORMANCE_OUTPUT_DIR=${WORKSPACE}/output/conformance
 
 KUBE_CONFORMANCE_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log
@@ -195,7 +195,7 @@ exit ${PIPESTATUS[0]}</command>
 
 export KRAKEN_COMMIT=${GIT_COMMIT}
 export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
-export KUBE_DENSITY_KUBECONFIG=${KUBE_ROOT}/kubeconfig
+export KUBE_DENSITY_KUBECONFIG=${WORKSPACE}/kubeconfig
 export KUBE_DENSITY_NUM_NODES=4
 export KUBE_DENSITY_OUTPUT_DIR=${WORKSPACE}/output/density
 KUBE_DENSITY_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_density.log
@@ -226,7 +226,7 @@ exit ${PIPESTATUS[0]}</command>
             <token>${DESTROY_CLUSTER}</token>
           </condition>
           <buildStep class="hudson.tasks.Shell">
-            <command>KUBECONFIG=/var/lib/docker/gobuild/kubernetes_conformance/kubeconfig
+            <command>KUBECONFIG=${WORKSPACE}/kubeconfig
 
 set +e
 # copy the log file to S3
