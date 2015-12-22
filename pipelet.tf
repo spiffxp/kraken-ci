@@ -26,6 +26,18 @@ resource "template_file" "jenkinsconfig" {
   }
 }
 
+resource "template_file" "jenkinslocation" {
+  template = "templates/config/data_volume/rendered/configs/jenkins.model.JenkinsLocationConfiguration.xml.tpl"
+
+  vars {
+    ci_hostname = "${var.ci_hostname}"
+  }
+
+  provisioner "local-exec" {
+    command = "mkdir -p config/data_volume/rendered/configs; cat << 'EOF' > config/data_volume/rendered/configs/jenkins.model.JenkinsLocationConfiguration.xml\n${self.rendered}\nEOF"
+  }
+}
+
 resource "template_file" "credentialsfile" {
   template = "templates/config/jenkins/credentials.tpl"
 
