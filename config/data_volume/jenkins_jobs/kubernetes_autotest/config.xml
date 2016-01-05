@@ -168,8 +168,8 @@ if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
   cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
   cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
   aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
-  aws_access_key = &quot;${AWS_KEY_ID}&quot;
-  aws_secret_key = &quot;${AWS_ACCESS_KEY}&quot;
+  aws_access_key = &quot;${AWS_ACCESS_KEY_ID}&quot;
+  aws_secret_key = &quot;${AWS_SECRET_ACCESS_KEY}&quot;
   kubeconfig = &quot;${KUBECONFIG}&quot;
   asg_wait_single = 60
   asg_wait_total = ${TOTAL_WAIT}
