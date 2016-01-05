@@ -168,8 +168,6 @@ node_type = &quot;m3.medium&quot;
 EOF
 
 # start terraform
-# TODO: supply region elsewhere
-export AWS_DEFAULT_REGION=us-west-2
 hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} apply -no-color
 
 # clear output folder
@@ -235,8 +233,6 @@ aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLA
 set -e
 
 retries=10
-# TODO: supply region elsewhere
-export AWS_DEFAULT_REGION=us-west-2
 until hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} destroy -no-color
 do
 if [ $retries -eq 0 ]; then

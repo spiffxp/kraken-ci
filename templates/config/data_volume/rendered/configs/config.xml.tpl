@@ -67,7 +67,9 @@
           <default>
             <comparator class="hudson.util.CaseInsensitiveComparator"/>
           </default>
-          <int>0</int>
+          <int>1</int>
+          <string>AWS_DEFAULT_REGION</string>
+          <string>us-west-2</string>
         </tree-map>
       </envVars>
     </hudson.slaves.EnvironmentVariablesNodeProperty>
