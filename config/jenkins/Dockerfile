@@ -12,6 +12,8 @@ ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSBOX_VERSION v0.0.1
 ENV KUBERNETES_VERSION v1.1.3
 ENV VAULT_VERSION 0.3.1
+# TODO: install from source instead?
+ENV GOLANG_DEB_VERSION 2:1.5.1-4~bpo8+1
 
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
@@ -38,7 +40,9 @@ RUN apt-get update \
       git \
       python-pip \
       vim \
-      golang \
+      golang-doc=${GOLANG_DEB_VERSION} \
+      golang-go=${GOLANG_DEB_VERSION} \
+      golang-src=${GOLANG_DEB_VERSION} \
       rsync \
     && rm -rf /var/lib/apt/lists/*
 
