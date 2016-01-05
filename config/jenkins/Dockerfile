@@ -51,8 +51,12 @@ RUN mkdir /etc/ansible/
 RUN pip install ansible
 COPY ansible.cfg /etc/ansible/ansible.cfg
 
-# install bundler and other gems
-RUN gem install bundler aruba cucumber
+# install gems
+RUN gem install \
+  bundler:1.11.2 \
+  aruba:0.6.2 \
+  cucumber:2.0.2
+
 
 # install terraform and custom providers
 RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
