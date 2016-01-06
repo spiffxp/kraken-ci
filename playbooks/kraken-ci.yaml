@@ -89,8 +89,6 @@
         env:
           VIRTUAL_HOST: pipelet.kubeme.io
           VIRTUAL_PORT: 8080
-          HIPCHAT_TOKEN: "{{ hipchat_api_token }}"
-          HIPCHAT_ROOM_ID: "{{ hipchat_room_id }}"
         volumes:
           - /var/run/docker.sock:/run/docker.sock
           - /usr/bin/docker:/bin/docker
