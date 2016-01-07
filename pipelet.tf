@@ -68,18 +68,6 @@ resource "template_file" "vaultconfig" {
   }
 }
 
-resource "template_file" "hipchatconfig" {
-  template = "templates/config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml.tpl"
-
-  vars {
-    hipchat_api_token = "${var.hipchat_api_token}"
-  }
-
-  provisioner "local-exec" {
-    command = "mkdir -p config/data_volume/rendered/configs; cat << 'EOF' > config/data_volume/rendered/configs/jenkins.plugins.hipchat.HipChatNotifier.xml\n${self.rendered}\nEOF"
-  }
-}
-
 resource "template_file" "slackconfig" {
   template = "templates/config/data_volume/rendered/configs/jenkins.plugins.slack.SlackNotifier.xml.tpl"
 
@@ -100,8 +88,6 @@ resource "template_file" "ansible_inventory" {
     ci_host_dns = "${var.ci_hostname}"
     docker_api_version = "${var.docker_api_version}"
     slack_api_token = "${var.slack_api_token}"
-    hipchat_api_token = "${var.hipchat_api_token}"
-    hipchat_room_id = "${var.hipchat_room_id}"
     vault_uri = "https://${var.vault_hostname}"
     vault_bucket = "${var.vault_backend_bucket}"
     aws_access_key = "${var.aws_access_key}"
@@ -168,7 +154,7 @@ resource "aws_key_pair" "pipelet_keypair" {
 }
 
 resource "aws_instance" "pipelet_ec2" {
-  depends_on = ["template_file.cloudconfig", "template_file.jenkinsconfig", "template_file.credentialsfile", "template_file.hipchatconfig"]
+  depends_on = ["template_file.cloudconfig", "template_file.jenkinsconfig", "template_file.credentialsfile"]
   ami = "${var.coreos_ami}"
   instance_type = "${var.aws_instance_type}"
   key_name = "${aws_key_pair.pipelet_keypair.key_name}"

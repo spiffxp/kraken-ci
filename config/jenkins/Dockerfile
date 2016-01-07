@@ -7,13 +7,13 @@ COPY keys /root/.ssh/
 RUN chmod 400 /root/.ssh/id_rsa
 
 # versions
+# TODO: install from source instead?
+ENV GOLANG_DEB_VERSION 2:1.5.1-4~bpo8+1
+ENV KUBERNETES_VERSION v1.1.3
 ENV TERRAFORM_VERSION 0.6.8
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSBOX_VERSION v0.0.1
-ENV KUBERNETES_VERSION v1.1.3
 ENV VAULT_VERSION 0.3.1
-# TODO: install from source instead?
-ENV GOLANG_DEB_VERSION 2:1.5.1-4~bpo8+1
 
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
@@ -75,12 +75,9 @@ RUN wget https://dl.bintray.com/mitchellh/vault/vault_${VAULT_VERSION}_linux_amd
     && unzip -o vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/local/bin \
     && rm vault_${VAULT_VERSION}_linux_amd64.zip
 
-# install hipchat messaging script
-COPY hipchat_room_message /usr/local/bin/hipchat_room_message
-RUN chmod +x /usr/local/bin/hipchat_room_message
-
 # install awscli
-RUN pip install awscli
+RUN pip install \
+  awscli==1.9.15
 
 # preload host keys for github.com
 RUN ssh-keyscan -H github.com >> ~/.ssh/known_hosts
