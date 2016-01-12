@@ -78,7 +78,7 @@
     <org.jenkinsci.plugins.ghprb.GhprbTrigger plugin="ghprb@1.26.2">
       <spec>H/5 * * * *</spec>
       <configVersion>1</configVersion>
-      <adminlist>countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp</adminlist>
+      <adminlist>countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp jim-cooley</adminlist>
       <allowMembersOfWhitelistedOrgsAsAdmin>false</allowMembersOfWhitelistedOrgsAsAdmin>
       <orgslist></orgslist>
       <cron>H/5 * * * *</cron>
