@@ -21,7 +21,7 @@
       <secret></secret>
     </org.jenkinsci.plugins.ghprb.GhprbGitHubAuth>
   </githubAuth>
-  <adminlist>countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp</adminlist>
+  <adminlist>countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp jim-cooley</adminlist>
   <requestForTestingPhrase>Can one of the admins verify this patch?</requestForTestingPhrase>
   <extensions>
     <org.jenkinsci.plugins.ghprb.extensions.comments.GhprbBuildStatus>

@@ -19,6 +19,7 @@
         <string>Rick-Lindberg</string>
         <string>SamsungAGJenkinsBot</string>
         <string>spiffxp</string>
+        <string>jim-cooley</string>
       </adminUserNameList>
       <authenticatedUserReadPermission>false</authenticatedUserReadPermission>
       <useRepositoryPermissions>true</useRepositoryPermissions>
