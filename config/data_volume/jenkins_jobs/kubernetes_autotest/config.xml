@@ -173,7 +173,7 @@ if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
   kubeconfig = &quot;${KUBECONFIG}&quot;
   asg_wait_single = 60
   asg_wait_total = ${TOTAL_WAIT}
-  EOF
+EOF
 
   # autotest cluster values
   cat &gt;&gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
@@ -185,7 +185,7 @@ if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
   aws_master_type = &quot;${MASTER_TYPE}&quot;
   apiserver_count = ${API_SERVER_COUNT}
   aws_apiserver_type = &quot;${API_SERVER_TYPE}&quot;
-  EOF
+EOF
 
   # start terraform
   hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} apply -no-color
