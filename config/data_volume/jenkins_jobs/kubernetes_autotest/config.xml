@@ -181,7 +181,6 @@ EOF
   node_count = $((NUMBER_OF_NODES - 1))
   aws_node_type = &quot;${NODE_TYPE}&quot;
   aws_etcd_type = &quot;${ETCD_TYPE}&quot;
-  aws_storage_type_etcd = &quot;ephemeral&quot;
   aws_master_type = &quot;${MASTER_TYPE}&quot;
   apiserver_count = ${API_SERVER_COUNT}
   aws_apiserver_type = &quot;${API_SERVER_TYPE}&quot;
