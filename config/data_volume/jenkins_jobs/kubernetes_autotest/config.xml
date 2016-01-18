@@ -164,19 +164,14 @@
 # create the cluster
 if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
 
-  # set required terraform variables to parsed out AWS creds and run terraform
+  # required terraform variables come in from env vars
+  export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+
+  # all other terraform variables come from file
   cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
-  cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
-  aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
-  aws_access_key = &quot;${AWS_ACCESS_KEY_ID}&quot;
-  aws_secret_key = &quot;${AWS_SECRET_ACCESS_KEY}&quot;
   kubeconfig = &quot;${KUBECONFIG}&quot;
   asg_wait_single = 60
   asg_wait_total = ${TOTAL_WAIT}
-EOF
-
-  # autotest cluster values
-  cat &gt;&gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
   kubernetes_binaries_uri = &quot;${KUBERNETES_BINARIES_URI}&quot;
   node_count = $((NUMBER_OF_NODES - 1))
   aws_node_type = &quot;${NODE_TYPE}&quot;
@@ -301,6 +296,11 @@ fi</command>
 
 # destroy the cluster
 if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
+
+  # required terraform variables come in from env vars
+  export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+
+  # all other terraform variables come from file (that is expected to already be present by now)
 
   retries=10
   until hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} destroy -no-color

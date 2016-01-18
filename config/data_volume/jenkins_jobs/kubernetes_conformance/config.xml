@@ -155,12 +155,11 @@ KUBE_TESTS_DIR=kubernetes_conformance
     <hudson.tasks.Shell>
       <command>KUBECONFIG=${WORKSPACE}/kubeconfig
 
-# set required terraform variables to parsed out AWS creds and run terraform
+# required terraform variables come in from env vars
+export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+
+# all other terraform variables come from file
 cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
-cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
-aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
-aws_access_key = &quot;${AWS_ACCESS_KEY_ID}&quot;
-aws_secret_key = &quot;${AWS_SECRET_ACCESS_KEY}&quot;
 kubeconfig = &quot;${KUBECONFIG}&quot;
 asg_wait_single = 60
 asg_wait_total = 10
@@ -232,17 +231,19 @@ aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLA
 aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/output/density/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
 set -e
 
+# required terraform variables come in from env vars
+export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+
 retries=10
 until hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} destroy -no-color
 do
-if [ $retries -eq 0 ]; then
-echo &quot;Destroy failed ...&quot;
-exit 1
-fi
-
-retries=$((retries - 1))
-echo &quot;Retrying destroy ...&quot;
-sleep 30
+  if [ $retries -eq 0 ]; then
+    echo &quot;Destroy failed ...&quot;
+    exit 1
+  fi
+  retries=$((retries - 1))
+  echo &quot;Retrying destroy ...&quot;
+  sleep 30
 done</command>
           </buildStep>
           <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
