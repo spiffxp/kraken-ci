@@ -247,7 +247,7 @@ if [ &quot;$RUN_TESTS&quot; = true ]; then
 
   export KUBE_ROOT=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}
   export KUBE_DENSITY_KUBECONFIG=${WORKSPACE}/kubeconfig
-  export KUBE_DENSITY_NUM_NODES=4
+  export KUBE_DENSITY_NUM_NODES=${NUMBER_OF_NODES}
 
   fail_step=false
   pod_densities=&quot;${DENSITIES%\&quot;}&quot;
