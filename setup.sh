@@ -32,12 +32,12 @@ echo 'configuring terraform remote state'
 terraform remote config -backend=S3 -backend-config="bucket=sundry-automata" -backend-config="key=krakenci-terraform-state"
 terraform remote pull
 
-# set tf-specific vars
-export TF_VAR_aws_access_key=${AWS_ACCESS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_SECRET_ACCESS_KEY}
-
 # turn off ansible key checking
 export ANSIBLE_HOST_KEY_CHECKING=False
+
+# we need inventory.ansible to update jenkins in place; we may not have it if
+# we've just cloned the repo / just pulled down state
+terraform taint template_file.ansible_inventory
 
 # run terraform
 terraform plan -input=false

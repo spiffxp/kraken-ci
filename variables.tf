@@ -1,5 +1,3 @@
-variable "aws_access_key" {}
-variable "aws_secret_key" {}
 variable "github_client_id" {}
 variable "github_client_key" {}
 variable "hipchat_api_token" {}

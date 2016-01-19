@@ -12,7 +12,7 @@ if [ ! $# -eq 3 ]
     exit 1
 fi
 
-if [[   ${AWS_ACCESS_KEY_ID} = "foobar_aws_key_id" || ${AWS_SECRET_ACCESS_KEY} = "foobar_aws_access_key" ]] ; then
+if [[ ${AWS_ACCESS_KEY_ID} = "required" || ${AWS_SECRET_ACCESS_KEY} = "required" ]] ; then
     echo "AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables MUST be set"
     exit 1
 fi
