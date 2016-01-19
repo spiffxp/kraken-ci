@@ -157,6 +157,7 @@ resource "aws_instance" "pipelet_ec2" {
     volume_size = "${var.aws_ebs_size}"
   }
   user_data = "${template_file.cloudconfig.rendered}"
+  disable_api_termination = "true"
   tags {
     Name = "${var.ci_hostname}"
   }
