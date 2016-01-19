@@ -41,9 +41,19 @@ if ! (ansible-galaxy list | grep -q "${ansible_role}" >/dev/null); then
   ansible-galaxy install ${ansible_role} --force
 fi
 
-# we need inventory.ansible to update jenkins in place; we may not have it if
-# we've just cloned the repo / just pulled down state
+# terraform has no native resource to represent "a file that has the contents
+# of a rendered template"; thus terraform won't detect that files created
+# through the workaround of "use a local-exec provisioner" are missing when
+# we run this script on a fresh clone.  Best would be to have ansible render
+# these templates instead.  For now, just explicitly taint them to force
+# terraform to re-render them on the next apply.`
+# (see https://github.com/hashicorp/terraform/issues/2342)
 terraform taint template_file.ansible_inventory
+terraform taint template_file.jenkinsconfig
+terraform taint template_file.jenkinslocation
+terraform taint template_file.slackconfig
+# we're not presently using vault
+# terraform taint template_file.vaultconfig
 
 # run terraform
 terraform plan -input=false
