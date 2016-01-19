@@ -38,19 +38,6 @@ resource "template_file" "jenkinslocation" {
   }
 }
 
-resource "template_file" "credentialsfile" {
-  template = "templates/config/jenkins/credentials.tpl"
-
-  vars {
-    aws_key_id = "${var.aws_access_key}"
-    aws_secret_access_key = "${var.aws_secret_key}"
-  }
-
-  provisioner "local-exec" {
-    command = "cat << 'EOF' > config/jenkins/credentials\n${self.rendered}\nEOF"
-  }
-}
-
 resource "template_file" "vaultconfig" {
   template = "templates/config/vault/vault.hcl.tpl"
 
@@ -154,7 +141,7 @@ resource "aws_key_pair" "pipelet_keypair" {
 }
 
 resource "aws_instance" "pipelet_ec2" {
-  depends_on = ["template_file.cloudconfig", "template_file.jenkinsconfig", "template_file.credentialsfile"]
+  depends_on = ["template_file.cloudconfig", "template_file.jenkinsconfig"]
   ami = "${var.coreos_ami}"
   instance_type = "${var.aws_instance_type}"
   key_name = "${aws_key_pair.pipelet_keypair.key_name}"
