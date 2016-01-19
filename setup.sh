@@ -9,8 +9,10 @@
 : ${TF_VAR_hipchat_api_token:?"Set TF_VAR_hipchat_api_token first"}
 : ${TF_VAR_slack_api_token:?"Set TF_VAR_slack_api_token first"}
 
+echo 'installing dependences'
 brew tap Homebrew/bundle
 brew bundle
+
 
 echo 'donwloading keys and certificates'
 aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.key $(pwd)/config/nginx/certs/
@@ -32,8 +34,12 @@ echo 'configuring terraform remote state'
 terraform remote config -backend=S3 -backend-config="bucket=sundry-automata" -backend-config="key=krakenci-terraform-state"
 terraform remote pull
 
-# turn off ansible key checking
+echo 'configuring ansible'
 export ANSIBLE_HOST_KEY_CHECKING=False
+ansible_role=defunctzombie.coreos-bootstrap
+if ! (ansible-galaxy list | grep -q "${ansible_role}" >/dev/null); then
+  ansible-galaxy install ${ansible_role} --force
+fi
 
 # we need inventory.ansible to update jenkins in place; we may not have it if
 # we've just cloned the repo / just pulled down state

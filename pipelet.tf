@@ -160,10 +160,6 @@ resource "aws_instance" "pipelet_ec2" {
   tags {
     Name = "${var.ci_hostname}"
   }
-
-  provisioner "local-exec" {
-    command = "ansible-galaxy install defunctzombie.coreos-bootstrap --force"
-  }
 }
 
 resource "aws_route53_record" "pipelet_route" {
