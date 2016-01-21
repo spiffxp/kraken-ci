@@ -27,17 +27,17 @@
         <hudson.model.StringParameterDefinition>
           <name>KUBE_TESTS_REPO</name>
           <description>Kubernetes conformance tests repo</description>
-          <defaultValue>https://github.com/Samsung-AG/kubernetes.git</defaultValue>
+          <defaultValue>https://github.com/kubernetes/kubernetes.git</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>KUBE_TESTS_BRANCH</name>
           <description>Kubernetes conformance tests branch</description>
-          <defaultValue>density-1.1</defaultValue>
+          <defaultValue>release-1.1</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>DENSITIES</name>
           <description>space-delimited density values</description>
-          <defaultValue>3 15 30</defaultValue>
+          <defaultValue>3 30</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>API_SERVER_COUNT</name>

@@ -51,9 +51,9 @@
             <hudson.plugins.parameterizedtrigger.CurrentBuildParameters/>
             <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
               <properties>NUMBER_OF_NODES=1000
-KUBE_TESTS_REPO=https://github.com/Samsung-AG/kubernetes.git
-KUBE_TESTS_BRANCH=density-1.1
-DENSITIES=&quot;3 15 30&quot;
+KUBE_TESTS_REPO=https://github.com/kubernetes/kubernetes.git
+KUBE_TESTS_BRANCH=release-1.1
+DENSITIES=&quot;3 30&quot;
 API_SERVER_COUNT=10
 ETCD_TYPE=i2.8xlarge
 NODE_TYPE=m3.medium
