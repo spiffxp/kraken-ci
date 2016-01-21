@@ -11,7 +11,5 @@ docker_api_version=${docker_api_version}
 slack_api_token=${slack_api_token}
 vault_uri=${vault_uri}
 vault_bucket=${vault_bucket}
-aws_access_key="${aws_access_key}"
-aws_secret_key="${aws_secret_key}"
 aws_region="${aws_region}"
 github_org="${github_org}"

@@ -1,7 +1,7 @@
 backend "s3" {
   bucket = "${vault_backend_bucket}"
-  access_key = "${aws_key_id}"
-  secret_key = "${aws_secret_access_key}"
+  access_key = "${aws_access_key}"
+  secret_key = "${aws_secret_key}"
   region = "${aws_region}"
 }
 

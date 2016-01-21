@@ -70,9 +70,13 @@
           <default>
             <comparator class="hudson.util.CaseInsensitiveComparator"/>
           </default>
-          <int>1</int>
+          <int>2</int>
+          <!-- used by awscli and other tools that need AWS access -->
           <string>AWS_DEFAULT_REGION</string>
           <string>us-west-2</string>
+          <!-- used by any jobs tht run kraken -->
+          <string>TF_VAR_aws_user_prefix</string>
+          <string>pipelet</string>
         </tree-map>
       </envVars>
     </hudson.slaves.EnvironmentVariablesNodeProperty>

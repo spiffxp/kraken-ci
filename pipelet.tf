@@ -1,7 +1,8 @@
 provider "aws" {
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
-  region = "${var.aws_region}"
+  # configured via env vars:
+  # - AWS_ACCESS_KEY_ID
+  # - AWS_SECRET_ACCESS_KEY
+  # - AWS_DEFAULT_REGION
 }
 
 resource "template_file" "cloudconfig" {
@@ -38,27 +39,18 @@ resource "template_file" "jenkinslocation" {
   }
 }
 
-resource "template_file" "credentialsfile" {
-  template = "templates/config/jenkins/credentials.tpl"
-
-  vars {
-    aws_key_id = "${var.aws_access_key}"
-    aws_secret_access_key = "${var.aws_secret_key}"
-  }
-
-  provisioner "local-exec" {
-    command = "cat << 'EOF' > config/jenkins/credentials\n${self.rendered}\nEOF"
-  }
-}
-
+/*
+# TODO: this should be rendered out by ansible prior to building the vault image
+#       that way ansible can pull in aws_* vars from env, something terraform
+#       doesn't currently support
 resource "template_file" "vaultconfig" {
   template = "templates/config/vault/vault.hcl.tpl"
 
   vars {
+    # aws_access_key = "${var.aws_access_key}"
+    # aws_secret_key = "${var.aws_secret_key}"
+    # aws_region = "${var.aws_region}"
     vault_backend_bucket = "${var.vault_backend_bucket}"
-    aws_key_id = "${var.aws_access_key}"
-    aws_secret_access_key = "${var.aws_secret_key}"
-    aws_region = "${var.aws_region}"
     vault_host_ip = "0.0.0.0"
     vault_port = "${var.vault_port}"
   }
@@ -67,6 +59,7 @@ resource "template_file" "vaultconfig" {
     command = "cat << 'EOF' > config/vault/config.hcl\n${self.rendered}\nEOF"
   }
 }
+*/
 
 resource "template_file" "slackconfig" {
   template = "templates/config/data_volume/rendered/configs/jenkins.plugins.slack.SlackNotifier.xml.tpl"
@@ -90,8 +83,6 @@ resource "template_file" "ansible_inventory" {
     slack_api_token = "${var.slack_api_token}"
     vault_uri = "https://${var.vault_hostname}"
     vault_bucket = "${var.vault_backend_bucket}"
-    aws_access_key = "${var.aws_access_key}"
-    aws_secret_key = "${var.aws_secret_key}"
     aws_region = "${var.aws_region}"
     github_org = "${var.github_org}"
   }
@@ -154,7 +145,7 @@ resource "aws_key_pair" "pipelet_keypair" {
 }
 
 resource "aws_instance" "pipelet_ec2" {
-  depends_on = ["template_file.cloudconfig", "template_file.jenkinsconfig", "template_file.credentialsfile"]
+  depends_on = ["template_file.cloudconfig", "template_file.jenkinsconfig"]
   ami = "${var.coreos_ami}"
   instance_type = "${var.aws_instance_type}"
   key_name = "${aws_key_pair.pipelet_keypair.key_name}"
@@ -166,17 +157,14 @@ resource "aws_instance" "pipelet_ec2" {
     volume_size = "${var.aws_ebs_size}"
   }
   user_data = "${template_file.cloudconfig.rendered}"
+  disable_api_termination = "true"
   tags {
     Name = "${var.ci_hostname}"
-  }
-
-  provisioner "local-exec" {
-    command = "ansible-galaxy install defunctzombie.coreos-bootstrap --force"
   }
 }
 
 resource "aws_route53_record" "pipelet_route" {
-  depends_on = ["aws_instance.pipelet_ec2", "template_file.ansible_inventory", "template_file.vaultconfig"]
+  depends_on = ["aws_instance.pipelet_ec2", "template_file.ansible_inventory"]
   zone_id = "${var.route53_zone_id}"
   name = "${var.ci_hostname}"
   type = "A"

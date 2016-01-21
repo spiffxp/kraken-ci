@@ -9,8 +9,10 @@
 : ${TF_VAR_hipchat_api_token:?"Set TF_VAR_hipchat_api_token first"}
 : ${TF_VAR_slack_api_token:?"Set TF_VAR_slack_api_token first"}
 
+echo 'installing dependences'
 brew tap Homebrew/bundle
 brew bundle
+
 
 echo 'donwloading keys and certificates'
 aws s3 cp s3://sundry-automata/certs/pipelet/pipelet.kubeme.io.key $(pwd)/config/nginx/certs/
@@ -32,12 +34,26 @@ echo 'configuring terraform remote state'
 terraform remote config -backend=S3 -backend-config="bucket=sundry-automata" -backend-config="key=krakenci-terraform-state"
 terraform remote pull
 
-# set tf-specific vars
-export TF_VAR_aws_access_key=${AWS_ACCESS_KEY_ID}
-export TF_VAR_aws_secret_key=${AWS_SECRET_ACCESS_KEY}
-
-# turn off ansible key checking
+echo 'configuring ansible'
 export ANSIBLE_HOST_KEY_CHECKING=False
+ansible_role=defunctzombie.coreos-bootstrap
+if ! (ansible-galaxy list | grep -q "${ansible_role}" >/dev/null); then
+  ansible-galaxy install ${ansible_role} --force
+fi
+
+# terraform has no native resource to represent "a file that has the contents
+# of a rendered template"; thus terraform won't detect that files created
+# through the workaround of "use a local-exec provisioner" are missing when
+# we run this script on a fresh clone.  Best would be to have ansible render
+# these templates instead.  For now, just explicitly taint them to force
+# terraform to re-render them on the next apply.`
+# (see https://github.com/hashicorp/terraform/issues/2342)
+terraform taint template_file.ansible_inventory
+terraform taint template_file.jenkinsconfig
+terraform taint template_file.jenkinslocation
+terraform taint template_file.slackconfig
+# we're not presently using vault
+# terraform taint template_file.vaultconfig
 
 # run terraform
 terraform plan -input=false

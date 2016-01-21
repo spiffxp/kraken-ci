@@ -16,8 +16,6 @@
       shell: docker build -t samsung_ag/jenkins-server /home/core/config/jenkins
     - name: Jenkins Backup Helper Build
       shell: docker build -t samsung_ag/jenkins-backup /home/core/config/backup
-    - name: HashiCorp Vault Build
-      shell: docker build -t samsung_ag/hashicorp-vault /home/core/config/vault
     - name: Kill off containers
       shell: docker rm -f jenkins-data jenkins-backup nginx docker-gen jenkins
       ignore_errors: yes

@@ -113,12 +113,9 @@
     <hudson.tasks.Shell>
       <command>KUBECONFIG=${WORKSPACE}/kubeconfig
 
-# set required terraform variables to parsed out AWS creds and run terraform
+export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
+
 cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
-cluster_name = &quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
-aws_user_prefix = &quot;${KRAKEN_CLUSTER_NAME}&quot;
-aws_access_key = &quot;${AWS_ACCESS_KEY_ID}&quot;
-aws_secret_key = &quot;${AWS_SECRET_ACCESS_KEY}&quot;
 kubeconfig = &quot;${KUBECONFIG}&quot;
 asg_wait_single = 60
 asg_wait_total = 10
@@ -143,6 +140,8 @@ bundle exec cucumber --format pretty --format junit --out output/cucumber/junit 
       <buildSteps>
         <hudson.tasks.Shell>
           <command>KUBECONFIG=${WORKSPACE}/kubeconfig
+
+export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
 
 retries=10
 until hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} destroy -no-color
