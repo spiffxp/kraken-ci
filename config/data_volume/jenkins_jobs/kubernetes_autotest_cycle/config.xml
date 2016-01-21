@@ -37,7 +37,7 @@
         <hudson.model.StringParameterDefinition>
           <name>DENSITIES</name>
           <description>space-delimited density values</description>
-          <defaultValue>3 15 30</defaultValue>
+          <defaultValue>3 30</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>API_SERVER_COUNT</name>
