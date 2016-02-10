@@ -10,11 +10,15 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.6">
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.3">
       <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>UNDEFINED</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
     </hudson.plugins.buildblocker.BuildBlockerProperty>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.14.2">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
+      <displayName></displayName>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -34,7 +38,7 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
-    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.8">
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.8.1">
       <teamDomain></teamDomain>
       <token></token>
       <room></room>
@@ -52,7 +56,7 @@
       <customMessage></customMessage>
     </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.1">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -94,7 +98,6 @@ category:   jekyll
 ${TEST_RESULT}
 
 - Conformance test log: [Log File](http://s3-us-west-2.amazonaws.com/kraken-e2e-logs/conformance/kraken_${KRAKEN_COMMIT}_conformance.log)
-- Density test log: [Log File](http://s3-us-west-2.amazonaws.com/kraken-e2e-logs/conformance/kraken_${KRAKEN_COMMIT}_density.log)
 EOF
 
 git config user.email &quot;maratoid+samsungjenkins@gmail.com&quot;

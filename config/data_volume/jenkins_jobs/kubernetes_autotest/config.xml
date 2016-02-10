@@ -10,11 +10,15 @@
   </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.6">
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.3">
       <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>UNDEFINED</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
     </hudson.plugins.buildblocker.BuildBlockerProperty>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.12.0">
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.14.2">
       <projectUrl>https://github.com/Samsung-AG/kraken/</projectUrl>
+      <displayName></displayName>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
@@ -116,7 +120,7 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
-    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.8">
+    <jenkins.plugins.slack.SlackNotifier_-SlackJobProperty plugin="slack@1.8.1">
       <teamDomain></teamDomain>
       <token></token>
       <room></room>
@@ -134,7 +138,7 @@
       <customMessage></customMessage>
     </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.1">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -159,17 +163,16 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>KUBECONFIG=${WORKSPACE}/kubeconfig
+      <command>KUBECONFIG=${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/kube_config
 
 # create the cluster
 if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
 
-  # required terraform variables come in from env vars
-  export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
-
-  # all other terraform variables come from file
-  cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
-  kubeconfig = &quot;${KUBECONFIG}&quot;
+  mkdir -p terraform/aws/${KRAKEN_CLUSTER_NAME}
+  cat &gt; terraform/aws/${KRAKEN_CLUSTER_NAME}/terraform.tfvars &lt;&lt; EOF
+  aws_user_prefix=&quot;${KRAKEN_USER_PREFIX}&quot;
+  aws_access_key=&quot;${AWS_ACCESS_KEY_ID}&quot;
+  aws_secret_key=&quot;${AWS_SECRET_ACCESS_KEY}&quot;
   asg_wait_single = 60
   asg_wait_total = ${TOTAL_WAIT}
   kubernetes_binaries_uri = &quot;${KUBERNETES_BINARIES_URI}&quot;
@@ -182,13 +185,25 @@ if [ &quot;$CREATE_CLUSTER&quot; = true ]; then
 EOF
 
   # start terraform
-  hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} apply -no-color
+  ${WORKSPACE}/bin/kraken-up.sh \
+  --clustername &quot;${KRAKEN_CLUSTER_NAME}&quot; \
+  --clustertype aws \
+    --dmopts &quot;--driver amazonec2 --amazonec2-region ${AWS_DEFAULT_REGION} \
+      --amazonec2-vpc-id ${KRAKEN_DEFAULT_VPC} --amazonec2-access-key ${AWS_ACCESS_KEY_ID} \
+      --amazonec2-secret-key ${AWS_SECRET_ACCESS_KEY}&quot; \
+    --dmname &quot;${PIPELET_DOCKERMACHINE}&quot; \
+    --dmshell bash
 
+  ${WORKSPACE}/bin/kraken-connect.sh \
+  --clustername &quot;${KRAKEN_CLUSTER_NAME}&quot; \
+  --clustertype aws \
+    --dmname &quot;${PIPELET_DOCKERMACHINE}&quot; \
+    --dmshell bash
 fi;
 
 if [ &quot;$RUN_ANSIBLE&quot; = true ]; then
   retries=10
-    until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f ${ANSIBLE_FORKS} -i ${WORKSPACE}/terraform/aws/rendered/ansible.inventory ${WORKSPACE}/ansible/iaas_provision_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
+    until ANSIBLE_SSH_PIPELINING=True ANSIBLE_SSH_RETRIES=100 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -f ${ANSIBLE_FORKS} -i ${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/ansible.inventory --private-key ${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/id_rsa ${WORKSPACE}/ansible/ansible_local.yaml  --extra-vars &quot;kubernetes_binaries_uri=${KUBERNETES_BINARIES_URI}&quot; -v --diff
     do
       if [ $retries -eq 0 ]; then
         echo &quot;Re ansible failed ...&quot;
@@ -201,7 +216,7 @@ if [ &quot;$RUN_ANSIBLE&quot; = true ]; then
     done
 fi</command>
     </hudson.tasks.Shell>
-    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.27">
+    <hudson.plugins.parameterizedtrigger.TriggerBuilder plugin="parameterized-trigger@2.30">
       <configs>
         <hudson.plugins.parameterizedtrigger.BlockableBuildTriggerConfig>
           <configs>
@@ -240,13 +255,11 @@ KUBE_TESTS_DIR=${KUBE_TESTS_DIR}
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.tasks.Shell>
-      <command>
-
-# run
+      <command># run
 if [ &quot;$RUN_TESTS&quot; = true ]; then
 
   export KUBE_ROOT=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}
-  export KUBE_DENSITY_KUBECONFIG=${WORKSPACE}/kubeconfig
+  export KUBE_DENSITY_KUBECONFIG=${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/kube_config
   export KUBE_DENSITY_NUM_NODES=${NUMBER_OF_NODES}
 
   fail_step=false
@@ -269,7 +282,7 @@ if [ &quot;$RUN_TESTS&quot; = true ]; then
         fail_step=true
     fi
 
-    ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${KRAKEN_CLUSTER_NAME}_aws
+    ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/ssh_config --key ${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/id_rsa
   done
 
   set -e
@@ -292,28 +305,14 @@ fi</command>
     <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@0.17">
       <buildSteps>
         <hudson.tasks.Shell>
-          <command>KUBECONFIG=${WORKSPACE}/kubeconfig
-
-# destroy the cluster
+          <command># destroy the cluster
 if [ &quot;$DESTROY_CLUSTER&quot; = true ]; then
 
-  # required terraform variables come in from env vars
-  export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
-
-  # all other terraform variables come from file (that is expected to already be present by now)
-
-  retries=10
-  until hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} destroy -no-color
-  do
-    if [ $retries -eq 0 ]; then
-      echo &quot;Destroy failed ...&quot;
-      exit 1
-    fi
-
-    retries=$((retries - 1))
-    echo &quot;Retrying destroy ...&quot;
-    sleep 10
-  done
+  ${WORKSPACE}/bin/kraken-down.sh \
+  --clustername &quot;${KRAKEN_CLUSTER_NAME}&quot; \
+    --clustertype aws \
+    --dmname &quot;${PIPELET_DOCKERMACHINE}&quot; \
+    --dmshell bash
 fi</command>
         </hudson.tasks.Shell>
       </buildSteps>
@@ -321,11 +320,11 @@ fi</command>
       <scriptOnlyIfFailure>false</scriptOnlyIfFailure>
       <markBuildUnstable>false</markBuildUnstable>
     </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
-    <jenkins.plugins.slack.SlackNotifier plugin="slack@1.8">
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@1.8.1">
     </jenkins.plugins.slack.SlackNotifier>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.26">
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.28">
       <deleteDirs>false</deleteDirs>
       <cleanupParameter></cleanupParameter>
       <externalDelete></externalDelete>

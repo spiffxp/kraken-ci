@@ -80,7 +80,7 @@
       <customMessage></customMessage>
     </jenkins.plugins.slack.SlackNotifier_-SlackJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.0">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.4.1">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -153,21 +153,33 @@ KUBE_TESTS_DIR=kubernetes_conformance
       <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
     </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
     <hudson.tasks.Shell>
-      <command>KUBECONFIG=${WORKSPACE}/kubeconfig
+      <command>KUBECONFIG=${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/kube_config
 
-# required terraform variables come in from env vars
-export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
-
-# all other terraform variables come from file
-cat &gt; terraform/aws/terraform.tfvars &lt;&lt; EOF
-kubeconfig = &quot;${KUBECONFIG}&quot;
+mkdir -p terraform/aws/${KRAKEN_CLUSTER_NAME}
+cat &gt; terraform/aws/${KRAKEN_CLUSTER_NAME}/terraform.tfvars &lt;&lt; EOF
+aws_user_prefix=&quot;${KRAKEN_USER_PREFIX}&quot;
+aws_access_key=&quot;${AWS_ACCESS_KEY_ID}&quot;
+aws_secret_key=&quot;${AWS_SECRET_ACCESS_KEY}&quot;
 asg_wait_single = 60
 asg_wait_total = 10
 node_type = &quot;m3.medium&quot;
 EOF
 
-# start terraform
-hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} apply -no-color
+# start kraken-up
+${WORKSPACE}/bin/kraken-up.sh \
+  --clustername &quot;${KRAKEN_CLUSTER_NAME}&quot; \
+  --clustertype aws \
+    --dmopts &quot;--driver amazonec2 --amazonec2-region ${AWS_DEFAULT_REGION} \
+      --amazonec2-vpc-id ${KRAKEN_DEFAULT_VPC} --amazonec2-access-key ${AWS_ACCESS_KEY_ID} \
+      --amazonec2-secret-key ${AWS_SECRET_ACCESS_KEY}&quot; \
+    --dmname &quot;${PIPELET_DOCKERMACHINE}&quot; \
+    --dmshell bash
+
+${WORKSPACE}/bin/kraken-connect.sh \
+  --clustername &quot;${KRAKEN_CLUSTER_NAME}&quot; \
+  --clustertype aws \
+    --dmname &quot;${PIPELET_DOCKERMACHINE}&quot; \
+    --dmshell bash
 
 # clear output folder
 rm -rf ${WORKSPACE}/output
@@ -175,29 +187,13 @@ mkdir -p ${WORKSPACE}/output</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
-
-export KRAKEN_COMMIT=${GIT_COMMIT}
 export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
-export KUBE_CONFORMANCE_KUBECONFIG=${WORKSPACE}/kubeconfig
+export KUBE_CONFORMANCE_KUBECONFIG=${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/kube_config
 export KUBE_CONFORMANCE_OUTPUT_DIR=${WORKSPACE}/output/conformance
 
-KUBE_CONFORMANCE_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_conformance.log
+KUBE_CONFORMANCE_LOG=${WORKSPACE}/kraken_${GIT_COMMIT}_conformance.log
 # TODO: unclear what part of k8s scripts require USER to be set
 USER=jenkins ./hack/conformance.sh ${KUBE_CONFORMANCE_BRANCH} | tee ${KUBE_CONFORMANCE_LOG}
-# tee isn&apos;t exiting &gt;0 as expected, so use the exit status of the script directly
-exit ${PIPESTATUS[0]}</command>
-    </hudson.tasks.Shell>
-    <hudson.tasks.Shell>
-      <command>#!/bin/bash
-
-export KRAKEN_COMMIT=${GIT_COMMIT}
-export KUBE_ROOT=/var/lib/docker/gobuild/kubernetes_conformance
-export KUBE_DENSITY_KUBECONFIG=${WORKSPACE}/kubeconfig
-export KUBE_DENSITY_NUM_NODES=4
-export KUBE_DENSITY_OUTPUT_DIR=${WORKSPACE}/output/density
-KUBE_DENSITY_LOG=${WORKSPACE}/kraken_${KRAKEN_COMMIT}_density.log
-# TODO: unclear what part of k8s scripts require USER to be set
-USER=jenkins ./hack/density.sh ${KUBE_CONFORMANCE_BRANCH} 30 | tee ${KUBE_DENSITY_LOG}
 # tee isn&apos;t exiting &gt;0 as expected, so use the exit status of the script directly
 exit ${PIPESTATUS[0]}</command>
     </hudson.tasks.Shell>
@@ -223,28 +219,16 @@ exit ${PIPESTATUS[0]}</command>
             <token>${DESTROY_CLUSTER}</token>
           </condition>
           <buildStep class="hudson.tasks.Shell">
-            <command>KUBECONFIG=${WORKSPACE}/kubeconfig
-
-set +e
+            <command>set +e
 # copy the log file to S3
-aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/output/conformance/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
-aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/output/density/kraken_${GIT_COMMIT}_density.log s3://kraken-e2e-logs/conformance/
+aws s3 cp --acl public-read --content-type text/plain --metadata-directive REPLACE ${WORKSPACE}/kraken_${GIT_COMMIT}_conformance.log s3://kraken-e2e-logs/conformance/
 set -e
 
-# required terraform variables come in from env vars
-export TF_VAR_cluster_name=&quot;${KRAKEN_CLUSTER_NAME}_aws&quot;
-
-retries=10
-until hack/terraform-remote.sh aws ${KRAKEN_CLUSTER_NAME} destroy -no-color
-do
-  if [ $retries -eq 0 ]; then
-    echo &quot;Destroy failed ...&quot;
-    exit 1
-  fi
-  retries=$((retries - 1))
-  echo &quot;Retrying destroy ...&quot;
-  sleep 30
-done</command>
+${WORKSPACE}/bin/kraken-down.sh \
+  --clustername &quot;${KRAKEN_CLUSTER_NAME}&quot; \
+    --clustertype aws \
+    --dmname &quot;${PIPELET_DOCKERMACHINE}&quot; \
+    --dmshell bash</command>
           </buildStep>
           <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
         </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
@@ -283,7 +267,7 @@ TEST_RESULT=Test run failed</properties>
     </jenkins.plugins.slack.SlackNotifier>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.26">
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.28">
       <deleteDirs>false</deleteDirs>
       <cleanupParameter></cleanupParameter>
       <externalDelete></externalDelete>

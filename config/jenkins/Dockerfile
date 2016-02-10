@@ -10,7 +10,7 @@ RUN chmod 400 /root/.ssh/id_rsa
 # TODO: install from source instead?
 ENV GOLANG_DEB_VERSION 2:1.5.1-4~bpo8+1
 ENV KUBERNETES_VERSION v1.1.3
-ENV TERRAFORM_VERSION 0.6.8
+ENV TERRAFORM_VERSION 0.6.11
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSBOX_VERSION v0.0.1
 ENV VAULT_VERSION 0.3.1
@@ -82,6 +82,10 @@ RUN wget https://dl.bintray.com/mitchellh/vault/vault_${VAULT_VERSION}_linux_amd
 # install awscli
 RUN pip install \
   awscli==1.9.15
+
+# install docker machine
+RUN curl -L https://github.com/docker/machine/releases/download/v0.6.0/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine \
+  && chmod +x /usr/local/bin/docker-machine
 
 # preload host keys for github.com
 RUN ssh-keyscan -H github.com >> ~/.ssh/known_hosts
