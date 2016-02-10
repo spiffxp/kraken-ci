@@ -282,7 +282,7 @@ if [ &quot;$RUN_TESTS&quot; = true ]; then
         fail_step=true
     fi
 
-    ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ~/.ssh/config_${KRAKEN_CLUSTER_NAME}_aws
+    ${WORKSPACE}/hack/namespace_cleanup.sh --etcd etcd --config ${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/ssh_config --key ${WORKSPACE}/bin/clusters/${KRAKEN_CLUSTER_NAME}/id_rsa
   done
 
   set -e
