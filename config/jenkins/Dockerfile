@@ -13,7 +13,7 @@ ENV KUBERNETES_VERSION v1.1.3
 ENV TERRAFORM_VERSION 0.6.11
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSBOX_VERSION v0.0.1
-ENV VAULT_VERSION 0.3.1
+ENV VAULT_VERSION 0.5.0
 
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
@@ -75,7 +75,7 @@ RUN wget https://github.com/kubernetes/kubernetes/releases/download/${KUBERNETES
   && rm kubernetes.tar.gz
 
 # install vault cli
-RUN wget https://dl.bintray.com/mitchellh/vault/vault_${VAULT_VERSION}_linux_amd64.zip \
+RUN wget https://releases.hashicorp.com/vault/0.5.0/vault_${VAULT_VERSION}_linux_amd64.zip \
     && unzip -o vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/local/bin \
     && rm vault_${VAULT_VERSION}_linux_amd64.zip
 
