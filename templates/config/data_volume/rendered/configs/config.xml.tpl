@@ -71,12 +71,16 @@
             <comparator class="hudson.util.CaseInsensitiveComparator"/>
           </default>
           <int>4</int>
+          <!-- used by awscli and other tools that need AWS access -->
           <string>AWS_DEFAULT_REGION</string>
           <string>us-west-2</string>
+          <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>KRAKEN_DEFAULT_VPC</string>
           <string>vpc-e9cd4a8c</string>
+          <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>KRAKEN_USER_PREFIX</string>
           <string>pipelet</string>
+          <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>PIPELET_DOCKERMACHINE</string>
           <string>pipelet-dockermachine</string>
         </tree-map>
