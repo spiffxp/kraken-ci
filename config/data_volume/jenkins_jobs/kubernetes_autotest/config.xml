@@ -255,7 +255,9 @@ KUBE_TESTS_DIR=${KUBE_TESTS_DIR}
       </configs>
     </hudson.plugins.parameterizedtrigger.TriggerBuilder>
     <hudson.tasks.Shell>
-      <command># run
+      <command>#!/bin/bash
+
+# run
 if [ &quot;$RUN_TESTS&quot; = true ]; then
 
   export KUBE_ROOT=/var/lib/docker/gobuild/${KUBE_TESTS_DIR}
@@ -278,7 +280,7 @@ if [ &quot;$RUN_TESTS&quot; = true ]; then
     # TODO: should we just drop test build functionality
     REBUILD_TESTS=false USER=jenkins hack/density.sh ${KUBE_TESTS_BRANCH} $i | tee ${KUBE_DENSITY_LOG}
 
-    if [ $? -ne 0 ]; then
+    if [ ${PIPESTATUS[0]} -ne 0 ]; then
         fail_step=true
     fi
 
