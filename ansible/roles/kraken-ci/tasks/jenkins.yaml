@@ -1,0 +1,53 @@
+---
+- name: Create folder for s3 files
+  file: >
+    path="{{ ci_container_path }}/keys/"
+    state=directory
+
+- name: Get files from s3  
+  s3: 
+    aws_access_key: "{{aws_key}}"
+    aws_secret_key: "{{aws_secret}}"
+    region: "{{aws_region}}"
+    overwrite: True
+    bucket: "{{config_bucket}}"
+    object: keys/{{ci_hostname}}/{{item}}
+    dest: "{{ ci_container_path }}/keys/{{item}}" 
+    mode: get 
+  with_items:
+    - id_rsa
+    - id_rsa.pub
+
+- name: Jenkins Server Build
+  shell: docker build -t {{ci_container_tag}} {{ ci_container_path }}
+
+- name: Jenkins server
+  docker:
+    name: "{{ci_container_name}}"
+    docker_api_version: "{{ docker_api_version }}"
+    image: "{{ci_container_tag}}"
+    state: started
+    pull: missing
+    net: bridge 
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes_from:
+      - "{{ data_container_name }}"
+    env:
+      VIRTUAL_HOST: "{{ci_hostname}}"
+      VIRTUAL_PORT: 8080
+      MACHINE_STORAGE_PATH: "/var/jenkins_home/.docker/machine"
+    volumes:
+      - /var/run/docker.sock:/run/docker.sock
+      - /usr/bin/docker:/bin/docker
+      - /usr/lib/libdevmapper.so.1.02:/usr/lib/libdevmapper.so.1.02
+      - /var/run:/ansible
+      - /var/lib/docker/gobuild:/var/lib/docker/gobuild
+
+- name: generate jenkins jobs
+  shell: docker exec {{ci_container_name}} jenkins-jobs update -r /etc/jenkins_jobs
+  register: result
+  until: result.rc == 0
+  retries: 5
+  delay: 5

@@ -1,10 +1,11 @@
 # Dockerfile
-FROM busybox:1.24.1
+FROM gliderlabs/alpine:3.2
 MAINTAINER Marat Garafutdinov <marat.g@samsung.com>
 
+RUN apk --update add rsync
 VOLUME /var/jenkins_home
-COPY jenkins_config/*.xml /var/jenkins_home/
-COPY jenkins_config/secrets /var/jenkins_home/secrets/
-COPY rendered/configs/*.xml /var/jenkins_home/
-COPY jenkins_jobs /var/jenkins_home/jobs/
+VOLUME /etc/jenkins_jobs
+COPY job-builder/ /etc/jenkins_jobs/
+COPY config/*.xml /var/jenkins_home/
+COPY secrets /var/jenkins_home/secrets/
 CMD /bin/sh

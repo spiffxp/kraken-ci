@@ -1,0 +1,21 @@
+---
+- name: Install docker-py
+  pip: name=docker-py executable={{ coreos_pypy_home }}/bin/pip
+
+- name: Install boto
+  pip: name=boto executable={{ coreos_pypy_home }}/bin/pip
+
+- name: Copy config dir over
+  synchronize: >
+    src={{playbook_dir}}/../config/
+    dest={{ ansible_env.HOME }}/config/
+    recursive=yes
+
+- name: Kill off containers
+  shell: docker rm -f {{backup_container_name}} {{nginx_container_name}} {{conf_container_name}} {{ci_container_name}}
+  ignore_errors: yes
+
+- name: Kill off data container
+  shell: docker rm -f {{data_container_name}}
+  ignore_errors: yes
+  when: "dump_data == 'yes'"

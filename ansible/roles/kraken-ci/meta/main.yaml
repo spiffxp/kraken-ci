@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: ansible-coreos-bootstrap, coreos_pypy_url: 'https://bitbucket.org/squeaky/portable-pypy/downloads', gather_facts: False }
+  - { role: ci-properties }

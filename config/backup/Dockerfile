@@ -12,7 +12,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ADD ./s3cfg /.s3cfg
 ADD ./run.sh /run.sh
 RUN chmod +x /run.sh
 ADD ./exclude-regexes ./exclude-regexes

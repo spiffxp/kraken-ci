@@ -1,0 +1,18 @@
+---
+- include: common.yaml
+
+- name: Check if the jenkins data container is present
+  shell: docker inspect {{data_container_name}}
+  ignore_errors: yes
+  register: data_container_inspect
+
+- include: data-volume-common.yaml
+- include: data-volume-jjb.yaml
+- include: data-volume-create.yaml
+  when: (dump_data == 'yes') or (data_container_inspect.rc != 0)
+- include: data-volume-update.yaml
+  when: (dump_data != 'yes') and (data_container_inspect.rc == 0)
+- include: backup.yaml
+- include: nginx.yaml
+- include: nginx-autoconf.yaml
+- include: jenkins.yaml

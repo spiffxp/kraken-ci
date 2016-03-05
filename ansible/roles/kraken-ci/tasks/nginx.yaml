@@ -1,0 +1,42 @@
+---
+- name: Create folder for s3 files
+  file: >
+    path="{{ nginx_container_path }}/certs/"
+    state=directory
+
+- name: Get key file from s3  
+  s3: 
+    aws_access_key: "{{aws_key}}"
+    aws_secret_key: "{{aws_secret}}"
+    region: "{{aws_region}}"
+    overwrite: True
+    bucket: "{{config_bucket}}"
+    object: certs/{{ci_hostname}}/key
+    dest: "{{ nginx_container_path }}/certs/{{ci_hostname}}.key" 
+    mode: get 
+- name: Get crt file from s3  
+  s3: 
+    aws_access_key: "{{aws_key}}"
+    aws_secret_key: "{{aws_secret}}"
+    region: "{{aws_region}}"
+    overwrite: True
+    bucket: "{{config_bucket}}"
+    object: certs/{{ci_hostname}}/crt
+    dest: "{{ nginx_container_path }}/certs/{{ci_hostname}}.crt" 
+    mode: get 
+
+- name: Official NGINX
+  docker:
+    name: "{{nginx_container_name}}"
+    docker_api_version: "{{ docker_api_version }}"
+    image: nginx
+    state: started
+    pull: missing
+    tty: yes
+    net: bridge
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /tmp/nginx:/etc/nginx/conf.d
+      - "{{ nginx_container_path }}/certs:/etc/nginx/certs"

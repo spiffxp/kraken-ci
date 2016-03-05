@@ -1,0 +1,3 @@
+---
+terraform_mode: up
+ci_key_path: "{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}"
