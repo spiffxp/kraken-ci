@@ -1,5 +1,7 @@
 ## Bring up a configured jenkins server
 
+Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/Samsung-AG/terraform-provider-coreosbox) are installed  
+
 Run:
 
     $ ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> --github-key <github app key> --github-org <github org> --dump-data yes
