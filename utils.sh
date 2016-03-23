@@ -1,5 +1,5 @@
 #!/bin/bash -
-#title           :utils
+#title           :utils.sh
 #description     :utils
 #author          :Samsung SDSRA
 #==============================================================================
@@ -26,6 +26,10 @@ case $key in
   ;;
   --slack-token)
   export SLACK_API_TOKEN="$2"
+  shift
+  ;;
+  --slack-hook-token)
+  export SLACK_WEBHOOK_TOKEN="$2"
   shift
   ;;
   --github-id)
@@ -55,7 +59,7 @@ case $key in
   --help)
   echo "setup | destroy.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region>\
   --aws-prefix <aws user prefix> --slack-token <slack api token> --github-id <github app id>\
-  --github-key <github app key> --github-org <github org>\
+  --github-key <github app key> --github-org <github org> --slack-hook-token <outgoing hook token>\
   --dump-data <dump existing jenkins data: yes or no>"
   exit 0
   ;;
@@ -88,6 +92,11 @@ fi
 
 if [ -z ${SLACK_API_TOKEN+x} ]; then
   echo "SLACK_API_TOKEN is not set. Specify wither through environment variable or --slack-token"
+  exit 1
+fi
+
+if [ -z ${SLACK_WEBHOOK_TOKEN+x} ]; then
+  echo "SLACK_WEBHOOK_TOKEN is not set. Specify wither through environment variable or --slack-hook-token"
   exit 1
 fi
 

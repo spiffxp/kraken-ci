@@ -6,7 +6,8 @@ Run:
 
     $ ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
       --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
-      --github-key <github app key> --github-org <github org> --dump-data yes
+      --slack-hook-token <outgoing hook token> --github-key <github app key> \
+      --github-org <github org> --dump-data yes
 
 ### Try it out
 
@@ -21,7 +22,8 @@ After a self-signed cert SSL warning you should see the jenkins dashboard. Now t
 
     ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
       --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
-      --github-key <github app key> --github-org <github org> --dump-data no
+      --slack-hook-token <outgoing hook token> --github-key <github app key> \
+      --github-org <github org> --dump-data no
 
 No graceful termination / draining is in place, so coordinate with your team members accordingly
 
@@ -30,11 +32,11 @@ Run the terraform destroy command:
 
     ./destroy.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
       --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
-      --github-key <github app key> --github-org <github org>
+      --slack-hook-token <outgoing hook token> --github-key <github app key> --github-org <github org>
 
 # Use environment variables
 
-Instead of specifying all of the command line switches you can export the environment variables used in [utils](utils) file
+Instead of specifying all of the command line switches you can export the environment variables used in [utils.sh](utils.sh) file
 
 # Terraform state
 

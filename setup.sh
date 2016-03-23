@@ -9,7 +9,7 @@ set -o pipefail
 
 # pull in utils
 my_dir=$(dirname "${BASH_SOURCE}")
-source "${my_dir}/utils"
+source "${my_dir}/utils.sh"
 
 echo 'Running ansible'
 ansible-playbook -i ansible/inventory.local ansible/jenkins-up.yaml

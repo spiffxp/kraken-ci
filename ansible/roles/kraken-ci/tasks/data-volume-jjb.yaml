@@ -12,5 +12,5 @@
   template: src=kraken-ci.yaml.jinja2
             dest="{{ data_container_path }}/job-builder/kraken-ci.yaml"
 
-- name: clone the jobs repo
+- name: Clone the jobs repo
   git: repo={{ci_jobs_repo}} dest={{ data_container_path }}/job-builder/jobs version={{ci_jobs_repo_branch}} accept_hostkey=yes force=yes

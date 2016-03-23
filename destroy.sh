@@ -9,5 +9,5 @@ set -o pipefail
 
 # pull in utils
 my_dir=$(dirname "${BASH_SOURCE}")
-source "${my_dir}/utils"
+source "${my_dir}/utils.sh"
 ansible-playbook -i ansible/inventory.local --ssh-common-args '-o StrictHostKeyChecking=no' ansible/jenkins-down.yaml

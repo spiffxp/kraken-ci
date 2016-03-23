@@ -1,5 +1,5 @@
 ---
-- name: Create folder for s3 files
+- name: Create folder for s3 keys
   file: >
     path="{{ ci_container_path }}/keys/"
     state=directory
@@ -45,7 +45,7 @@
       - /var/run:/ansible
       - /var/lib/docker/gobuild:/var/lib/docker/gobuild
 
-- name: generate jenkins jobs
+- name: Generate jenkins jobs
   shell: docker exec {{ci_container_name}} jenkins-jobs update -r /etc/jenkins_jobs
   register: result
   until: result.rc == 0

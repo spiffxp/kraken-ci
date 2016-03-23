@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<jenkins.plugins.slack.SlackNotifier_-DescriptorImpl plugin="slack@1.8">
-  <teamDomain>samsung-ag</teamDomain>
+<jenkins.plugins.slack.SlackNotifier_-DescriptorImpl plugin="slack@2.0.1">
+  <teamDomain>{{slack_domain}}</teamDomain>
   <token>{{slack_api_token}}</token>
-  <room>#pipeline</room>
+  <room>{{slack_room}}</room>
   <buildServerUrl>https://{{ci_hostname}}/</buildServerUrl>
 </jenkins.plugins.slack.SlackNotifier_-DescriptorImpl>

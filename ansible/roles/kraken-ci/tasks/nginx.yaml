@@ -1,5 +1,5 @@
 ---
-- name: Create folder for s3 files
+- name: Create folder for s3 certs
   file: >
     path="{{ nginx_container_path }}/certs/"
     state=directory

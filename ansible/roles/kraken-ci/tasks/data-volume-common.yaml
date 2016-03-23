@@ -1,5 +1,5 @@
 ---
-- name: Create folder for s3 files
+- name: Create folder for s3 secrets
   file: >
     path="{{ data_container_path }}/secrets"
     state=directory
