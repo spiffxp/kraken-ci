@@ -1,8 +1,4 @@
 ---
-- name: Run terraform plan
-  shell: >
-    terraform plan -input=false -var-file={{playbook_dir}}/../terraform/terraform.tfvars {{playbook_dir}}/../terraform/ chdir={{playbook_dir}}/../terraform/
-
 - name: Run terraform apply
   shell: >
     terraform apply -input=false -var-file={{playbook_dir}}/../terraform/terraform.tfvars {{playbook_dir}}/../terraform/ chdir={{playbook_dir}}/../terraform/
