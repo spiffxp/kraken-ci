@@ -1,9 +1,9 @@
 ---
-- name: Install docker-py
-  pip: name=docker-py executable={{ coreos_pypy_home }}/bin/pip
-
-- name: Install boto
-  pip: name=boto executable={{ coreos_pypy_home }}/bin/pip
+- name: Install libraries
+  pip: name={{item}} executable={{ coreos_pypy_home }}/bin/pip
+  with_items:
+    - docker-py
+    - boto
 
 - name: Copy config dir over
   synchronize: >
