@@ -4,7 +4,9 @@ Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/Samsu
 
 Run:
 
-    $ ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> --github-key <github app key> --github-org <github org> --dump-data yes
+    $ ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
+      --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
+      --github-key <github app key> --github-org <github org> --dump-data yes
 
 ### Try it out
 
@@ -17,14 +19,18 @@ After a self-signed cert SSL warning you should see the jenkins dashboard. Now t
 
 # To update in place
 
-    ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> --github-key <github app key> --github-org <github org> --dump-data no
+    ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
+      --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
+      --github-key <github app key> --github-org <github org> --dump-data no
 
 No graceful termination / draining is in place, so coordinate with your team members accordingly
 
 # To destroy
 Run the terraform destroy command:
 
-    ./destroy.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> --github-key <github app key> --github-org <github org>
+    ./destroy.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
+      --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
+      --github-key <github app key> --github-org <github org>
 
 # Use environment variables
 
