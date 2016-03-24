@@ -1,0 +1,24 @@
+---
+- project:
+    ci_admin_list:
+    {% for admin in job_builder.ci_admin_list %}
+      - {{admin}}
+    {%endfor -%}
+    slack_api_token: "{{job_builder.slack_api_token}}"
+    slack_room: "{{job_builder.slack_room}}"
+    slack_domain: "{{job_builder.slack_domain}}"
+    ci_hostname: "{{job_builder.ci_hostname}}"
+    test_bucket: "{{job_builder.test_bucket}}"
+    name: kraken
+    jobs:
+      - '{name}-build-cluster'
+      - '{name}-build-k8s-tests'
+      - '{name}-cleanup-tests'
+      - '{name}-destroy'
+      - '{name}-k8s-conformance'
+      - '{name}-k8s-density'
+      - '{name}-pr-builder'
+      - '{name}-run-k8s-conformance-tests'
+      - '{name}-run-k8s-density-tests'
+      - '{name}-update-github-pages'
+      - '{name}-upload-to-s3'

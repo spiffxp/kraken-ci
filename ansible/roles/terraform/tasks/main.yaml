@@ -1,0 +1,7 @@
+---
+- include: terraform-state-pull.yaml
+- include: terraform-apply.yaml
+  when: "terraform_mode == 'apply'"
+- include: terraform-destroy.yaml
+  when: "terraform_mode == 'destroy'"
+- include: terraform-state-push.yaml

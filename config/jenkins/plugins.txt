@@ -30,6 +30,7 @@ github:1.14.2
 greenballs:1.15
 ivy:1.26
 javadoc:1.3
+jenkins-multijob-plugin:1.20
 job-dsl:1.42
 jquery-detached:1.2
 junit:1.10
@@ -56,7 +57,7 @@ rich-text-publisher-plugin:1.3
 run-condition:1.0
 scm-api:1.0
 script-security:1.15
-slack:1.8.1
+slack:2.0.1
 ssh-agent:1.9
 ssh-credentials:1.11
 ssh-slaves:1.10

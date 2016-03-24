@@ -1,0 +1,16 @@
+---
+- name: NGINX autoconfig
+  docker:
+    name: docker-gen
+    docker_api_version: "{{ docker_api_version }}"
+    image: jwilder/docker-gen
+    state: started
+    pull: missing
+    tty: yes
+    net: bridge
+    command: -notify-sighup nginx -watch -only-exposed /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    volumes_from:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+      - "{{ nginx_container_path }}/conf:/etc/docker-gen/templates"

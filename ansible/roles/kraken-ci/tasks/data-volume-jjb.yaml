@@ -1,0 +1,16 @@
+---
+- name: Create folder for rendered job builder config
+  file: >
+    path="{{ data_container_path }}/job-builder"
+    state=directory
+
+- name: Render job builder config
+  template: src=job_builder.ini.jinja2
+            dest="{{ data_container_path }}/job-builder/jenkins_jobs.ini"
+
+- name: Render job builder project file
+  template: src=kraken-ci.yaml.jinja2
+            dest="{{ data_container_path }}/job-builder/kraken-ci.yaml"
+
+- name: Clone the jobs repo
+  git: repo={{ci_jobs_repo}} dest={{ data_container_path }}/job-builder/jobs version={{ci_jobs_repo_branch}} accept_hostkey=yes force=yes

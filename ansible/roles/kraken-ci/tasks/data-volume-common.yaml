@@ -1,0 +1,47 @@
+---
+- name: Create folder for s3 secrets
+  file: >
+    path="{{ data_container_path }}/secrets"
+    state=directory
+
+- name: Get files from s3  
+  s3: 
+    aws_access_key: "{{aws_key}}"
+    aws_secret_key: "{{aws_secret}}"
+    region: "{{aws_region}}"
+    overwrite: True
+    bucket: "{{config_bucket}}"
+    object: secrets/{{ci_hostname}}/{{item}}
+    dest: "{{ data_container_path }}/secrets/{{item}}" 
+    mode: get
+  with_items:
+    - hudson.console.AnnotatedLargeText.consoleAnnotator 
+    - hudson.model.Job.serverCookie
+    - hudson.util.Secret
+    - jenkins.security.ApiTokenProperty.seed
+    - master.key
+    - org.jenkinsci.main.modules.instance_identity.InstanceIdentity.KEY
+
+- name: Create folder for rendered files
+  file: >
+    path="{{ data_container_path }}/config"
+    state=directory
+
+- name: Render Jenkins config XML
+  template: src=config.xml.jinja2
+            dest="{{ data_container_path }}/config/config.xml"
+- name: Render Jenkins location config XML
+  template: src=jenkins.model.JenkinsLocationConfiguration.xml.jinja2
+            dest="{{ data_container_path }}/config/jenkins.model.JenkinsLocationConfiguration.xml"
+- name: Render Jenkins slack config XML
+  template: src=jenkins.plugins.slack.SlackNotifier.xml.jinja2
+            dest="{{ data_container_path }}/config/jenkins.plugins.slack.SlackNotifier.xml"
+- name: Render Jenkins slack webhook config XML
+  template: src=jenkins.plugins.slack.webhook.GlobalConfig.xml.jinja2
+            dest="{{ data_container_path }}/config/jenkins.plugins.slack.webhook.GlobalConfig.xml"
+- name: Render Github Pull Request Builder config XML
+  template: src=org.jenkinsci.plugins.ghprb.GhprbTrigger.xml.jinja2
+            dest="{{ data_container_path }}/config/org.jenkinsci.plugins.ghprb.GhprbTrigger.xml"
+- name: Render Github Plugin config XML
+  template: src=github-plugin-configuration.xml.jinja2
+            dest="{{ data_container_path }}/config/github-plugin-configuration.xml"

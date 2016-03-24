@@ -1,0 +1,12 @@
+---
+- name: Jenkins Data Volume Build
+  shell: docker build -t {{data_container_tag}} {{ data_container_path }}
+
+- name: Jenkins Data Volume Run
+  docker:
+    name: "{{data_container_name}}"
+    docker_api_version: "{{ docker_api_version }}"
+    image: "{{data_container_tag}}"
+    state: started
+    pull: missing
+    net: bridge

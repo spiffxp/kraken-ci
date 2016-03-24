@@ -13,7 +13,6 @@ ENV KUBERNETES_VERSION v1.1.3
 ENV TERRAFORM_VERSION 0.6.11
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
 ENV TERRAFORM_COREOSBOX_VERSION v0.0.1
-ENV VAULT_VERSION 0.5.0
 
 # install jenkins plugins
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
@@ -48,8 +47,16 @@ RUN apt-get update \
 
 ENV GOROOT=/usr/lib/go
 RUN mkdir /etc/ansible/
+RUN pip install --upgrade pip
 RUN pip install ansible
 COPY ansible.cfg /etc/ansible/ansible.cfg
+
+# install updated jenkins job builder
+RUN pip install PyYAML 
+RUN pip install python-jenkins
+RUN git clone https://git.openstack.org/openstack-infra/jenkins-job-builder /etc/jenkins-job-builder && \
+  cd /etc/jenkins-job-builder && \
+  python setup.py install
 
 # install gems
 RUN gem install \
@@ -73,11 +80,6 @@ RUN wget https://github.com/kubernetes/kubernetes/releases/download/${KUBERNETES
   && tar -xvf kubernetes.tar.gz \
   && cp kubernetes/platforms/linux/amd64/kubectl /usr/bin \
   && rm kubernetes.tar.gz
-
-# install vault cli
-RUN wget https://releases.hashicorp.com/vault/0.5.0/vault_${VAULT_VERSION}_linux_amd64.zip \
-    && unzip -o vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/local/bin \
-    && rm vault_${VAULT_VERSION}_linux_amd64.zip
 
 # install awscli
 RUN pip install \

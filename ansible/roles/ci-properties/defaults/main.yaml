@@ -1,0 +1,65 @@
+---
+aws_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+aws_prefix: "{{ lookup('env','AWS_PREFIX') }}"
+aws_region: "{{ lookup('env','AWS_DEFAULT_REGION') }}"
+aws_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+backup_bucket: "{{ aws_prefix }}-backup"
+backup_container_name: jenkins-backup
+backup_container_path: "{{ ansible_env.HOME }}/config/backup"
+backup_container_tag: samsung_ag/jenkins-backup
+ci_admin_list: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson"
+ci_container_name: jenkins
+ci_container_path: "{{ ansible_env.HOME }}/config/jenkins"
+ci_container_tag: samsung_ag/jenkins-server
+ci_hostname: "{{aws_prefix}}.kubeme.io"
+ci_jobs_repo: https://github.com/Samsung-AG/kraken-ci-jobs
+ci_jobs_repo_branch: master
+conf_container_name: docker-gen
+config_bucket: sundry-automata
+config_bucket_key: "{{ aws_prefix }}-terraform-state"
+data_container_name: jenkins-data
+data_container_path: "{{ ansible_env.HOME }}/config/data_volume"
+data_container_tag: samsung_ag/jenkins-data
+docker_api_version: 1.18
+dump_data: "{{ lookup('env','DUMP_JENKINS_DATA') }}"
+github_client_id: "{{ lookup('env','GITHUB_CLIENT_ID') }}"
+github_client_key: "{{ lookup('env','GITHUB_CLIENT_KEY') }}"
+github_org: "{{ lookup('env','GITHUB_ORG') }}"
+github_token: "{{ lookup('env','GITHUB_ACCESS_TOKEN') }}"
+github_username: "{{ lookup('env','GITHUB_USERNAME') }}"
+jenkins_ssh_key: "{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}/id_rsa.pub"
+nginx_container_name: nginx
+nginx_container_path: "{{ ansible_env.HOME }}/config/nginx"
+private_jenkins_ssh_key: "{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}/id_rsa"
+slack_api_token: "{{ lookup('env','SLACK_API_TOKEN') }}"
+slack_domain: samsung-ag
+slack_room: "#pipeline"
+slack_webhoook_token: "{{ lookup('env','SLACK_WEBHOOK_TOKEN') }}"
+job_builder:
+  ci_admin_list: "{{ci_admin_list.split(' ')}}"
+  slack_api_token: "{{slack_api_token}}"
+  slack_room: "{{slack_room}}"
+  slack_domain: "{{slack_domain}}"
+  ci_hostname: "{{aws_prefix}}.kubeme.io"
+  test_bucket: kraken-e2e-logs
+terraform_variables:
+  aws_ebs_size: "100"
+  aws_instance_type: m3.xlarge
+  aws_key: "{{ aws_key }}"
+  aws_key_name: "{{aws_prefix}}_key"
+  aws_region: "{{ aws_region }}"
+  aws_secgroup_name: "{{aws_prefix}}_secgroup"
+  aws_secret: "{{ aws_secret }}"
+  aws_subnet_cidr: 10.1.111.0/24
+  aws_vpc: vpc-0776f062
+  ci_hostname: "{{ ci_hostname }}"
+  clusters_bucket: "{{ aws_prefix }}-clusters"
+  coreos_channel: stable
+  coreos_version: current
+  docker_api_version: "{{docker_api_version}}"
+  github_client_id: "{{ github_client_id }}"
+  github_client_key: "{{ github_client_key }}"
+  github_org: "{{ github_org }}"
+  jenkins_ssh_key:  "{{jenkins_ssh_key}}"
+  private_jenkins_ssh_key: "{{ private_jenkins_ssh_key }}"
+  route53_zone_id: ZX7O08V47RE60

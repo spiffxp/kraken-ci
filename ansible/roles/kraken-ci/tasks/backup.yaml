@@ -1,0 +1,35 @@
+---
+- name: Jenkins Backup Container Build
+  shell: docker build -t {{backup_container_tag}} {{ backup_container_path }}
+
+- name: Render s3cfg
+  template: src=s3cfg.jinja2
+            dest="{{ data_container_path }}/.s3cfg"
+
+- name: Jenkins backup initial download
+  docker:
+    docker_api_version: "{{ docker_api_version }}"
+    image: "{{backup_container_tag}}"
+    state: started
+    pull: missing
+    net: bridge
+    detach: False
+    command: s3://{{backup_bucket}} /var/jenkins_home/jobs/
+    volumes:
+      - "{{data_container_path }}/.s3cfg:/.s3cfg"
+    volumes_from:
+      - "{{data_container_name}}"
+
+- name: Jenkins Backup Helper Run
+  docker:
+    name: "{{backup_container_name}}"
+    docker_api_version: "{{ docker_api_version }}"
+    image: "{{backup_container_tag}}"
+    state: started
+    pull: missing
+    net: bridge
+    command: s3://{{backup_bucket}} 60 /var/jenkins_home/jobs/
+    volumes:
+      - "{{data_container_path }}/.s3cfg:/.s3cfg"
+    volumes_from:
+      - "{{data_container_name}}"

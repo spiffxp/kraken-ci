@@ -1,0 +1,14 @@
+---
+- name: Run terraform apply
+  shell: >
+    terraform apply -input=false -var-file={{playbook_dir}}/../terraform/terraform.tfvars {{playbook_dir}}/../terraform/ chdir={{playbook_dir}}/../terraform/
+  ignore_errors: yes
+  register: terraform_result
+
+- name: Push remote state
+  shell: >
+    terraform remote push chdir={{playbook_dir}}/../terraform/
+
+- name: Fail on error
+  fail: msg="Terraform apply failed with:\n{{terraform_result.stderr}}"
+  when: terraform_result.rc != 0
