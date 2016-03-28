@@ -33,19 +33,102 @@ resource "template_file" "ansible_inventory" {
   }
 }
 
-resource "aws_subnet" "jenkins_subnet" {
-  vpc_id = "${var.aws_vpc}"
-  cidr_block = "${var.aws_subnet_cidr}"
+resource "aws_vpc" "jenkins_vpc" {
+  cidr_block           = "10.0.0.0/16"
+  instance_tenancy     = "default"
+  enable_dns_support   = true
+  enable_dns_hostnames = false
 
   tags {
-      Name = "${var.ci_hostname} subnet"
+    Name = "${var.ci_hostname}_vpc"
   }
+}
+
+resource "aws_vpc_dhcp_options" "jenkins_vpc_dhcp" {
+  domain_name         = "${var.aws_region}.compute.internal"
+  domain_name_servers = ["AmazonProvidedDNS"]
+
+  tags {
+    Name = "${var.ci_hostname}_dhcp"
+  }
+}
+
+resource "aws_vpc_dhcp_options_association" "jenkins_vpc_dhcp_association" {
+  vpc_id          = "${aws_vpc.jenkins_vpc.id}"
+  dhcp_options_id = "${aws_vpc_dhcp_options.jenkins_vpc_dhcp.id}"
+}
+
+resource "aws_internet_gateway" "jenkins_vpc_gateway" {
+  vpc_id = "${aws_vpc.jenkins_vpc.id}"
+
+  tags {
+    Name = "${var.ci_hostname}_gateway"
+  }
+}
+
+resource "aws_route_table" "jenkins_vpc_rt" {
+  vpc_id = "${aws_vpc.jenkins_vpc.id}"
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.jenkins_vpc_gateway.id}"
+  }
+
+  tags {
+    Name = "${var.ci_hostname}_rt"
+  }
+}
+
+resource "aws_network_acl" "jenkins_vpc_acl" {
+  vpc_id = "${aws_vpc.jenkins_vpc.id}"
+
+  egress {
+    protocol   = "-1"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  ingress {
+    protocol   = "-1"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  tags {
+    Name = "${var.ci_hostname}_acl"
+  }
+}
+
+resource "aws_key_pair" "jenkins_keypair" {
+  key_name = "${var.aws_key_name}"
+  public_key = "${file(var.jenkins_ssh_key)}"
+}
+
+resource "aws_subnet" "jenkins_subnet" {
+  vpc_id = "${aws_vpc.jenkins_vpc.id}"
+  cidr_block = "10.0.0.0/22"
+  map_public_ip_on_launch = true
+
+  tags {
+      Name = "${var.ci_hostname}_subnet"
+  }
+}
+
+resource "aws_route_table_association" "jenkins_subnet_rt_association" {
+  subnet_id      = "${aws_subnet.jenkins_subnet.id}"
+  route_table_id = "${aws_route_table.jenkins_vpc_rt.id}"
 }
 
 resource "aws_security_group" "jenkins_secgroup" {
   name = "${var.aws_secgroup_name}"
   description = "Security group for ${var.ci_hostname} Jenkins server"
-  vpc_id = "${var.aws_vpc}"
+  vpc_id = "${aws_vpc.jenkins_vpc.id}"
 
   ingress {
     from_port = 22
@@ -80,11 +163,6 @@ resource "aws_security_group" "jenkins_secgroup" {
   }
 }
 
-resource "aws_key_pair" "jenkins_keypair" {
-  key_name = "${var.aws_key_name}"
-  public_key = "${file(var.jenkins_ssh_key)}"
-}
-
 resource "aws_instance" "jenkins_ec2" {
   depends_on = ["template_file.cloudconfig", "template_file.cloudconfig"]
   ami = "${coreosbox_ami.coreos_ami.box_string}"
@@ -98,7 +176,6 @@ resource "aws_instance" "jenkins_ec2" {
     volume_size = "${var.aws_ebs_size}"
   }
   user_data = "${template_file.cloudconfig.rendered}"
-  disable_api_termination = "true"
   tags {
     Name = "${var.ci_hostname}"
   }
