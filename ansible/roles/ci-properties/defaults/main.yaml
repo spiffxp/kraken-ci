@@ -51,7 +51,7 @@ terraform_variables:
   aws_secgroup_name: "{{aws_prefix}}_secgroup"
   aws_secret: "{{ aws_secret }}"
   aws_subnet_cidr: 10.1.111.0/24
-  aws_vpc: vpc-f859949c
+  aws_vpc: vpc-dd5b96b9
   ci_hostname: "{{ ci_hostname }}"
   clusters_bucket: "{{ aws_prefix }}-clusters"
   coreos_channel: stable
