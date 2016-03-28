@@ -75,8 +75,54 @@ resource "aws_route_table" "jenkins_vpc_rt" {
   }
 
   tags {
-    Name = "{var.ci_hostname}_rt"
+    Name = "${var.ci_hostname}_rt"
   }
+}
+
+resource "aws_network_acl" "jenkins_vpc_acl" {
+  vpc_id = "${aws_vpc.jenkins_vpc.id}"
+
+  egress {
+    protocol   = "-1"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  ingress {
+    protocol   = "-1"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  tags {
+    Name = "${var.ci_hostname}_acl"
+  }
+}
+
+resource "aws_key_pair" "jenkins_keypair" {
+  key_name = "${var.aws_key_name}"
+  public_key = "${file(var.jenkins_ssh_key)}"
+}
+
+resource "aws_subnet" "jenkins_subnet" {
+  vpc_id = "${aws_vpc.jenkins_vpc.id}"
+  cidr_block = "10.0.0.0/22"
+  map_public_ip_on_launch = true
+
+  tags {
+      Name = "${var.ci_hostname} subnet"
+  }
+}
+
+resource "aws_route_table_association" "jenkins_subnet_rt_association" {
+  subnet_id      = "${aws_subnet.jenkins_subnet.id}"
+  route_table_id = "${aws_route_table.jenkins_vpc_rt.id}"
 }
 
 resource "aws_security_group" "jenkins_secgroup" {
@@ -114,20 +160,6 @@ resource "aws_security_group" "jenkins_secgroup" {
 
   tags {
     Name = "${var.ci_hostname} security group"
-  }
-}
-
-resource "aws_key_pair" "jenkins_keypair" {
-  key_name = "${var.aws_key_name}"
-  public_key = "${file(var.jenkins_ssh_key)}"
-}
-
-resource "aws_subnet" "jenkins_subnet" {
-  vpc_id = "${aws_vpc.jenkins_vpc.id}"
-  cidr_block = "10.0.0.0/22"
-
-  tags {
-      Name = "${var.ci_hostname} subnet"
   }
 }
 
