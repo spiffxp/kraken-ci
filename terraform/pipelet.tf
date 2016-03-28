@@ -116,7 +116,7 @@ resource "aws_subnet" "jenkins_subnet" {
   map_public_ip_on_launch = true
 
   tags {
-      Name = "${var.ci_hostname} subnet"
+      Name = "${var.ci_hostname}_subnet"
   }
 }
 
