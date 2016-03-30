@@ -37,6 +37,8 @@
     env:
       VIRTUAL_HOST: "{{ci_hostname}}"
       VIRTUAL_PORT: 8080
+      LETSENCRYPT_HOST: "{{ci_hostname}}"
+      LETSENCRYPT_EMAIL: "{{ci_email}}"
       MACHINE_STORAGE_PATH: "/var/jenkins_home/.docker/machine"
     volumes:
       - /var/run/docker.sock:/run/docker.sock

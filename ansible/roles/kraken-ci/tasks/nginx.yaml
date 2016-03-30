@@ -1,29 +1,16 @@
 ---
-- name: Create folder for s3 certs
+- name: Create folder for certs
   file: >
     path="{{ nginx_container_path }}/certs/"
     state=directory
-
-- name: Get key file from s3  
-  s3: 
-    aws_access_key: "{{aws_key}}"
-    aws_secret_key: "{{aws_secret}}"
-    region: "{{aws_region}}"
-    overwrite: True
-    bucket: "{{config_bucket}}"
-    object: certs/{{ci_hostname}}/key
-    dest: "{{ nginx_container_path }}/certs/{{ci_hostname}}.key" 
-    mode: get 
-- name: Get crt file from s3  
-  s3: 
-    aws_access_key: "{{aws_key}}"
-    aws_secret_key: "{{aws_secret}}"
-    region: "{{aws_region}}"
-    overwrite: True
-    bucket: "{{config_bucket}}"
-    object: certs/{{ci_hostname}}/crt
-    dest: "{{ nginx_container_path }}/certs/{{ci_hostname}}.crt" 
-    mode: get 
+- name: Create folder for vhosts
+  file: >
+    path="{{ nginx_container_path }}/vhost.d/"
+    state=directory
+- name: Create folder for nginx html
+  file: >
+    path="{{ nginx_container_path }}/html/"
+    state=directory
 
 - name: Official NGINX
   docker:
@@ -38,5 +25,7 @@
       - "80:80"
       - "443:443"
     volumes:
-      - /tmp/nginx:/etc/nginx/conf.d
-      - "{{ nginx_container_path }}/certs:/etc/nginx/certs"
+      - /etc/nginx/conf.d
+      - "{{ nginx_container_path }}/certs:/etc/nginx/certs:ro"
+      - "{{ nginx_container_path }}/vhost.d:/etc/nginx/vhost.d"
+      - "{{ nginx_container_path }}/html:/usr/share/nginx/html"
