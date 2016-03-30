@@ -12,7 +12,7 @@
     recursive=yes
 
 - name: Kill off containers
-  shell: docker rm -f {{backup_container_name}} {{nginx_container_name}} {{conf_container_name}} {{ci_container_name}}
+  shell: docker rm -f {{backup_container_name}} {{nginx_container_name}} {{conf_container_name}} {{ci_container_name}} {{cert_container_name}}
   ignore_errors: yes
 
 - name: Kill off data container
