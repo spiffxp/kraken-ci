@@ -7,7 +7,7 @@ backup_bucket: "{{ aws_prefix }}-backup"
 backup_container_name: jenkins-backup
 backup_container_path: "{{ ansible_env.HOME }}/config/backup"
 backup_container_tag: samsung_ag/jenkins-backup
-ci_admin_list: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson"
+ci_admin_list: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson cwazy1"
 ci_container_name: jenkins
 ci_container_path: "{{ ansible_env.HOME }}/config/jenkins"
 ci_container_tag: samsung_ag/jenkins-server
