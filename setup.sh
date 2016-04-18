@@ -15,5 +15,5 @@ echo 'Installing local python requirements'
 pip install -r requirements.txt
 
 echo 'Running ansible'
-ansible-playbook -i ansible/inventory.local ansible/jenkins-up.yaml
-ansible-playbook -i ansible/inventory.remote --ssh-common-args '-o StrictHostKeyChecking=no' ansible/jenkins.yaml
+ansible-playbook -vv --diff -i ansible/inventory.local ansible/jenkins-up.yaml
+ansible-playbook -vv --diff --ssh-common-args '-o StrictHostKeyChecking=no' -i ansible/inventory.remote ansible/jenkins.yaml
