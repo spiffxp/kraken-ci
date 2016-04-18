@@ -40,10 +40,6 @@ case $key in
   export GITHUB_CLIENT_KEY="$2"
   shift
   ;;
-  --github-org)
-  export GITHUB_ORG="$2"
-  shift
-  ;;
   --github-user)
   export GITHUB_USERNAME="$2"
   shift
@@ -107,11 +103,6 @@ fi
 
 if [ -z ${GITHUB_CLIENT_KEY+x} ]; then
   echo "GITHUB_CLIENT_KEY is not set. Specify wither through environment variable or --github-key"
-  exit 1
-fi
-
-if [ -z ${GITHUB_ORG+x} ]; then
-  echo "GITHUB_ORG is not set. Specify wither through environment variable or --github-org"
   exit 1
 fi
 
