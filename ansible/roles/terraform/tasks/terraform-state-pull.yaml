@@ -1,7 +1,7 @@
 ---
 - name: Create folder for ssh Keys
   file: >
-    path="{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}"
+    path="{{ jenkins_ssh_key_path }}"
     state=directory
 
 - name: Install public SSH Key
@@ -12,7 +12,7 @@
     overwrite: True
     bucket: "{{config_bucket}}"
     object: keys/{{ci_hostname}}/id_rsa.pub
-    dest: "{{jenkins_ssh_key}}"
+    dest: "{{ jenkins_ssh_key }}"
     mode: get
 
 - name: Install private SSH Key
@@ -23,11 +23,11 @@
     overwrite: True
     bucket: "{{config_bucket}}"
     object: keys/{{ci_hostname}}/id_rsa
-    dest: "{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}/id_rsa"
+    dest: "{{ private_jenkins_ssh_key }}"
     mode: get
 
 - name: Set private key permissions
-  file: path="{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}/id_rsa" mode=0600
+  file: path="{{ private_jenkins_ssh_key }}" mode=0600
 
 - name: Generate terraform tfvars file
   template: src=terraform.tfvars.jinja2
@@ -37,8 +37,8 @@
 
 - name: config remote state
   shell: >
-    terraform remote config -backend=S3 -backend-config="bucket={{config_bucket}}" -backend-config="key={{config_bucket_key}}" chdir={{playbook_dir}}/../terraform/
+    terraform remote config -backend=S3 -backend-config="bucket={{config_bucket}}" -backend-config="key={{config_bucket_key}}" chdir={{terraform_dir}}
 
 - name: pull remote state
   shell: >
-    terraform remote pull chdir={{playbook_dir}}/../terraform/
+    terraform remote pull chdir={{terraform_dir}}
