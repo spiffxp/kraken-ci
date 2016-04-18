@@ -11,6 +11,9 @@ set -o pipefail
 my_dir=$(dirname "${BASH_SOURCE}")
 source "${my_dir}/utils.sh"
 
+echo 'Installing local python requirements'
+pip install -r requirements.txt
+
 echo 'Running ansible'
 ansible-playbook -i ansible/inventory.local ansible/jenkins-up.yaml
 ansible-playbook -i ansible/inventory.remote --ssh-common-args '-o StrictHostKeyChecking=no' ansible/jenkins.yaml
