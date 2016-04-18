@@ -36,6 +36,7 @@ private_jenkins_ssh_key: "{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}
 slack_api_token: "{{ lookup('env','SLACK_API_TOKEN') }}"
 slack_domain: samsung-ag
 slack_room: "#pipeline"
+slack_webhoook_token: "{{ lookup('env','SLACK_WEBHOOK_TOKEN') }}"
 job_builder:
   ci_admin_list: "{{ci_admin_list.split(' ')}}"
   slack_api_token: "{{slack_api_token}}"

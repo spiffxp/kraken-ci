@@ -28,6 +28,10 @@ case $key in
   export SLACK_API_TOKEN="$2"
   shift
   ;;
+  --slack-hook-token)
+  export SLACK_WEBHOOK_TOKEN="$2"
+  shift
+  ;;
   --github-id)
   export GITHUB_CLIENT_ID="$2"
   shift
