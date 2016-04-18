@@ -32,7 +32,7 @@
 - name: Generate terraform tfvars file
   template: src=terraform.tfvars.jinja2
             dest="{{playbook_dir}}/../terraform/terraform.tfvars"
-  when: "terraform_mode == 'apply'"
+  when: terraform_mode in ['apply', 'plan']
 
 
 - name: config remote state
