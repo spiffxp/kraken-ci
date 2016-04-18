@@ -26,16 +26,17 @@ docker_api_version: 1.18
 dump_data: "{{ lookup('env','DUMP_JENKINS_DATA') }}"
 github_client_id: "{{ lookup('env','GITHUB_CLIENT_ID') }}"
 github_client_key: "{{ lookup('env','GITHUB_CLIENT_KEY') }}"
-github_org: "{{ lookup('env','GITHUB_ORG') }}"
 github_token: "{{ lookup('env','GITHUB_ACCESS_TOKEN') }}"
 github_username: "{{ lookup('env','GITHUB_USERNAME') }}"
-jenkins_ssh_key: "{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}/id_rsa.pub"
+jenkins_ssh_key_path: "{{ lookup('env','HOME')/{{ ci_hostname }}"
+jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa.pub"
 nginx_container_name: nginx
 nginx_container_path: "{{ ansible_env.HOME }}/config/nginx"
-private_jenkins_ssh_key: "{{ lookup('env','HOME') }}/.ssh/keys/{{ ci_hostname }}/id_rsa"
+private_jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa"
 slack_api_token: "{{ lookup('env','SLACK_API_TOKEN') }}"
 slack_domain: samsung-ag
 slack_room: "#pipeline"
+slack_webhoook_token: "{{ lookup('env','SLACK_WEBHOOK_TOKEN') }}"
 job_builder:
   ci_admin_list: "{{ci_admin_list.split(' ')}}"
   slack_api_token: "{{slack_api_token}}"
@@ -54,11 +55,10 @@ terraform_variables:
   ci_hostname: "{{ ci_hostname }}"
   clusters_bucket: "{{ aws_prefix }}-clusters"
   coreos_channel: stable
-  coreos_version: current
+  coreos_version: "899.13.0"
   docker_api_version: "{{docker_api_version}}"
   github_client_id: "{{ github_client_id }}"
   github_client_key: "{{ github_client_key }}"
-  github_org: "{{ github_org }}"
   jenkins_ssh_key:  "{{jenkins_ssh_key}}"
   private_jenkins_ssh_key: "{{ private_jenkins_ssh_key }}"
   route53_zone_id: ZX7O08V47RE60

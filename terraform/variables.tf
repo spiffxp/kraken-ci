@@ -13,7 +13,6 @@ variable "coreos_version" {}
 variable "docker_api_version" {}
 variable "github_client_id" {}
 variable "github_client_key" {}
-variable "github_org" {}
 variable "jenkins_ssh_key" {}
 variable "private_jenkins_ssh_key" {}
 variable "route53_zone_id" {}
