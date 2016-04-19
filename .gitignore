@@ -1,10 +1,6 @@
-.vagrant/
-
 # terraform stuff
 .terraform
 terraform.tfstate
 **/terraform.tfvars
 **/inventory.remote
-
-# generated ansible inventory
-*.ansible
+ansible/keys

@@ -28,7 +28,7 @@ github_client_id: "{{ lookup('env','GITHUB_CLIENT_ID') }}"
 github_client_key: "{{ lookup('env','GITHUB_CLIENT_KEY') }}"
 github_token: "{{ lookup('env','GITHUB_ACCESS_TOKEN') }}"
 github_username: "{{ lookup('env','GITHUB_USERNAME') }}"
-jenkins_ssh_key_path: "{{ lookup('env','HOME')/{{ ci_hostname }}"
+jenkins_ssh_key_path: "{{playbook_dir}}/keys/{{ ci_hostname }}"
 jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa.pub"
 nginx_container_name: nginx
 nginx_container_path: "{{ ansible_env.HOME }}/config/nginx"
