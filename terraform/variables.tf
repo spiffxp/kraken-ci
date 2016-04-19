@@ -9,6 +9,7 @@ variable "aws_secret" {}
 variable "ci_hostname" {}
 variable "clusters_bucket" {}
 variable "coreos_channel" {}
+variable "coreos_reboot_strategy" {}
 variable "coreos_version" {}
 variable "docker_api_version" {}
 variable "github_client_id" {}
