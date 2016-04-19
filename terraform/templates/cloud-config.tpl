@@ -41,3 +41,6 @@ coreos:
       command: start
     - name: fleet.service
       command: start
+  update:
+    group: ${coreos_channel}
+    reboot-strategy: ${coreos_reboot_strategy}

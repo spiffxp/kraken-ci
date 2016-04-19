@@ -17,6 +17,8 @@ resource "template_file" "cloudconfig" {
   vars {
     hostname = "${var.ci_hostname}"
     jenkins_ssh_key = "${var.jenkins_ssh_key}"
+    coreos_channel = "${var.coreos_channel}"
+    coreos_reboot_strategy = "${var.coreos_reboot_strategy}"
   }
 }
 
