@@ -9,6 +9,7 @@ RUN chmod 400 /root/.ssh/id_rsa
 # versions
 # TODO: install from source instead?
 ENV GOLANG_DEB_VERSION 2:1.5.1-4~bpo8+1
+ENV GOOGLE_CLOUD_SDK_VERSION 106.0.0
 ENV KUBERNETES_VERSION v1.2.0
 ENV TERRAFORM_VERSION 0.6.14
 ENV TERRAFORM_EXECUTE_VERSION v0.0.2
@@ -64,7 +65,6 @@ RUN gem install \
   aruba:0.6.2 \
   cucumber:2.0.2
 
-
 # install terraform and custom providers
 RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
   && wget https://github.com/Samsung-AG/terraform-provider-execute/releases/download/${TERRAFORM_EXECUTE_VERSION}/terraform-provider-execute_linux_amd64.tar.gz \
@@ -88,6 +88,13 @@ RUN pip install \
 # install docker machine
 RUN curl -L https://github.com/docker/machine/releases/download/v0.6.0/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine \
   && chmod +x /usr/local/bin/docker-machine
+
+# install gcloud sdk
+RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
+  && tar xzf google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
+  && rm google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
+  && google-cloud-sdk/install.sh --usage-reporting=false --path-update true --bash-completion true --rc-path ~/.bashrc \
+  && pip install crcmod==1.7
 
 # preload host keys for github.com
 RUN ssh-keyscan -H github.com >> ~/.ssh/known_hosts
