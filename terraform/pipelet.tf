@@ -181,9 +181,6 @@ resource "aws_instance" "jenkins_ec2" {
   tags {
     Name = "${var.ci_hostname}"
   }
-  lifecycle {
-    ignore_changes = ["user_data"]
-  }
 }
 
 resource "aws_route53_record" "pipelet_route" {
