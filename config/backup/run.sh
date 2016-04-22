@@ -42,7 +42,7 @@ if [ $# -eq 2 ]; then
   s3cmd --config=/.s3cfg --rexclude-from=./exclude-regexes --skip-existing sync $1 $2
 else
   mkdir -p $3
-  inotifywait_events="modify,attrib,move,create,delete"
+  inotifywait_events="modify,attrib,move,create"
 
   # Now, start waiting for file system events on this path.
   # After an event, wait for a quiet period of N seconds before doing a backup
@@ -54,7 +54,7 @@ else
     done
 
     echo "starting backup"
-    s3cmd --config=/.s3cfg --rexclude-from=./exclude-regexes --delete-removed sync $3 $1
+    s3cmd --config=/.s3cfg --rexclude-from=./exclude-regexes --no-delete-removed sync $3 $1
     echo "done"
   done
 fi
