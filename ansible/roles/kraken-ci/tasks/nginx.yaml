@@ -1,16 +1,18 @@
 ---
-- name: Create folder for certs
+- name: Force removal of certs folder for nginx
+  become: yes
   file: >
     path="{{ nginx_container_path }}/certs/"
-    state=directory
-- name: Create folder for vhosts
+    state=absent
+
+- name: Create {{item}} folder for nginx
   file: >
-    path="{{ nginx_container_path }}/vhost.d/"
+    path="{{ nginx_container_path }}/{{item}}/"
     state=directory
-- name: Create folder for nginx html
-  file: >
-    path="{{ nginx_container_path }}/html/"
-    state=directory
+  with_items:
+    - certs
+    - vhosts.d
+    - html
 
 - name: Official NGINX
   docker:
