@@ -12,10 +12,18 @@
     recursive=yes
 
 - name: Kill off containers
-  shell: docker rm -f {{backup_container_name}} {{nginx_container_name}} {{conf_container_name}} {{ci_container_name}} {{cert_container_name}}
+  shell: docker rm -f {{item}}
   ignore_errors: yes
+  with_items:
+    - "{{backup_container_name}}"
+    - "{{nginx_container_name}}"
+    - "{{conf_container_name}}"
+    - "{{ci_container_name}}"
+    - "{{cert_container_name}}"
 
 - name: Kill off data container
-  shell: docker rm -f {{data_container_name}}
+  shell: docker rm -f {{item}}
   ignore_errors: yes
-  when: "dump_data == 'yes'"
+  with_items:
+    - "{{data_container_name}}"
+  when: dump_data == 'yes'
