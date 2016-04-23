@@ -1,6 +1,6 @@
 ## Bring up a configured jenkins server
 
-Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/Samsung-AG/terraform-provider-coreosbox) are installed  
+Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/samsung-cnct/terraform-provider-coreosbox) are installed  
 
 Run:
 
