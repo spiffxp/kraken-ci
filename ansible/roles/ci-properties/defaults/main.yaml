@@ -13,7 +13,7 @@ ci_container_path: "{{ ansible_env.HOME }}/config/jenkins"
 ci_container_tag: samsung_ag/jenkins-server
 ci_email: "maratoid+samsungjenkins@gmail.com"
 ci_hostname: "{{aws_prefix}}.kubeme.io"
-ci_jobs_repo: https://github.com/Samsung-AG/kraken-ci-jobs
+ci_jobs_repo: https://github.com/samsung-cnct/kraken-ci-jobs
 ci_jobs_repo_branch: master
 cert_container_name: letsencrypt
 conf_container_name: docker-gen
