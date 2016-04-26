@@ -35,7 +35,7 @@ nginx_container_name: nginx
 nginx_container_path: "{{ ansible_env.HOME }}/config/nginx"
 private_jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa"
 slack_api_token: "{{ lookup('env','SLACK_API_TOKEN') }}"
-slack_domain: samsung-ag
+slack_domain: samsung-cnct
 slack_room: "#pipeline"
 slack_webhoook_token: "{{ lookup('env','SLACK_WEBHOOK_TOKEN') }}"
 job_builder:
