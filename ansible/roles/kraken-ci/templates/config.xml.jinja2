@@ -77,7 +77,7 @@
           <string>pipelet</string>
           <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>PIPELET_DOCKERMACHINE</string>
-          <string>{{ aws_prefix }}-dockermachine</string>
+          <string>{{ docker_machine_name }}</string>
           <!-- used by docker machine to figure out where state should be stored -->
           <string>MACHINE_STORAGE_PATH</string>
           <string>/var/jenkins_home/.docker/machine</string>

@@ -11,6 +11,12 @@
     dest={{ ansible_env.HOME }}/config/
     recursive=yes
 
+- name: Kill off jenkins docker machine
+  shell: docker exec {{item}} bash -c "docker-machine rm -f {{docker_machine_name}}"
+  ignore_errors: yes
+  with_items:
+    - "{{ci_container_name}}"
+
 - name: Kill off containers
   shell: docker rm -f {{item}}
   ignore_errors: yes
