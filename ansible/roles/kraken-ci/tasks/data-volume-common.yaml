@@ -36,9 +36,6 @@
 - name: Render Jenkins slack config XML
   template: src=jenkins.plugins.slack.SlackNotifier.xml.jinja2
             dest="{{ data_container_path }}/config/jenkins.plugins.slack.SlackNotifier.xml"
-- name: Render Jenkins slack webhook config XML
-  template: src=jenkins.plugins.slack.webhook.GlobalConfig.xml.jinja2
-            dest="{{ data_container_path }}/config/jenkins.plugins.slack.webhook.GlobalConfig.xml"
 - name: Render Github Pull Request Builder config XML
   template: src=org.jenkinsci.plugins.ghprb.GhprbTrigger.xml.jinja2
             dest="{{ data_container_path }}/config/org.jenkinsci.plugins.ghprb.GhprbTrigger.xml"
