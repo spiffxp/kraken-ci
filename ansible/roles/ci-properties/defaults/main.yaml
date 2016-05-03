@@ -5,11 +5,11 @@ aws_region: "{{ lookup('env','AWS_DEFAULT_REGION') }}"
 aws_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
 backup_bucket: "{{ aws_prefix }}-backup"
 backup_container_name: jenkins-backup
-backup_container_path: "{{ ansible_env.HOME }}/config/backup"
+backup_container_path: "{{ ansible_env.HOME }}/containers/backup"
 backup_container_tag: samsung_ag/jenkins-backup
 ci_admin_list: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson cwazy1"
 ci_container_name: jenkins
-ci_container_path: "{{ ansible_env.HOME }}/config/jenkins"
+ci_container_path: "{{ ansible_env.HOME }}/containers/jenkins"
 ci_container_tag: samsung_ag/jenkins-server
 ci_email: "maratoid+samsungjenkins@gmail.com"
 ci_hostname: "{{aws_prefix}}.kubeme.io"
@@ -20,7 +20,7 @@ conf_container_name: docker-gen
 config_bucket: sundry-automata
 config_bucket_key: "{{ aws_prefix }}-terraform-state"
 data_container_name: jenkins-data
-data_container_path: "{{ ansible_env.HOME }}/config/data_volume"
+data_container_path: "{{ ansible_env.HOME }}/containers/data_volume"
 data_container_tag: samsung_ag/jenkins-data
 docker_api_version: 1.18
 docker_machine_name: "{{ aws_prefix }}-dockermachine"
@@ -33,7 +33,7 @@ github_username: "{{ lookup('env','GITHUB_USERNAME') }}"
 jenkins_ssh_key_path: "{{playbook_dir}}/keys/{{ ci_hostname }}"
 jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa.pub"
 nginx_container_name: nginx
-nginx_container_path: "{{ ansible_env.HOME }}/config/nginx"
+nginx_container_path: "{{ ansible_env.HOME }}/containers/nginx"
 private_jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa"
 slack_api_token: "{{ lookup('env','SLACK_API_TOKEN') }}"
 slack_domain: samsung-cnct
