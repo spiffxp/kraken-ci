@@ -1,18 +1,20 @@
 ---
-- name: Create folder for s3 secrets
-  file: >
-    path="{{ data_container_path }}/secrets"
-    state=directory
+- name: Create data container directories
+  file: path="{{ data_container_path }}/{{ item }}" state=directory
+  with_items:
+    - secrets
+    - config
+    - job-builder
 
-- name: Get files from s3  
-  s3: 
-    aws_access_key: "{{aws_key}}"
-    aws_secret_key: "{{aws_secret}}"
-    region: "{{aws_region}}"
+- name: Get jenkins secrets from s3
+  s3:
+    aws_access_key: "{{ aws_key }}"
+    aws_secret_key: "{{ aws_secret }}"
+    region: "{{ aws_region }}"
     overwrite: True
-    bucket: "{{config_bucket}}"
-    object: secrets/{{ci_hostname}}/{{item}}
-    dest: "{{ data_container_path }}/secrets/{{item}}" 
+    bucket: "{{ config_bucket }}"
+    object: secrets/{{ ci_hostname }}/{{ item }}
+    dest: "{{ data_container_path }}/secrets/{{ item }}"
     mode: get
   with_items:
     - hudson.console.AnnotatedLargeText.consoleAnnotator 
@@ -22,23 +24,25 @@
     - master.key
     - org.jenkinsci.main.modules.instance_identity.InstanceIdentity.KEY
 
-- name: Create folder for rendered files
-  file: >
-    path="{{ data_container_path }}/config"
-    state=directory
+- name: Render jenkins configs
+  template: src=data_volume/config/{{ item }}.jinja2 dest={{ data_container_path }}/config/{{ item }}
+  with_items:
+    - config.xml
+    - jenkins.model.JenkinsLocationConfiguration.xml
+    - jenkins.plugins.slack.SlackNotifier.xml
+    - org.jenkinsci.plugins.ghprb.GhprbTrigger.xml
+    - github-plugin-configuration.xml
 
-- name: Render Jenkins config XML
-  template: src=config.xml.jinja2
-            dest="{{ data_container_path }}/config/config.xml"
-- name: Render Jenkins location config XML
-  template: src=jenkins.model.JenkinsLocationConfiguration.xml.jinja2
-            dest="{{ data_container_path }}/config/jenkins.model.JenkinsLocationConfiguration.xml"
-- name: Render Jenkins slack config XML
-  template: src=jenkins.plugins.slack.SlackNotifier.xml.jinja2
-            dest="{{ data_container_path }}/config/jenkins.plugins.slack.SlackNotifier.xml"
-- name: Render Github Pull Request Builder config XML
-  template: src=org.jenkinsci.plugins.ghprb.GhprbTrigger.xml.jinja2
-            dest="{{ data_container_path }}/config/org.jenkinsci.plugins.ghprb.GhprbTrigger.xml"
-- name: Render Github Plugin config XML
-  template: src=github-plugin-configuration.xml.jinja2
-            dest="{{ data_container_path }}/config/github-plugin-configuration.xml"
+- name: Render jenkins-job-builder configs
+  template: src=data_volume/job-builder/{{ item }}.jinja2 dest={{ data_container_path }}/job-builder/{{ item }}
+  with_items:
+    - jenkins_jobs.ini
+    - kraken-ci.yaml
+
+- name: Clone jenkins-jobs-builder jobs repo 
+  git: >
+    repo={{ ci_jobs_repo }}
+    dest={{ data_container_path }}/job-builder/jobs
+    version={{ ci_jobs_repo_branch }}
+    accept_hostkey=yes
+    force=yes

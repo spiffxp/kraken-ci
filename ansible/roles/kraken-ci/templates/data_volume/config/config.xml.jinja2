@@ -12,7 +12,7 @@
       </organizationNameList>
       <adminUserNameList class="linked-list">
         {% for admin in ci_admin_list.split(' ') %}
-        <string>{{admin}}</string>
+        <string>{{ admin }}</string>
         {% endfor %}
       </adminUserNameList>
       <authenticatedUserReadPermission>false</authenticatedUserReadPermission>
@@ -26,8 +26,8 @@
   <securityRealm class="org.jenkinsci.plugins.GithubSecurityRealm">
     <githubWebUri>https://github.com</githubWebUri>
     <githubApiUri>https://api.github.com</githubApiUri>
-    <clientID>{{github_client_id}}</clientID>
-    <clientSecret>{{github_client_key}}</clientSecret>
+    <clientID>{{ github_client_id }}</clientID>
+    <clientSecret>{{ github_client_key }}</clientSecret>
   </securityRealm>
   <disableRememberMe>false</disableRememberMe>
   <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
