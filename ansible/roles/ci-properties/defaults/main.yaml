@@ -5,7 +5,7 @@ aws_region: "{{ lookup('env','AWS_DEFAULT_REGION') }}"
 aws_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
 backup_bucket: "{{ aws_prefix }}-backup"
 backup_container_name: jenkins-backup
-backup_container_path: "{{ ansible_env.HOME }}/containers/backup"
+backup_container_path: "{{ ansible_env.HOME }}/containers/jenkins-backup"
 backup_container_tag: samsung_ag/jenkins-backup
 ci_admin_list: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson cwazy1"
 ci_container_name: jenkins
