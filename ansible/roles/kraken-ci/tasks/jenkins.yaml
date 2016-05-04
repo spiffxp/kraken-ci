@@ -21,15 +21,6 @@
 - name: Jenkins Server Build
   shell: docker build -t {{ci_container_tag}} {{ ci_container_path }}
 
-- name: Determine whether this is a test jenkins
-  set_fact:
-    is_test_ci: 'true'
-  when: test_instance == 'yes'
-- name: Determine whether this is a test jenkins
-  set_fact:
-    is_test_ci: 'false'
-  when: test_instance == 'no'
-
 - name: Jenkins server
   docker:
     name: "{{ci_container_name}}"
@@ -48,7 +39,7 @@
       VIRTUAL_PORT: 8080
       LETSENCRYPT_HOST: "{{ci_hostname}}"
       LETSENCRYPT_EMAIL: "{{ci_email}}"
-      LETSENCRYPT_TEST: "{{is_test_ci}}"
+      LETSENCRYPT_TEST: "{{test_instance}}"
       MACHINE_STORAGE_PATH: "/var/jenkins_home/.docker/machine"
     volumes:
       - /var/run/docker.sock:/run/docker.sock

@@ -24,8 +24,8 @@ data_container_path: "{{ ansible_env.HOME }}/config/data_volume"
 data_container_tag: samsung_ag/jenkins-data
 docker_api_version: 1.18
 docker_machine_name: "{{ aws_prefix }}-dockermachine"
-dump_data: "{{ lookup('env','DUMP_JENKINS_DATA') }}"
-test_instance: "{{ lookup('env','TEST_INSTANCE') }}"
+dump_data: "{{ lookup('env','DUMP_JENKINS_DATA')|default('no') }}"
+test_instance: "{{ lookup('env','TEST_INSTANCE')|default('yes')|replace('yes','true')|replace('no','false') }}"
 github_client_id: "{{ lookup('env','GITHUB_CLIENT_ID') }}"
 github_client_key: "{{ lookup('env','GITHUB_CLIENT_KEY') }}"
 github_token: "{{ lookup('env','GITHUB_ACCESS_TOKEN') }}"
