@@ -4,22 +4,31 @@
     path="{{ ci_container_path }}/keys/"
     state=directory
 
-- name: Get files from s3  
-  s3: 
+- name: Get files from s3
+  s3:
     aws_access_key: "{{aws_key}}"
     aws_secret_key: "{{aws_secret}}"
     region: "{{aws_region}}"
     overwrite: True
     bucket: "{{config_bucket}}"
     object: keys/{{ci_hostname}}/{{item}}
-    dest: "{{ ci_container_path }}/keys/{{item}}" 
-    mode: get 
+    dest: "{{ ci_container_path }}/keys/{{item}}"
+    mode: get
   with_items:
     - id_rsa
     - id_rsa.pub
 
 - name: Jenkins Server Build
   shell: docker build -t {{ci_container_tag}} {{ ci_container_path }}
+
+- name: Determine whether this is a test jenkins
+  set_fact:
+    is_test_ci: 'true'
+  when: test_instance == 'yes'
+- name: Determine whether this is a test jenkins
+  set_fact:
+    is_test_ci: 'false'
+  when: test_instance == 'no'
 
 - name: Jenkins server
   docker:
@@ -28,7 +37,7 @@
     image: "{{ci_container_tag}}"
     state: started
     pull: missing
-    net: bridge 
+    net: bridge
     ports:
       - "8080:8080"
       - "50000:50000"
@@ -39,6 +48,7 @@
       VIRTUAL_PORT: 8080
       LETSENCRYPT_HOST: "{{ci_hostname}}"
       LETSENCRYPT_EMAIL: "{{ci_email}}"
+      LETSENCRYPT_TEST: "{{is_test_ci}}"
       MACHINE_STORAGE_PATH: "/var/jenkins_home/.docker/machine"
     volumes:
       - /var/run/docker.sock:/run/docker.sock
