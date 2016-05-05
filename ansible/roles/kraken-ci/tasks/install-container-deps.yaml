@@ -8,5 +8,5 @@
 - name: Sync containers dir to {{ ci_hostname }}
   synchronize: >
     src={{ playbook_dir }}/../containers/
-    dest={{ ansible_env.HOME }}/containers/
+    dest={{ containers_dir }}
     recursive=yes

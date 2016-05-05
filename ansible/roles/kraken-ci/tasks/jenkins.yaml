@@ -1,8 +1,6 @@
 ---
-- name: Create folder for ssh keys for access to kraken clusters managed by {{ ci_hostname }}
-  file: >
-    path="{{ ci_container_path }}/keys/"
-    state=directory
+- name: Create directory for ssh keys for access to kraken clusters managed by {{ ci_hostname }}
+  file: path="{{ ci_container_path }}/keys/" state=directory
 
 - name: Get ssh keys for access to kraken clusters managed by {{ ci_hostname }}
   s3:
@@ -20,6 +18,22 @@
 
 - name: Build jenkins contianer
   shell: docker build -t {{ ci_container_tag }} {{ ci_container_path }}
+
+- name: Create directory for docker config
+  file: path="{{ secrets_dir }}/docker/" state=directory
+
+- name: Get docker config for push access to private repos
+  s3:
+    aws_access_key: "{{ aws_key }}"
+    aws_secret_key: "{{ aws_secret }}"
+    region: "{{ aws_region }}"
+    overwrite: True
+    bucket: "{{ config_bucket }}"
+    object: secrets/{{ ci_hostname }}/{{ item }}
+    dest: "{{ secrets_dir }}/{{ item }}"
+    mode: get
+  with_items:
+    - docker/config.json
 
 - name: Run jenkins container
   docker:
@@ -47,6 +61,7 @@
       - /usr/lib/libdevmapper.so.1.02:/usr/lib/libdevmapper.so.1.02
       - /var/run:/ansible
       - /var/lib/docker/gobuild:/var/lib/docker/gobuild
+      - "{{ secrets_dir }}/docker/config.json:/root/.docker/config.json:ro"
 
 - name: Try updating jenkins jobs in jenkins container
   shell: docker exec {{ ci_container_name }} jenkins-jobs update -r /etc/jenkins_jobs
