@@ -1,4 +1,6 @@
 ---
+- include: install-ssh-keys.yaml
+
 - include: terraform-state-pull.yaml
 - include: terraform-apply.yaml
   when: terraform_mode in ['apply', 'plan']
