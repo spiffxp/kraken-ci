@@ -1,4 +1,4 @@
 ---
 - name: push remote state
   shell: >
-    terraform remote push chdir={{playbook_dir}}/../terraform
+    terraform remote push chdir={{ terraform_dir }}

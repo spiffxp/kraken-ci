@@ -1,42 +1,18 @@
 ---
-- name: Sync jenkins data volume with newly rendered config files
+- name: Sync data container with newly rendered files
   docker:
     docker_api_version: "{{ docker_api_version }}"
-    image: "{{data_container_tag}}"
+    image: "{{ data_container_tag }}"
     state: started
     pull: missing
     net: bridge
     detach: False
-    command: /usr/bin/rsync -avt /rsyncdata/config/ /var/jenkins_home/
+    command: /usr/bin/rsync {{ item.flags }} /rsyncdata/{{ item.src }}/ {{ item.dest }}
     volumes:
-      - "{{data_container_path }}:/rsyncdata"
+      - "{{ data_container_path }}:/rsyncdata"
     volumes_from:
-      - "{{data_container_name}}"
-
-- name: Sync jenkins data volume with newly rendered secrets files
-  docker:
-    docker_api_version: "{{ docker_api_version }}"
-    image: "{{data_container_tag}}"
-    state: started
-    pull: missing
-    net: bridge
-    detach: False
-    command: /usr/bin/rsync -avt /rsyncdata/secrets/ /var/jenkins_home/secrets/
-    volumes:
-      - "{{data_container_path }}:/rsyncdata"
-    volumes_from:
-      - "{{data_container_name}}"
-
-- name: Sync jenkins data volume with newly rendered job builder files
-  docker:
-    docker_api_version: "{{ docker_api_version }}"
-    image: "{{data_container_tag}}"
-    state: started
-    pull: missing
-    net: bridge
-    detach: False
-    command: /usr/bin/rsync -vrt /rsyncdata/job-builder/ /etc/jenkins_jobs
-    volumes:
-      - "{{data_container_path }}:/rsyncdata"
-    volumes_from:
-      - "{{data_container_name}}"
+      - "{{ data_container_name }}"
+  with_items:
+    - { flags: "-avt", src: "config", dest: "/var/jenkins_home/" }
+    - { flags: "-avt", src: "secrets", dest: "/var/jenkins_home/secrets/" }
+    - { flags: "-vrt", src: "job-builder", dest: "/etc/jenkins_jobs" }

@@ -1,31 +1,45 @@
 ---
-- name: Create folder for s3 keys
-  file: >
-    path="{{ ci_container_path }}/keys/"
-    state=directory
+- name: Create directory for ssh keys for access to kraken clusters managed by {{ ci_hostname }}
+  file: path="{{ ci_container_path }}/keys/" state=directory
 
-- name: Get files from s3
+- name: Get ssh keys for access to kraken clusters managed by {{ ci_hostname }}
   s3:
-    aws_access_key: "{{aws_key}}"
-    aws_secret_key: "{{aws_secret}}"
-    region: "{{aws_region}}"
+    aws_access_key: "{{ aws_key }}"
+    aws_secret_key: "{{ aws_secret }}"
+    region: "{{ aws_region }}"
     overwrite: True
-    bucket: "{{config_bucket}}"
-    object: keys/{{ci_hostname}}/{{item}}
-    dest: "{{ ci_container_path }}/keys/{{item}}"
+    bucket: "{{ config_bucket }}"
+    object: keys/{{ ci_hostname }}/{{ item }}
+    dest: "{{ ci_container_path }}/keys/{{ item }}"
     mode: get
   with_items:
     - id_rsa
     - id_rsa.pub
 
-- name: Jenkins Server Build
-  shell: docker build -t {{ci_container_tag}} {{ ci_container_path }}
+- name: Build jenkins contianer
+  shell: docker build -t {{ ci_container_tag }} {{ ci_container_path }}
 
-- name: Jenkins server
+- name: Create directory for docker config
+  file: path="{{ secrets_dir }}/docker/" state=directory
+
+- name: Get docker config for push access to private repos
+  s3:
+    aws_access_key: "{{ aws_key }}"
+    aws_secret_key: "{{ aws_secret }}"
+    region: "{{ aws_region }}"
+    overwrite: True
+    bucket: "{{ config_bucket }}"
+    object: secrets/{{ ci_hostname }}/{{ item }}
+    dest: "{{ secrets_dir }}/{{ item }}"
+    mode: get
+  with_items:
+    - docker/config.json
+
+- name: Run jenkins container
   docker:
-    name: "{{ci_container_name}}"
+    name: "{{ ci_container_name }}"
     docker_api_version: "{{ docker_api_version }}"
-    image: "{{ci_container_tag}}"
+    image: "{{ ci_container_tag }}"
     state: started
     pull: missing
     net: bridge
@@ -35,7 +49,7 @@
     volumes_from:
       - "{{ data_container_name }}"
     env:
-      VIRTUAL_HOST: "{{ci_hostname}}"
+      VIRTUAL_HOST: "{{ ci_hostname }}"
       VIRTUAL_PORT: 8080
       LETSENCRYPT_HOST: "{{ci_hostname}}"
       LETSENCRYPT_EMAIL: "{{ci_email}}"
@@ -47,9 +61,10 @@
       - /usr/lib/libdevmapper.so.1.02:/usr/lib/libdevmapper.so.1.02
       - /var/run:/ansible
       - /var/lib/docker/gobuild:/var/lib/docker/gobuild
+      - "{{ secrets_dir }}/docker/config.json:/root/.docker/config.json:ro"
 
-- name: Generate jenkins jobs
-  shell: docker exec {{ci_container_name}} jenkins-jobs update -r /etc/jenkins_jobs
+- name: Try updating jenkins jobs in jenkins container
+  shell: docker exec {{ ci_container_name }} jenkins-jobs update -r /etc/jenkins_jobs
   register: result
   until: result.rc == 0
   retries: 5

@@ -28,10 +28,6 @@ case $key in
   export SLACK_API_TOKEN="$2"
   shift
   ;;
-  --slack-hook-token)
-  export SLACK_WEBHOOK_TOKEN="$2"
-  shift
-  ;;
   --github-id)
   export GITHUB_CLIENT_ID="$2"
   shift
@@ -93,11 +89,6 @@ fi
 
 if [ -z ${SLACK_API_TOKEN+x} ]; then
   echo "SLACK_API_TOKEN is not set. Specify wither through environment variable or --slack-token"
-  exit 1
-fi
-
-if [ -z ${SLACK_WEBHOOK_TOKEN+x} ]; then
-  echo "SLACK_WEBHOOK_TOKEN is not set. Specify wither through environment variable or --slack-hook-token"
   exit 1
 fi
 

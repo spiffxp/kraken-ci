@@ -5,22 +5,23 @@ aws_region: "{{ lookup('env','AWS_DEFAULT_REGION') }}"
 aws_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
 backup_bucket: "{{ aws_prefix }}-backup"
 backup_container_name: jenkins-backup
-backup_container_path: "{{ ansible_env.HOME }}/config/backup"
+backup_container_path: "{{ containers_dir }}/jenkins-backup"
 backup_container_tag: samsung_ag/jenkins-backup
 ci_admin_list: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson cwazy1"
 ci_container_name: jenkins
-ci_container_path: "{{ ansible_env.HOME }}/config/jenkins"
+ci_container_path: "{{ containers_dir }}/jenkins"
 ci_container_tag: samsung_ag/jenkins-server
 ci_email: "maratoid+samsungjenkins@gmail.com"
-ci_hostname: "{{aws_prefix}}.kubeme.io"
+ci_hostname: "{{ aws_prefix }}.kubeme.io"
 ci_jobs_repo: https://github.com/samsung-cnct/kraken-ci-jobs
 ci_jobs_repo_branch: master
 cert_container_name: letsencrypt
 conf_container_name: docker-gen
 config_bucket: sundry-automata
 config_bucket_key: "{{ aws_prefix }}-terraform-state"
+containers_dir: "{{ ansible_env.HOME }}/containers"
 data_container_name: jenkins-data
-data_container_path: "{{ ansible_env.HOME }}/config/data_volume"
+data_container_path: "{{ containers_dir }}/data_volume"
 data_container_tag: samsung_ag/jenkins-data
 docker_api_version: 1.18
 docker_machine_name: "{{ aws_prefix }}-dockermachine"
@@ -30,38 +31,38 @@ github_client_id: "{{ lookup('env','GITHUB_CLIENT_ID') }}"
 github_client_key: "{{ lookup('env','GITHUB_CLIENT_KEY') }}"
 github_token: "{{ lookup('env','GITHUB_ACCESS_TOKEN') }}"
 github_username: "{{ lookup('env','GITHUB_USERNAME') }}"
-jenkins_ssh_key_path: "{{playbook_dir}}/keys/{{ ci_hostname }}"
+jenkins_ssh_key_path: "{{ playbook_dir }}/keys/{{ ci_hostname }}"
 jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa.pub"
 nginx_container_name: nginx
-nginx_container_path: "{{ ansible_env.HOME }}/config/nginx"
+nginx_container_path: "{{ containers_dir }}/nginx"
 private_jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa"
+secrets_dir: "{{ ansible_env.HOME }}/secrets"
 slack_api_token: "{{ lookup('env','SLACK_API_TOKEN') }}"
 slack_domain: samsung-cnct
 slack_room: "#pipeline"
-slack_webhoook_token: "{{ lookup('env','SLACK_WEBHOOK_TOKEN') }}"
 job_builder:
-  ci_admin_list: "{{ci_admin_list.split(' ')}}"
-  slack_api_token: "{{slack_api_token}}"
-  slack_room: "{{slack_room}}"
-  slack_domain: "{{slack_domain}}"
-  ci_hostname: "{{aws_prefix}}.kubeme.io"
+  ci_admin_list: "{{ ci_admin_list.split(' ') }}"
+  slack_api_token: "{{ slack_api_token }}"
+  slack_room: "{{ slack_room }}"
+  slack_domain: "{{ slack_domain }}"
+  ci_hostname: "{{ aws_prefix }}.kubeme.io"
   test_bucket: kraken-e2e-logs
 terraform_variables:
   aws_ebs_size: "100"
   aws_instance_type: m3.xlarge
   aws_key: "{{ aws_key }}"
-  aws_key_name: "{{aws_prefix}}_key"
+  aws_key_name: "{{ aws_prefix }}_key"
   aws_region: "{{ aws_region }}"
-  aws_secgroup_name: "{{aws_prefix}}_secgroup"
+  aws_secgroup_name: "{{ aws_prefix }}_secgroup"
   aws_secret: "{{ aws_secret }}"
   ci_hostname: "{{ ci_hostname }}"
   clusters_bucket: "{{ aws_prefix }}-clusters"
   coreos_channel: stable
   coreos_reboot_strategy: "off"
   coreos_version: "899.13.0"
-  docker_api_version: "{{docker_api_version}}"
+  docker_api_version: "{{ docker_api_version }}"
   github_client_id: "{{ github_client_id }}"
   github_client_key: "{{ github_client_key }}"
-  jenkins_ssh_key:  "{{jenkins_ssh_key}}"
+  jenkins_ssh_key:  "{{ jenkins_ssh_key }}"
   private_jenkins_ssh_key: "{{ private_jenkins_ssh_key }}"
   route53_zone_id: ZX7O08V47RE60

@@ -12,7 +12,7 @@
       </organizationNameList>
       <adminUserNameList class="linked-list">
         {% for admin in ci_admin_list.split(' ') %}
-        <string>{{admin}}</string>
+        <string>{{ admin }}</string>
         {% endfor %}
       </adminUserNameList>
       <authenticatedUserReadPermission>false</authenticatedUserReadPermission>
@@ -26,8 +26,8 @@
   <securityRealm class="org.jenkinsci.plugins.GithubSecurityRealm">
     <githubWebUri>https://github.com</githubWebUri>
     <githubApiUri>https://api.github.com</githubApiUri>
-    <clientID>{{github_client_id}}</clientID>
-    <clientSecret>{{github_client_key}}</clientSecret>
+    <clientID>{{ github_client_id }}</clientID>
+    <clientSecret>{{ github_client_key }}</clientSecret>
   </securityRealm>
   <disableRememberMe>false</disableRememberMe>
   <projectNamingStrategy class="jenkins.model.ProjectNamingStrategy$DefaultProjectNamingStrategy"/>
@@ -74,7 +74,7 @@
           <string>vpc-e9cd4a8c</string>
           <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>KRAKEN_USER_PREFIX</string>
-          <string>pipelet</string>
+          <string>{{ aws_prefix }}</string>
           <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>PIPELET_DOCKERMACHINE</string>
           <string>{{ docker_machine_name }}</string>
