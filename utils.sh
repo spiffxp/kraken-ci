@@ -52,11 +52,16 @@ case $key in
   export DUMP_JENKINS_DATA="$2"
   shift
   ;;
+  --test-instance)
+  export TEST_INSTANCE="$2"
+  shift
+  ;;
   --help)
   echo "setup | destroy.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region>\
   --aws-prefix <aws user prefix> --slack-token <slack api token> --github-id <github app id>\
   --github-key <github app key> --github-org <github org> --slack-hook-token <outgoing hook token>\
-  --dump-data <dump existing jenkins data: yes or no>"
+  --dump-data <dump existing jenkins data: yes or no. No by default>\
+  --test-instance <this is a test jenkins: yes or no. Yes by default>"
   exit 0
   ;;
   *)
@@ -117,5 +122,9 @@ if [ -z ${GITHUB_ACCESS_TOKEN+x} ]; then
 fi
 
 if [ -z ${DUMP_JENKINS_DATA+x} ]; then
-  export DUMP_JENKINS_DATA=False
+  export DUMP_JENKINS_DATA=no
+fi
+
+if [ -z ${TEST_INSTANCE+x} ]; then
+  export TEST_INSTANCE=yes
 fi
