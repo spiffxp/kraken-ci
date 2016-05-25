@@ -1,6 +1,5 @@
 ---
 aws_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
-aws_prefix: "{{ lookup('env','AWS_PREFIX') }}"
 aws_region: "{{ lookup('env','AWS_DEFAULT_REGION') }}"
 aws_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
 backup_bucket: "{{ ci_name }}-backup"
@@ -15,7 +14,7 @@ ci_email: "maratoid+samsungjenkins@gmail.com"
 ci_hostname: "{{ ci_name }}.kubeme.io"
 ci_jobs_repo: https://github.com/samsung-cnct/kraken-ci-jobs
 ci_jobs_repo_branch: master
-ci_name: "{{ aws_prefix }}"
+ci_name: "{{ lookup('env', 'CI_NAME') }}"
 cert_container_name: letsencrypt
 conf_container_name: docker-gen
 config_bucket: sundry-automata
