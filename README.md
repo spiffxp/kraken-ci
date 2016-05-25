@@ -2,37 +2,42 @@
 
 Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/samsung-cnct/terraform-provider-coreosbox) are installed  
 
+Create an env file or otherwise populate your environment with the required secrets, eg:
+
+    $ cat > .env-testpipe <<EOS
+    export AWS_ACCESS_KEY_ID="<aws access key>"
+    export AWS_SECRET_ACCESS_KEY="<aws secret key>"
+    export AWS_DEFAULT_REGION="<aws region>"
+    export SLACK_API_TOKEN="<slack api token>"
+    export GITHUB_CLIENT_ID="<github app id>"
+    export GITHUB_CLIENT_KEY="<github app key>"
+    export GITHUB_ACCESS_TOKEN="<github token>"
+    export GITHUB_USERNAME="<github user>"
+    EOS
+
 Run:
 
-    $ ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
-      --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
-      --slack-hook-token <outgoing hook token> --github-key <github app key> \
-      --github-org <github org> --dump-data yes
+    $ . .env-testpipe && ./setup.sh --ci-name testpipe --dump-data yes
 
 ### Try it out
 
 Point your browser to
 
-    https://pipelet.kubeme.io
+    https://testpipe.kubeme.io
 
 After a self-signed cert SSL warning you should see the jenkins dashboard. Now try:
 
 
 # To update in place
 
-    ./setup.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
-      --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
-      --slack-hook-token <outgoing hook token> --github-key <github app key> \
-      --github-org <github org> --dump-data no
+    $ . .env-testpipe && ./setup.sh --ci-name testpipe --dump-data no
 
 No graceful termination / draining is in place, so coordinate with your team members accordingly
 
 # To destroy
 Run the terraform destroy command:
 
-    ./destroy.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region> \
-      --aws-prefix testpipe --slack-token <slack api token> --github-id <github app id> \
-      --slack-hook-token <outgoing hook token> --github-key <github app key> --github-org <github org>
+    $ . .env-testpipe && ./destroy.sh --ci-name testpipe
 
 # Use environment variables
 
