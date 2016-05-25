@@ -1,0 +1,41 @@
+---
+- name: Make terraform instance dir
+  file: path="{{ terraform_instance_dir }}" state=directory
+
+- name: Generate terraform.tfvars file
+  template: src=terraform.tfvars.jinja2
+            dest="{{ terraform_instance_dir }}/terraform.tfvars"
+
+- name: Run terraform apply or plan
+  when: terraform_mode in ['apply', 'plan']
+  shell: >
+    terraform {{ terraform_mode }}
+    -no-color
+    -input=false
+    -state={{ terraform_instance_dir }}/terraform.tfstate
+    -var-file={{ terraform_instance_dir }}/terraform.tfvars
+    chdir={{ terraform_dir }}
+  ignore_errors: yes
+  register: terraform_result_a
+
+- name: Dump terraform stderr on failure
+  fail: msg="Terraform {{ terraform_mode }} failed with:\n{{ terraform_result_a.stderr }}"
+  when: terraform_result_a|failed
+
+- name: Run terraform destroy
+  when: terraform_mode in ['destroy']
+  shell: >
+    terraform {{ terraform_mode }}
+    -force
+    -refresh=false
+    -no-color
+    -input=false
+    -state={{ terraform_instance_dir }}/terraform.tfstate
+    -var-file={{ terraform_instance_dir }}/terraform.tfvars
+    chdir={{ terraform_dir }}
+  ignore_errors: yes
+  register: terraform_result_b
+
+- name: Dump terraform stderr on failure
+  fail: msg="Terraform {{ terraform_mode }} failed with:\n{{ terraform_result_b.stderr }}"
+  when: terraform_result_b|failed

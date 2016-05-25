@@ -1,6 +1,7 @@
 # terraform stuff
 .terraform
-terraform.tfstate
+*.backup
+**/terraform.tfstate
 **/terraform.tfvars
 **/inventory.remote
 ansible/keys

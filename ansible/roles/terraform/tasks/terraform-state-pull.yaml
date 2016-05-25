@@ -1,14 +1,14 @@
 ---
-- name: Generate terraform tfvars file
-  template: src=terraform.tfvars.jinja2
-            dest="{{ terraform_dir }}/terraform.tfvars"
-  when: terraform_mode in ['apply', 'plan']
+- name: Make terraform instance dir
+  file: path="{{ terraform_instance_dir }}" state=directory
 
-
-- name: config remote state
-  shell: >
-    terraform remote config -backend=S3 -backend-config="bucket={{ config_bucket }}" -backend-config="key={{ config_bucket_key }}" chdir={{ terraform_dir }}
-
-- name: pull remote state
-  shell: >
-    terraform remote pull chdir={{ terraform_dir }}
+- name: "Get remote terraform.tfstate from s3"
+  s3:
+    aws_access_key: "{{ aws_key }}"
+    aws_secret_key: "{{ aws_secret }}"
+    region: "{{ aws_region }}"
+    overwrite: different
+    bucket: "{{ config_bucket }}"
+    object: "{{ config_bucket_key }}"
+    dest: "{{ terraform_instance_dir }}/terraform.tfstate"
+    mode: get

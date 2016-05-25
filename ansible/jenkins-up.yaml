@@ -1,4 +1,7 @@
 ---
 - hosts: localhost
   roles:
-    - { role: terraform, terraform_mode: apply}
+    - role: terraform
+      terraform_mode: apply
+      terraform_instance_name: "{{ ci_name }}"
+      terraform_s3_remote_enabled: yes
