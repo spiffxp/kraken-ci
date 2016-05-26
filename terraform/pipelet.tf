@@ -12,18 +12,19 @@ resource "coreosbox_ami" "coreos_ami" {
 }
 
 resource "template_file" "cloudconfig" {
-  template = "templates/cloud-config.tpl"
+  template = "${file("${path.module}/templates/cloud-config.tpl")}"
+
 
   vars {
     hostname = "${var.ci_hostname}"
-    jenkins_ssh_key = "${var.jenkins_ssh_key}"
+    jenkins_ssh_key = "${file("${var.jenkins_ssh_key}")}"
     coreos_channel = "${var.coreos_channel}"
     coreos_reboot_strategy = "${var.coreos_reboot_strategy}"
   }
 }
 
 resource "template_file" "ansible_inventory" {
-  template = "${path.module}/templates/inventory.remote.tpl"
+  template = "${file("${path.module}/templates/inventory.remote.tpl")}"
 
   vars {
     public_ip = "${aws_instance.jenkins_ec2.public_ip}"
@@ -109,7 +110,7 @@ resource "aws_network_acl" "jenkins_vpc_acl" {
 
 resource "aws_key_pair" "jenkins_keypair" {
   key_name = "${var.aws_key_name}"
-  public_key = "${file(var.jenkins_ssh_key)}"
+  public_key = "${file("${var.jenkins_ssh_key}")}"
 }
 
 resource "aws_subnet" "jenkins_subnet" {
@@ -166,7 +167,7 @@ resource "aws_security_group" "jenkins_secgroup" {
 }
 
 resource "aws_instance" "jenkins_ec2" {
-  depends_on = ["template_file.cloudconfig", "template_file.cloudconfig"]
+  depends_on = ["template_file.cloudconfig"]
   ami = "${coreosbox_ami.coreos_ami.box_string}"
   instance_type = "${var.aws_instance_type}"
   key_name = "${aws_key_pair.jenkins_keypair.key_name}"

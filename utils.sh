@@ -8,6 +8,10 @@ do
 key="$1"
 
 case $key in
+  --ci-name)
+  export CI_NAME="$2"
+  shift
+  ;;
   --aws-key)
   export AWS_ACCESS_KEY_ID="$2"
   shift
@@ -18,10 +22,6 @@ case $key in
   ;;
   --aws-region)
   export AWS_DEFAULT_REGION="$2"
-  shift
-  ;;
-  --aws-prefix)
-  export AWS_PREFIX="$2"
   shift
   ;;
   --slack-token)
@@ -67,48 +67,48 @@ esac
 shift # past argument or value
 done
 
+if [ -z ${CI_NAME+x} ]; then
+  echo "CI_NAME is not set. Specify either through environment variable or --ci-name"
+  exit 1
+fi
+
 if [ -z ${AWS_ACCESS_KEY_ID+x} ]; then
-  echo "AWS_ACCESS_KEY_ID is not set. Specify wither through environment variable or --aws-key"
+  echo "AWS_ACCESS_KEY_ID is not set. Specify either through environment variable or --aws-key"
   exit 1
 fi
 
 if [ -z ${AWS_SECRET_ACCESS_KEY+x} ]; then
-  error "AWS_SECRET_ACCESS_KEY is not set. Specify wither through environment variable or --aws-secret"
+  error "AWS_SECRET_ACCESS_KEY is not set. Specify either through environment variable or --aws-secret"
   exit 1
 fi
 
 if [ -z ${AWS_DEFAULT_REGION+x} ]; then
-  echo "AWS_DEFAULT_REGION is not set. Specify wither through environment variable or --aws-region"
-  exit 1
-fi
-
-if [ -z ${AWS_PREFIX+x} ]; then
-  echo "AWS_PREFIX is not set. Specify wither through environment variable or --aws-prefix"
+  echo "AWS_DEFAULT_REGION is not set. Specify either through environment variable or --aws-region"
   exit 1
 fi
 
 if [ -z ${SLACK_API_TOKEN+x} ]; then
-  echo "SLACK_API_TOKEN is not set. Specify wither through environment variable or --slack-token"
+  echo "SLACK_API_TOKEN is not set. Specify either through environment variable or --slack-token"
   exit 1
 fi
 
 if [ -z ${GITHUB_CLIENT_ID+x} ]; then
-  echo "GITHUB_CLIENT_ID is not set. Specify wither through environment variable or --github-id"
+  echo "GITHUB_CLIENT_ID is not set. Specify either through environment variable or --github-id"
   exit 1
 fi
 
 if [ -z ${GITHUB_CLIENT_KEY+x} ]; then
-  echo "GITHUB_CLIENT_KEY is not set. Specify wither through environment variable or --github-key"
+  echo "GITHUB_CLIENT_KEY is not set. Specify either through environment variable or --github-key"
   exit 1
 fi
 
 if [ -z ${GITHUB_USERNAME+x} ]; then
-  echo "GITHUB_USERNAME is not set. Specify wither through environment variable or --github-user"
+  echo "GITHUB_USERNAME is not set. Specify either through environment variable or --github-user"
   exit 1
 fi
 
 if [ -z ${GITHUB_ACCESS_TOKEN+x} ]; then
-  echo "GITHUB_ACCESS_TOKEN is not set. Specify wither through environment variable or --github-token"
+  echo "GITHUB_ACCESS_TOKEN is not set. Specify either through environment variable or --github-token"
   exit 1
 fi
 
@@ -117,5 +117,5 @@ if [ -z ${DUMP_JENKINS_DATA+x} ]; then
 fi
 
 if [ -z ${TEST_INSTANCE+x} ]; then
-  export TEST_INSTANCE=yes
+  export TEST_INSTANCE=no
 fi

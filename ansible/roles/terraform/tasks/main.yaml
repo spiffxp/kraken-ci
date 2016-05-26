@@ -1,9 +1,3 @@
 ---
 - include: install-ssh-keys.yaml
-
-- include: terraform-state-pull.yaml
-- include: terraform-apply.yaml
-  when: terraform_mode in ['apply', 'plan']
-- include: terraform-destroy.yaml
-  when: terraform_mode in ['destroy']
-- include: terraform-state-push.yaml
+- include: terraform-run.yaml
