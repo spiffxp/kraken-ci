@@ -37,7 +37,7 @@
   template: src=data_volume/job-builder/{{ item }}.jinja2 dest={{ data_container_path }}/job-builder/{{ item }}
   with_items:
     - jenkins_jobs.ini
-    - kraken-ci.yaml
+    - slack-publisher.yaml
 
 - name: Clone jenkins-jobs-builder jobs repo 
   git: >

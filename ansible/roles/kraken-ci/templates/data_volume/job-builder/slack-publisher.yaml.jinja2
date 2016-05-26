@@ -1,0 +1,8 @@
+- publisher:
+    name: slack-publisher
+    publishers:
+      - raw-xml-slack-publisher:
+          slack_api_token: "{{ job_builder.slack_api_token }}"
+          slack_room: "{{ job_builder.slack_room }}"
+          slack_domain: "{{ job_builder.slack_domain }}"
+          ci_hostname: "{{ job_builder.ci_hostname }}"
