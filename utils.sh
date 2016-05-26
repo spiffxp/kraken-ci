@@ -117,5 +117,5 @@ if [ -z ${DUMP_JENKINS_DATA+x} ]; then
 fi
 
 if [ -z ${TEST_INSTANCE+x} ]; then
-  export TEST_INSTANCE=yes
+  export TEST_INSTANCE=no
 fi

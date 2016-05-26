@@ -4,7 +4,7 @@
 
 Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/samsung-cnct/terraform-provider-coreosbox) are installed  
 
-Create an env file or otherwise populate your environment with the required secrets and settings.  In this example, we're setting `TEST_INSTANCE` to true to use 'test' letsencrypt certs instead of real certs.
+Create an env file or otherwise populate your environment with the required secrets and settings.
 
     $ cat > .env-testpipe <<EOS
     export AWS_ACCESS_KEY_ID="<aws access key>"
@@ -16,7 +16,6 @@ Create an env file or otherwise populate your environment with the required secr
     export GITHUB_ACCESS_TOKEN="<github token>"
     export GITHUB_USERNAME="<github user>"
 
-    export TEST_INSTANCE="yes"
     export CI_NAME="testpipe"
     EOS
 
@@ -47,6 +46,6 @@ No graceful termination / draining is in place, so coordinate with your team mem
 
 Instead of specifying all of the command line switches you can export the environment variables used in [utils.sh](utils.sh) file
 
-# Terraform state
+# Known Issues
 
-Currently no locking is implemented for the S3 state backend. Coordinate with your team members accordingly.
+- Currently no locking is implemented for the S3 state backend. Coordinate with your team members accordingly.
