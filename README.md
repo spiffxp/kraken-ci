@@ -29,7 +29,7 @@ Point your browser to
 
     https://testpipe.kubeme.io
 
-After a self-signed cert SSL warning you should see the jenkins dashboard. Now try:
+You should see the jenkins dashboard. Now try:
 
 
 # To update in place
@@ -41,6 +41,10 @@ No graceful termination / draining is in place, so coordinate with your team mem
 # To destroy
 
     $ . .env-testpipe && ./destroy.sh
+
+# To use test certificates
+
+To test out / verify letsencrypt connectivity using their staging server, use the `--test-instance yes` flag or export `TEST_INSTANCE=yes`.  This will produce invalid certificates that may be rejected by your browser.
 
 # Use environment variables
 
