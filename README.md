@@ -2,7 +2,10 @@
 
 ## Bring up a configured jenkins server
 
-Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/samsung-cnct/terraform-provider-coreosbox) are installed  
+Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/samsung-cnct/terraform-provider-coreosbox) are installed. If you are using brew on OSX, this can be done as follows:
+
+    brew tap 'samsung-cnct/terraform-provider-coreosbox'
+    brew install ansible terraform terraform-provider-coreosbox
 
 Create an env file or otherwise populate your environment with the required secrets and settings.
 
