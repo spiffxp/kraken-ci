@@ -1,27 +1,33 @@
 FROM jenkins:1.625.3
 MAINTAINER Marat Garafutdinov <marat.g@samsung.com>
 
+ENV GOLANG_DEB_VERSION=2:1.6.1+1~bpo8+1 \
+    DOCKER_MACHINE_VERSION=v0.7.0 \
+    TERRAFORM_VERSION=0.6.16 \
+    TERRAFORM_EXECUTE_VERSION=v0.0.2 \
+    TERRAFORM_COREOSBOX_VERSION=v0.0.1 \
+    GOOGLE_CLOUD_SDK_VERSION=117.0.0 \
+    KUBERNETES_VERSION=v1.3.2
+
+# Configure SSH
 USER root
-COPY plugins.txt /usr/share/jenkins/plugins.txt
 COPY keys /root/.ssh/
-RUN chmod 400 /root/.ssh/id_rsa
+RUN chmod 400 /root/.ssh/id_rsa \
+  && ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-# versions
-# TODO: install from source instead?
-ENV GOLANG_DEB_VERSION 2:1.5.1-4~bpo8+1
-ENV GOOGLE_CLOUD_SDK_VERSION 106.0.0
-ENV KUBERNETES_VERSION v1.2.0
-ENV TERRAFORM_VERSION 0.6.14
-ENV TERRAFORM_EXECUTE_VERSION v0.0.2
-ENV TERRAFORM_COREOSBOX_VERSION v0.0.1
-
-# install jenkins plugins
+# Install Jenkins plugins
+COPY plugins.txt /usr/share/jenkins/plugins.txt
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
 
-# skip installing gem documentation
+# Configure Ansible
+RUN mkdir /etc/ansible/
+COPY ansible.cfg /etc/ansible/ansible.cfg
+
+# Skip installing gem documentation
 RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
 
-# ruby, ansible and golang
+# Install apt managed packages (python, ruby, golang, etc.)
+ENV GOROOT=/usr/lib/go
 RUN apt-get update \
     && apt-get install -y --force-yes \
       curl \
@@ -30,14 +36,11 @@ RUN apt-get update \
       ruby \
       ruby-dev \
       build-essential \
-      python-yaml \
-      python-jinja2 \
-      python-httplib2 \
-      python-keyczar \
-      python-paramiko \
-      python-setuptools \
-      python-pkg-resources \
+      libssl-dev \
+      libffi-dev \
       git \
+      python \
+      python-dev \
       python-pip \
       vim \
       golang-doc=${GOLANG_DEB_VERSION} \
@@ -46,26 +49,22 @@ RUN apt-get update \
       rsync \
     && rm -rf /var/lib/apt/lists/*
 
-ENV GOROOT=/usr/lib/go
-RUN mkdir /etc/ansible/
+# All python modules should be installed here if possible
 RUN pip install --upgrade pip
-RUN pip install ansible
-COPY ansible.cfg /etc/ansible/ansible.cfg
+COPY requirements.txt /opt/kraken-ci/containers/jenkins/
+RUN pip install -r /opt/kraken-ci/containers/jenkins/requirements.txt
 
-# install updated jenkins job builder
-RUN pip install PyYAML 
-RUN pip install python-jenkins
-RUN git clone https://git.openstack.org/openstack-infra/jenkins-job-builder /etc/jenkins-job-builder && \
-  cd /etc/jenkins-job-builder && \
-  python setup.py install
+# All ruby gems should be installed here if possible
+RUN gem install bundler
+ENV BUNDLE_GEMFILE=/opt/kraken-ci/containers/jenkins/Gemfile
+COPY Gemfile* /opt/kraken-ci/containers/jenkins/
+RUN bundler install
 
-# install gems
-RUN gem install \
-  bundler:1.11.2 \
-  aruba:0.6.2 \
-  cucumber:2.0.2
+# Install docker machine
+RUN curl -L https://github.com/docker/machine/releases/download/${DOCKER_MACHINE_VERSION}/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine \
+  && chmod +x /usr/local/bin/docker-machine
 
-# install terraform and custom providers
+# Install terraform and custom providers
 RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
   && wget https://github.com/samsung-cnct/terraform-provider-execute/releases/download/${TERRAFORM_EXECUTE_VERSION}/terraform-provider-execute_linux_amd64.tar.gz \
   && wget https://github.com/samsung-cnct/terraform-provider-coreosbox/releases/download/${TERRAFORM_COREOSBOX_VERSION}/terraform-provider-coreosbox_linux_amd64.tar.gz \
@@ -75,26 +74,16 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
   && cp terraform* /usr/local/bin \
   && rm terraform*
 
-# install kubectl
-RUN wget https://github.com/kubernetes/kubernetes/releases/download/${KUBERNETES_VERSION}/kubernetes.tar.gz \
-  && tar -xvf kubernetes.tar.gz \
-  && cp kubernetes/platforms/linux/amd64/kubectl /usr/bin \
-  && rm kubernetes.tar.gz
-
-# install awscli
-RUN pip install \
-  awscli==1.9.15
-
-# install docker machine
-RUN curl -L https://github.com/docker/machine/releases/download/v0.6.0/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine \
-  && chmod +x /usr/local/bin/docker-machine
-
-# install gcloud sdk
+# Install Google Cloud SDK
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
   && tar xzf google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
   && rm google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
   && google-cloud-sdk/install.sh --usage-reporting=false --path-update true --bash-completion true --rc-path ~/.bashrc \
   && pip install crcmod==1.7
 
-# preload host keys for github.com
-RUN ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+# Install kubectl
+RUN wget https://github.com/kubernetes/kubernetes/releases/download/${KUBERNETES_VERSION}/kubernetes.tar.gz \
+  && tar -xvf kubernetes.tar.gz \
+  && cp kubernetes/platforms/linux/amd64/kubectl /usr/bin \
+  && rm kubernetes.tar.gz
+
