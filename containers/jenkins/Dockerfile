@@ -50,15 +50,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # All python modules should be installed here if possible
-RUN pip install --upgrade pip
 COPY requirements.txt /opt/kraken-ci/containers/jenkins/
-RUN pip install -r /opt/kraken-ci/containers/jenkins/requirements.txt
+RUN pip install --upgrade pip \
+  && pip install -r /opt/kraken-ci/containers/jenkins/requirements.txt
 
 # All ruby gems should be installed here if possible
-RUN gem install bundler
 ENV BUNDLE_GEMFILE=/opt/kraken-ci/containers/jenkins/Gemfile
 COPY Gemfile* /opt/kraken-ci/containers/jenkins/
-RUN bundler install
+RUN gem install bundler \
+  && bundler install
 
 # Install docker machine
 RUN curl -L https://github.com/docker/machine/releases/download/${DOCKER_MACHINE_VERSION}/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine \
