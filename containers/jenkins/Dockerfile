@@ -53,10 +53,9 @@ RUN pip install --upgrade pip \
   && pip install --requirement /opt/kraken-ci/containers/jenkins/requirements.txt
 
 # All ruby gems should be installed here if possible
-ENV BUNDLE_GEMFILE=/opt/kraken-ci/containers/jenkins/Gemfile
 COPY Gemfile Gemfile.lock /opt/kraken-ci/containers/jenkins/
 RUN gem install bundler \
-  && bundler install
+  && bundler install --gemfile=/opt/kraken-ci/containers/jenkins/Gemfile
 
 # Install docker machine
 RUN curl -L https://github.com/docker/machine/releases/download/${DOCKER_MACHINE_VERSION}/docker-machine-$(uname -s)-$(uname -m) > /usr/local/bin/docker-machine \
