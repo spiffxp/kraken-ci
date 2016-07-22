@@ -33,7 +33,7 @@ PLATFORMS
 
 DEPENDENCIES
   aruba (= 0.6.2)
-  cucumber (~> 2.0.2)
+  cucumber (= 2.0.2)
 
 BUNDLED WITH
-   1.11.2
+   1.12.5

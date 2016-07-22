@@ -12,15 +12,14 @@ ENV GOLANG_DEB_VERSION=2:1.6.1+1~bpo8+1 \
 # Configure SSH
 USER root
 COPY keys /root/.ssh/
-RUN chmod 400 /root/.ssh/id_rsa \
-  && ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+RUN chmod 400 /root/.ssh/id_rsa
+
+# Preload host keys for github.com
+RUN ssh-keyscan -H github.com >> /root/.ssh/known_hosts
 
 # Install Jenkins plugins
 COPY plugins.txt /usr/share/jenkins/plugins.txt
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
-
-# Configure Ansible
-COPY ansible.cfg /etc/ansible/ansible.cfg
 
 # Skip installing gem documentation
 RUN echo 'gem: --no-rdoc --no-ri' >> /.gemrc
@@ -60,7 +59,7 @@ RUN gem install bundler \
   && bundler install
 
 # Install docker machine
-RUN curl -L https://github.com/docker/machine/releases/download/${DOCKER_MACHINE_VERSION}/docker-machine-`uname -s`-`uname -m` > /usr/local/bin/docker-machine \
+RUN curl -L https://github.com/docker/machine/releases/download/${DOCKER_MACHINE_VERSION}/docker-machine-$(uname -s)-$(uname -m) > /usr/local/bin/docker-machine \
   && chmod +x /usr/local/bin/docker-machine
 
 # Install terraform and custom providers
@@ -85,3 +84,5 @@ RUN wget https://github.com/kubernetes/kubernetes/releases/download/${KUBERNETES
   && cp kubernetes/platforms/linux/amd64/kubectl /usr/bin \
   && rm kubernetes.tar.gz
 
+# Configure Ansible
+COPY ansible.cfg /etc/ansible/ansible.cfg
