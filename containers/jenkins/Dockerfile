@@ -20,7 +20,6 @@ COPY plugins.txt /usr/share/jenkins/plugins.txt
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
 
 # Configure Ansible
-RUN mkdir /etc/ansible/
 COPY ansible.cfg /etc/ansible/ansible.cfg
 
 # Skip installing gem documentation
@@ -52,11 +51,11 @@ RUN apt-get update \
 # All python modules should be installed here if possible
 COPY requirements.txt /opt/kraken-ci/containers/jenkins/
 RUN pip install --upgrade pip \
-  && pip install -r /opt/kraken-ci/containers/jenkins/requirements.txt
+  && pip install --requirement /opt/kraken-ci/containers/jenkins/requirements.txt
 
 # All ruby gems should be installed here if possible
 ENV BUNDLE_GEMFILE=/opt/kraken-ci/containers/jenkins/Gemfile
-COPY Gemfile* /opt/kraken-ci/containers/jenkins/
+COPY Gemfile Gemfile.lock /opt/kraken-ci/containers/jenkins/
 RUN gem install bundler \
   && bundler install
 
@@ -78,8 +77,7 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
 RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
   && tar xzf google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
   && rm google-cloud-sdk-${GOOGLE_CLOUD_SDK_VERSION}-linux-x86_64.tar.gz \
-  && google-cloud-sdk/install.sh --usage-reporting=false --path-update true --bash-completion true --rc-path ~/.bashrc \
-  && pip install crcmod==1.7
+  && google-cloud-sdk/install.sh --usage-reporting=false --path-update true --bash-completion true --rc-path ~/.bashrc
 
 # Install kubectl
 RUN wget https://github.com/kubernetes/kubernetes/releases/download/${KUBERNETES_VERSION}/kubernetes.tar.gz \
