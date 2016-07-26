@@ -45,6 +45,8 @@ No graceful termination / draining is in place, so coordinate with your team mem
 
     $ . .env-testpipe && ./destroy.sh
 
+Note that destroy does not currently destroy the AWS instance and keypair (eg. "testlet-dockermachine") created when the first job is run. Therefore you must manually delete these resources using the AWS console.
+
 # To use test certificates
 
 To test out / verify letsencrypt connectivity using their staging server, use the `--test-instance yes` flag or export `TEST_INSTANCE=yes`.  This will produce invalid certificates that may be rejected by your browser.
