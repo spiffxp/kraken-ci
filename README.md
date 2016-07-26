@@ -45,7 +45,7 @@ No graceful termination / draining is in place, so coordinate with your team mem
 
     $ . .env-testpipe && ./destroy.sh
 
-Note that destroy does not currently destroy the AWS instance and keypair (eg. "testlet-dockermachine") created when the first job is run. Therefore you must manually delete these resources using the AWS console.
+Note that some jobs, for example kraken-ci-jobs/kraken-build-cluster, run the kraken/bin/kraken-*.sh scripts to create, connect to or destroy cluster infrastructure. kraken-ci/destroy.sh does not currently destroy the AWS instance and keypair (eg. "testlet-dockermachine") created when these commands are run. Therefore you must manually delete these resources using the AWS console.
 
 # To use test certificates
 
