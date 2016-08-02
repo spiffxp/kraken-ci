@@ -24,6 +24,20 @@
     - master.key
     - org.jenkinsci.main.modules.instance_identity.InstanceIdentity.KEY
 
+- name: Get jenkins secret configs from s3
+  s3:
+    aws_access_key: "{{ aws_key }}"
+    aws_secret_key: "{{ aws_secret }}"
+    region: "{{ aws_region }}"
+    overwrite: True
+    bucket: "{{ config_bucket }}"
+    object: secrets/{{ ci_hostname }}/config/{{ item }}
+    dest: "{{ data_container_path }}/config/{{ item }}"
+    mode: get
+  with_items:
+    - credentials.xml
+    - com.michelin.cio.hudson.plugins.maskpasswords.MaskPasswordsConfig.xml
+
 - name: Render jenkins configs
   template: src=data_volume/config/{{ item }}.jinja2 dest={{ data_container_path }}/config/{{ item }}
   with_items:
