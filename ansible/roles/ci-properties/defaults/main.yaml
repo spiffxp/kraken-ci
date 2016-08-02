@@ -6,7 +6,7 @@ backup_bucket: "{{ ci_name }}-backup"
 backup_container_name: jenkins-backup
 backup_container_path: "{{ containers_dir }}/jenkins-backup"
 backup_container_tag: samsung_ag/jenkins-backup
-ci_admin_list: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson cwazy1 coffeepac venezia jooyeong"
+ci_admin_list: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson cwazy1 coffeepac venezia jooyeong alejandroEsc"
 ci_container_name: jenkins
 ci_container_path: "{{ containers_dir }}/jenkins"
 ci_container_tag: samsung_ag/jenkins-server
