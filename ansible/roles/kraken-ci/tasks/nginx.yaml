@@ -20,7 +20,7 @@
     docker_api_version: "{{ docker_api_version }}"
     image: nginx
     state: started
-    pull: missing
+    pull: always
     tty: yes
     net: bridge
     ports:
