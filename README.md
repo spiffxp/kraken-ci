@@ -2,10 +2,17 @@
 
 ## Bring up a configured jenkins server
 
-Make sure Ansible, Terraform and [terraform-coreos-box](https://github.com/samsung-cnct/terraform-provider-coreosbox) are installed. If you are using brew on OSX, this can be done as follows:
+Install terraform (manually at the moment, since a required plugin only works with 0.6.16).  In this example, we're installing to `$HOME/bin`
 
-    brew tap homebrew/bundle
-    brew bundle
+    mkdir -p $HOME/bin && cd $HOME/bin
+    wget -O terraform.zip https://releases.hashicorp.com/terraform/0.6.16/terraform_0.6.16_darwin_amd64.zip
+    wget -O terraform-provider-coreosbox.tar.gz https://github.com/samsung-cnct/terraform-provider-coreosbox/releases/download/v0.0.1/terraform-provider-coreosbox_darwin_amd64.tar.gz
+    unzip terraform.zip && rm terraform.zip
+    tar xzf terraform-provider-coreosbox.tar.gz && rm terraform-provider-coreosbox.tar.gz
+    echo 'export PATH=$HOME/bin:PATH' >> ~/.bash_profile
+
+Install ansible
+
     pip install -r requirements.txt
 
 Create an env file or otherwise populate your environment with the required secrets and settings.
