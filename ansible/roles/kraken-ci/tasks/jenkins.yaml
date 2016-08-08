@@ -16,7 +16,7 @@
     - id_rsa
     - id_rsa.pub
 
-- name: Build jenkins contianer
+- name: Build jenkins container
   shell: docker build -t {{ ci_container_tag }} {{ ci_container_path }}
 
 - name: Create directory for docker config
