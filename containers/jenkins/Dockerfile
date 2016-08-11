@@ -45,6 +45,7 @@ RUN apt-get update \
       golang-go=${GOLANG_DEB_VERSION} \
       golang-src=${GOLANG_DEB_VERSION} \
       rsync \
+      dnsutils \
     && rm -rf /var/lib/apt/lists/*
 
 # All python modules should be installed here if possible
