@@ -49,7 +49,7 @@ job_builder:
   ci_hostname: "{{ ci_name }}.kubeme.io"
   test_bucket: kraken-e2e-logs
 terraform_variables:
-  aws_ebs_size: "100"
+  aws_ebs_size: "200"
   aws_instance_type: m3.xlarge
   aws_key: "{{ aws_key }}"
   aws_key_name: "{{ ci_name }}_key"
