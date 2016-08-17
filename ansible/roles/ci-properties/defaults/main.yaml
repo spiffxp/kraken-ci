@@ -58,9 +58,9 @@ terraform_variables:
   aws_secret: "{{ aws_secret }}"
   ci_hostname: "{{ ci_hostname }}"
   clusters_bucket: "{{ ci_name }}-clusters"
-  coreos_channel: stable
+  coreos_channel: beta
   coreos_reboot_strategy: "off"
-  coreos_version: "899.13.0"
+  coreos_version: "1122.1.0"
   docker_api_version: "{{ docker_api_version }}"
   github_client_id: "{{ github_client_id }}"
   github_client_key: "{{ github_client_key }}"
