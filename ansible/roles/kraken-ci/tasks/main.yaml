@@ -19,3 +19,5 @@
 - include: nginx-autoconf.yaml
 
 - include: jenkins.yaml
+
+- include: docker-gc.yaml

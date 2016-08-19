@@ -1,0 +1,6 @@
+---
+# Create a cron job that uses the docker-run of the spotify/docker-gc image
+- cron:
+    name="docker-gc"
+    minute="15"
+    job="docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /etc:/etc spotify/docker-gc"
