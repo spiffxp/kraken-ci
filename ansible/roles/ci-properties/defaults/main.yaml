@@ -49,7 +49,7 @@ job_builder:
   test_bucket: kraken-e2e-logs
 terraform_variables:
   aws_ebs_size: "200"
-  aws_instance_type: m3.xlarge
+  aws_instance_type: m4.2xlarge
   aws_key: "{{ aws_key }}"
   aws_key_name: "{{ ci_name }}_key"
   aws_region: "{{ aws_region }}"
