@@ -11,7 +11,7 @@
         <string></string>
       </organizationNameList>
       <adminUserNameList class="linked-list">
-        {% for admin in jenkins_admin_list.split(' ') %}
+        {% for admin in jenkins_admin_usernames.split(' ') %}
         <string>{{ admin }}</string>
         {% endfor %}
       </adminUserNameList>
