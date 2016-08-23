@@ -75,7 +75,7 @@ Create an env file or otherwise populate your environment with the required secr
     export GITHUB_ACCESS_TOKEN="<github token>"
     export GITHUB_USERNAME="<github user>"
 
-    export CI_NAME="example-kraken-ci"
+    export KRAKEN_CI_NAME="example-kraken-ci"
     EOS
 
 Run:

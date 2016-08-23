@@ -16,7 +16,7 @@ resource "template_file" "cloudconfig" {
 
 
   vars {
-    hostname = "${var.ci_hostname}"
+    hostname = "${var.kraken_ci_hostname}"
     jenkins_ssh_key = "${file("${var.jenkins_ssh_key}")}"
     coreos_channel = "${var.coreos_channel}"
     coreos_reboot_strategy = "${var.coreos_reboot_strategy}"
@@ -43,7 +43,7 @@ resource "aws_vpc" "jenkins_vpc" {
   enable_dns_hostnames = false
 
   tags {
-    Name = "${var.ci_hostname}_vpc"
+    Name = "${var.kraken_ci_hostname}_vpc"
   }
 }
 
@@ -52,7 +52,7 @@ resource "aws_vpc_dhcp_options" "jenkins_vpc_dhcp" {
   domain_name_servers = ["AmazonProvidedDNS"]
 
   tags {
-    Name = "${var.ci_hostname}_dhcp"
+    Name = "${var.kraken_ci_hostname}_dhcp"
   }
 }
 
@@ -65,7 +65,7 @@ resource "aws_internet_gateway" "jenkins_vpc_gateway" {
   vpc_id = "${aws_vpc.jenkins_vpc.id}"
 
   tags {
-    Name = "${var.ci_hostname}_gateway"
+    Name = "${var.kraken_ci_hostname}_gateway"
   }
 }
 
@@ -78,7 +78,7 @@ resource "aws_route_table" "jenkins_vpc_rt" {
   }
 
   tags {
-    Name = "${var.ci_hostname}_rt"
+    Name = "${var.kraken_ci_hostname}_rt"
   }
 }
 
@@ -104,7 +104,7 @@ resource "aws_network_acl" "jenkins_vpc_acl" {
   }
 
   tags {
-    Name = "${var.ci_hostname}_acl"
+    Name = "${var.kraken_ci_hostname}_acl"
   }
 }
 
@@ -119,7 +119,7 @@ resource "aws_subnet" "jenkins_subnet" {
   map_public_ip_on_launch = true
 
   tags {
-      Name = "${var.ci_hostname}_subnet"
+      Name = "${var.kraken_ci_hostname}_subnet"
   }
 }
 
@@ -130,7 +130,7 @@ resource "aws_route_table_association" "jenkins_subnet_rt_association" {
 
 resource "aws_security_group" "jenkins_secgroup" {
   name = "${var.aws_secgroup_name}"
-  description = "Security group for ${var.ci_hostname} Jenkins server"
+  description = "Security group for ${var.kraken_ci_hostname} Jenkins server"
   vpc_id = "${aws_vpc.jenkins_vpc.id}"
 
   ingress {
@@ -162,7 +162,7 @@ resource "aws_security_group" "jenkins_secgroup" {
   }
 
   tags {
-    Name = "${var.ci_hostname} security group"
+    Name = "${var.kraken_ci_hostname} security group"
   }
 }
 
@@ -180,14 +180,14 @@ resource "aws_instance" "jenkins_ec2" {
   }
   user_data = "${template_file.cloudconfig.rendered}"
   tags {
-    Name = "${var.ci_hostname}"
+    Name = "${var.kraken_ci_hostname}"
   }
 }
 
 resource "aws_route53_record" "pipelet_route" {
   depends_on = ["aws_instance.jenkins_ec2", "template_file.ansible_inventory"]
   zone_id = "${var.route53_zone_id}"
-  name = "${var.ci_hostname}"
+  name = "${var.kraken_ci_hostname}"
   type = "A"
   ttl = "30"
   records = ["${aws_instance.jenkins_ec2.public_ip}"]

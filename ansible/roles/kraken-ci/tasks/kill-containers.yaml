@@ -1,15 +1,15 @@
 ---
-- name: Kill off {{ ci_hostname }} containers
+- name: Kill off {{ kraken_ci_hostname }} containers
   shell: docker rm -f {{ item }}
   ignore_errors: yes
   with_items:
     - "{{ backup_container_name }}"
     - "{{ nginx_container_name }}"
     - "{{ conf_container_name }}"
-    - "{{ ci_container_name }}"
+    - "{{ jenkins_container_name }}"
     - "{{ cert_container_name }}"
 
-- name: Kill off {{ ci_hostname }}/data container
+- name: Kill off {{ kraken_ci_hostname }}/data container
   shell: docker rm -f {{ item }}
   ignore_errors: yes
   with_items:

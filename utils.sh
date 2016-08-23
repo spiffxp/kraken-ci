@@ -8,8 +8,8 @@ do
 key="$1"
 
 case $key in
-  --ci-name)
-  export CI_NAME="$2"
+  --kraken-ci-name)
+  export KRAKEN_CI_NAME="$2"
   shift
   ;;
   --aws-key)
@@ -67,8 +67,8 @@ esac
 shift # past argument or value
 done
 
-if [ -z ${CI_NAME+x} ]; then
-  echo "CI_NAME is not set. Specify either through environment variable or --ci-name"
+if [ -z ${KRAKEN_CI_NAME+x} ]; then
+  echo "KRAKEN_CI_NAME is not set. Specify either through environment variable or --ci-name"
   exit 1
 fi
 
