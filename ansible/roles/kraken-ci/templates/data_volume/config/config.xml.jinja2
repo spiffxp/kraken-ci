@@ -72,9 +72,12 @@
           <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>KRAKEN_USER_PREFIX</string>
           <string>{{ kraken_user_prefix }}</string>
-          <!-- used by kraken-ci-jobs for per-instance prefixes -->
-          <string>KRAKEN_USER_PREFIX</string>
-          <string>{{ kraken_user_prefix }}</string>
+          <!-- TODO: used by kraken-ci-jobs, would be nice to use hostname instead -->
+          <string>KRAKEN_CI_NAME</string>
+          <string>{{ kraken_ci_name }}</string>
+          <!-- TODO: used by kraken-ci-jobs, would be nice to use hostname/fqdn instead -->
+          <string>KRAKEN_CI_HOSTNAME</string>
+          <string>{{ kraken_ci_hostname }}</string>
         </tree-map>
       </envVars>
     </hudson.slaves.EnvironmentVariablesNodeProperty>
