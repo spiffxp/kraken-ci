@@ -2,7 +2,6 @@ FROM jenkins:1.625.3
 MAINTAINER Marat Garafutdinov <marat.g@samsung.com>
 
 ENV GOLANG_DEB_VERSION=2:1.6.1+1~bpo8+1 \
-    DOCKER_MACHINE_VERSION=v0.7.0 \
     TERRAFORM_VERSION=0.6.16 \
     TERRAFORM_EXECUTE_VERSION=v0.0.2 \
     TERRAFORM_COREOSBOX_VERSION=v0.0.1 \
@@ -57,10 +56,6 @@ RUN pip install --upgrade pip \
 COPY Gemfile Gemfile.lock /opt/kraken-ci/containers/jenkins/
 RUN gem install bundler \
   && bundler install --gemfile=/opt/kraken-ci/containers/jenkins/Gemfile
-
-# Install docker machine
-RUN curl -L https://github.com/docker/machine/releases/download/${DOCKER_MACHINE_VERSION}/docker-machine-$(uname -s)-$(uname -m) > /usr/local/bin/docker-machine \
-  && chmod +x /usr/local/bin/docker-machine
 
 # Install terraform and custom providers
 RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \

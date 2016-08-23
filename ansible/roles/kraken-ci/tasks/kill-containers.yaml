@@ -1,10 +1,4 @@
 ---
-# TODO: let's re-use the docker-machine instance, or stop using docker-machine and use the same docker host
-#       the jenkins container is running on
-- name: Kill off {{ ci_hostname }}/jenkins docker-machine instance {{ docker_machine_name }}
-  shell: docker exec {{ ci_container_name }} bash -c "docker-machine rm -f {{ docker_machine_name }}"
-  ignore_errors: yes
-
 - name: Kill off {{ ci_hostname }} containers
   shell: docker rm -f {{ item }}
   ignore_errors: yes

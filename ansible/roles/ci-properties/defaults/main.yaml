@@ -24,7 +24,6 @@ data_container_name: jenkins-data
 data_container_path: "{{ containers_dir }}/data_volume"
 data_container_tag: samsung_ag/jenkins-data
 docker_api_version: 1.18
-docker_machine_name: "{{ ci_name }}-dockermachine"
 dump_data: "{{ lookup('env','DUMP_JENKINS_DATA')|default('no') }}"
 test_instance: "{{ lookup('env','TEST_INSTANCE')|default('no')|replace('yes','true')|replace('no','false') }}"
 github_client_id: "{{ lookup('env','GITHUB_CLIENT_ID') }}"
