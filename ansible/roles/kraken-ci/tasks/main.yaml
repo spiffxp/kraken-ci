@@ -20,4 +20,4 @@
 
 - include: jenkins.yaml
 
-- include: docker-gc.yaml
+# - include: docker-gc.yaml
