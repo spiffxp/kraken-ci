@@ -1,23 +1,23 @@
 ---
-- name: Create directory for ssh keys for access to kraken clusters managed by {{ ci_hostname }}
-  file: path="{{ ci_container_path }}/keys/" state=directory
+- name: Create directory for ssh keys for access to kraken clusters managed by {{ kraken_ci_hostname }}
+  file: path="{{ jenkins_container_path }}/keys/" state=directory
 
-- name: Get ssh keys for access to kraken clusters managed by {{ ci_hostname }}
+- name: Get ssh keys for access to kraken clusters managed by {{ kraken_ci_hostname }}
   s3:
     aws_access_key: "{{ aws_key }}"
     aws_secret_key: "{{ aws_secret }}"
     region: "{{ aws_region }}"
     overwrite: True
     bucket: "{{ config_bucket }}"
-    object: keys/{{ ci_hostname }}/{{ item }}
-    dest: "{{ ci_container_path }}/keys/{{ item }}"
+    object: keys/{{ kraken_ci_hostname }}/{{ item }}
+    dest: "{{ jenkins_container_path }}/keys/{{ item }}"
     mode: get
   with_items:
     - id_rsa
     - id_rsa.pub
 
 - name: Build jenkins container
-  shell: docker build -t {{ ci_container_tag }} {{ ci_container_path }}
+  shell: docker build -t {{ jenkins_container_tag }} {{ jenkins_container_path }}
 
 - name: Create directory for docker config
   file: path="{{ secrets_dir }}/docker/" state=directory
@@ -29,7 +29,7 @@
     region: "{{ aws_region }}"
     overwrite: True
     bucket: "{{ config_bucket }}"
-    object: secrets/{{ ci_hostname }}/{{ item }}
+    object: secrets/{{ kraken_ci_hostname }}/{{ item }}
     dest: "{{ secrets_dir }}/{{ item }}"
     mode: get
   with_items:
@@ -37,9 +37,9 @@
 
 - name: Run jenkins container
   docker:
-    name: "{{ ci_container_name }}"
+    name: "{{ jenkins_container_name }}"
     docker_api_version: "{{ docker_api_version }}"
-    image: "{{ ci_container_tag }}"
+    image: "{{ jenkins_container_tag }}"
     state: started
     pull: missing
     net: bridge
@@ -49,12 +49,11 @@
     volumes_from:
       - "{{ data_container_name }}"
     env:
-      VIRTUAL_HOST: "{{ ci_hostname }}"
+      VIRTUAL_HOST: "{{ kraken_ci_hostname }}"
       VIRTUAL_PORT: 8080
-      LETSENCRYPT_HOST: "{{ci_hostname}}"
-      LETSENCRYPT_EMAIL: "{{ci_email}}"
-      LETSENCRYPT_TEST: "{{test_instance}}"
-      MACHINE_STORAGE_PATH: "/var/jenkins_home/.docker/machine"
+      LETSENCRYPT_HOST: "{{ kraken_ci_hostname }}"
+      LETSENCRYPT_EMAIL: "{{ letsencrypt_email }}"
+      LETSENCRYPT_TEST: "{{ test_instance }}"
     volumes:
       - /var/run/docker.sock:/run/docker.sock
       - /usr/bin/docker:/bin/docker
@@ -64,7 +63,7 @@
       - "{{ secrets_dir }}/docker/config.json:/root/.docker/config.json:ro"
 
 - name: Try updating jenkins jobs in jenkins container
-  shell: docker exec {{ ci_container_name }} jenkins-jobs update --recursive --exclude /etc/jenkins_jobs/jobs/excluded-on-jenkins /etc/jenkins_jobs
+  shell: docker exec {{ jenkins_container_name }} jenkins-jobs update --recursive --exclude /etc/jenkins_jobs/jobs/excluded-on-jenkins /etc/jenkins_jobs
   register: result
   until: result.rc == 0
   retries: 5

@@ -13,7 +13,7 @@
     region: "{{ aws_region }}"
     overwrite: True
     bucket: "{{ config_bucket }}"
-    object: secrets/{{ ci_hostname }}/{{ item }}
+    object: secrets/{{ kraken_ci_hostname }}/{{ item }}
     dest: "{{ data_container_path }}/secrets/{{ item }}"
     mode: get
   with_items:
@@ -31,7 +31,7 @@
     region: "{{ aws_region }}"
     overwrite: True
     bucket: "{{ config_bucket }}"
-    object: secrets/{{ ci_hostname }}/config/{{ item }}
+    object: secrets/{{ kraken_ci_hostname }}/config/{{ item }}
     dest: "{{ data_container_path }}/config/{{ item }}"
     mode: get
   with_items:
@@ -55,8 +55,8 @@
 
 - name: Clone jenkins-jobs-builder jobs repo 
   git: >
-    repo={{ ci_jobs_repo }}
+    repo={{ kraken_ci_jobs_repo }}
     dest={{ data_container_path }}/job-builder/jobs
-    version={{ ci_jobs_repo_branch }}
+    version={{ kraken_ci_jobs_repo_branch }}
     accept_hostkey=yes
     force=yes

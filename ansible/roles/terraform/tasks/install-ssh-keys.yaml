@@ -1,20 +1,20 @@
 ---
-- name: Create folder for ssh keys to allow access to {{ ci_hostname }}
+- name: Create folder for ssh keys to allow access to {{ kraken_ci_hostname }}
   file: path="{{ jenkins_ssh_key_path }}" state=directory
 
-- name: Get ssh keys to allow access to {{ ci_hostname }} from s3
+- name: Get ssh keys to allow access to {{ kraken_ci_hostname }} from s3
   s3:
     aws_access_key: "{{ aws_key }}"
     aws_secret_key: "{{ aws_secret }}"
     region: "{{ aws_region }}"
     overwrite: True
     bucket: "{{ config_bucket }}"
-    object: keys/{{ ci_hostname }}/{{ item }}
+    object: keys/{{ kraken_ci_hostname }}/{{ item }}
     dest: "{{ jenkins_ssh_key_path }}/{{ item }}"
     mode: get
   with_items:
     - id_rsa
     - id_rsa.pub
 
-- name: Set permissions on private ssh key to allow access to {{ ci_hostname }}
+- name: Set permissions on private ssh key to allow access to {{ kraken_ci_hostname }}
   file: path="{{ private_jenkins_ssh_key }}" mode=0600

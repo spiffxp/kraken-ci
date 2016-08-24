@@ -11,7 +11,7 @@
         <string></string>
       </organizationNameList>
       <adminUserNameList class="linked-list">
-        {% for admin in ci_admin_list.split(' ') %}
+        {% for admin in jenkins_admin_usernames.split(' ') %}
         <string>{{ admin }}</string>
         {% endfor %}
       </adminUserNameList>
@@ -70,17 +70,14 @@
           <string>AWS_DEFAULT_REGION</string>
           <string>us-west-2</string>
           <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
-          <string>KRAKEN_DEFAULT_VPC</string>
-          <string>vpc-e9cd4a8c</string>
-          <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>KRAKEN_USER_PREFIX</string>
           <string>{{ kraken_user_prefix }}</string>
-          <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
-          <string>PIPELET_DOCKERMACHINE</string>
-          <string>{{ docker_machine_name }}</string>
-          <!-- used by docker machine to figure out where state should be stored -->
-          <string>MACHINE_STORAGE_PATH</string>
-          <string>/var/jenkins_home/.docker/machine</string>
+          <!-- TODO: used by kraken-ci-jobs, would be nice to use hostname instead -->
+          <string>KRAKEN_CI_NAME</string>
+          <string>{{ kraken_ci_name }}</string>
+          <!-- TODO: used by kraken-ci-jobs, would be nice to use hostname/fqdn instead -->
+          <string>KRAKEN_CI_HOSTNAME</string>
+          <string>{{ kraken_ci_hostname }}</string>
         </tree-map>
       </envVars>
     </hudson.slaves.EnvironmentVariablesNodeProperty>

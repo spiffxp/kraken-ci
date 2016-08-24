@@ -6,7 +6,7 @@ variable "aws_region" {}
 variable "aws_region" {}
 variable "aws_secgroup_name" {}
 variable "aws_secret" {}
-variable "ci_hostname" {}
+variable "kraken_ci_hostname" {}
 variable "clusters_bucket" {}
 variable "coreos_channel" {}
 variable "coreos_reboot_strategy" {}

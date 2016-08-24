@@ -75,7 +75,7 @@ Create an env file or otherwise populate your environment with the required secr
     export GITHUB_ACCESS_TOKEN="<github token>"
     export GITHUB_USERNAME="<github user>"
 
-    export CI_NAME="example-kraken-ci"
+    export KRAKEN_CI_NAME="example-kraken-ci"
     EOS
 
 Run:
@@ -100,8 +100,6 @@ No graceful termination / draining is in place, so coordinate with your team mem
 # To destroy
 
     $ . .env-example-kraken-ci && ./destroy.sh
-
-Note that some jobs, for example kraken-ci-jobs/kraken-build-cluster, run the kraken/bin/kraken-*.sh scripts to create, connect to or destroy cluster infrastructure. kraken-ci/destroy.sh does not currently destroy the AWS instance and keypair (eg. "example-kraken-ci-dockermachine") created when these commands are run. Therefore you must manually delete these resources using the AWS console.
 
 # To use test certificates
 
