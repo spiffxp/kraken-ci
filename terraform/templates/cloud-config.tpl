@@ -42,6 +42,20 @@ coreos:
       command: start
     - name: fleet.service
       command: start
+    - name: docker-gc.service
+      content: |
+        [Unit]
+        Description=Run docker-gc 
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /etc:/etc spotify/docker-gc
+    - name: docker-gc.timer
+      command: start
+      content: |
+        [Unit]
+        Description=Run docker-gc.service once every hour on the 15th minute
+        [Timer]
+        OnCalendar=*:15
   update:
     group: ${coreos_channel}
     reboot-strategy: ${coreos_reboot_strategy}
