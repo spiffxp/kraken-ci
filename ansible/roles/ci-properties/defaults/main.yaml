@@ -20,7 +20,7 @@ github_client_id: "{{ lookup('env','GITHUB_CLIENT_ID') }}"
 github_client_key: "{{ lookup('env','GITHUB_CLIENT_KEY') }}"
 github_token: "{{ lookup('env','GITHUB_ACCESS_TOKEN') }}"
 github_username: "{{ lookup('env','GITHUB_USERNAME') }}"
-jenkins_admin_usernames: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson cwazy1 coffeepac venezia jooyeong alejandroEsc"
+jenkins_admin_usernames: "countspongebob l337ch maratoid mikeln richardkaufmann Rick-Lindberg SamsungAGJenkinsBot spiffxp davidewatson cwazy1 coffeepac venezia jooyeong alejandroEsc sostheim"
 jenkins_container_name: jenkins
 jenkins_container_path: "{{ containers_dir }}/jenkins"
 jenkins_container_tag: samsung_ag/jenkins-server
