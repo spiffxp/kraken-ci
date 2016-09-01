@@ -62,6 +62,7 @@ ssh-agent:1.9
 ssh-credentials:1.11
 ssh-slaves:1.10
 subversion:2.5.6
+timestamper:1.8.4
 token-macro:1.12.1
 translation:1.12
 vsphere-cloud:2.9
