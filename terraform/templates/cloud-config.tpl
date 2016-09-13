@@ -53,9 +53,9 @@ coreos:
       command: start
       content: |
         [Unit]
-        Description=Run docker-gc.service once every hour on the 15th minute
+        Description=Run docker-gc.service once a day at 08:15:00 UTC (~midnight PST)
         [Timer]
-        OnCalendar=*:15
+        OnCalendar=*-*-* 08:15:00 UTC
   update:
     group: ${coreos_channel}
     reboot-strategy: ${coreos_reboot_strategy}
