@@ -9,7 +9,7 @@ Install terraform (manually at the moment, since a required plugin only works wi
     wget -O terraform-provider-coreosbox.tar.gz https://github.com/samsung-cnct/terraform-provider-coreosbox/releases/download/v0.0.1/terraform-provider-coreosbox_darwin_amd64.tar.gz
     unzip terraform.zip && rm terraform.zip
     tar xzf terraform-provider-coreosbox.tar.gz && rm terraform-provider-coreosbox.tar.gz
-    echo 'export PATH=$HOME/bin:PATH' >> ~/.bash_profile
+    echo 'export PATH=$HOME/bin:$PATH' >> ~/.bash_profile
 
 Install ansible
 
