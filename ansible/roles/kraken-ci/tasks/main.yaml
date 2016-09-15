@@ -1,5 +1,7 @@
 ---
 - include: install-container-deps.yaml
+- include: docker-gc.yaml
+
 - include: kill-containers.yaml
 
 - name: Check if the jenkins data container is present
