@@ -1,8 +1,0 @@
----
-- name: setup docker-gc files
-  become: yes
-  copy: src={{item.src}} dest={{item.dest}}
-  with_items:
-  - { src: 'docker-gc.service', dest: '/etc/systemd/system/docker-gc.service' }
-  - { src: 'docker-gc.timer', dest: '/etc/systemd/system/docker-gc.timer' }
-  - { src: 'docker-gc-exclude-containers', dest: '/etc/docker-gc-exclude-containers' }

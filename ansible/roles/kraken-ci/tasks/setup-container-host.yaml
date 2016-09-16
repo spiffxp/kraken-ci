@@ -1,0 +1,50 @@
+---
+- name: Setup daily run of spotify/docker-gc to clean old/unused containers
+  become: yes
+  copy: src={{item.src}} dest={{item.dest}}
+  with_items:
+  - { src: 'docker-gc.service', dest: '/etc/systemd/system/docker-gc.service' }
+  - { src: 'docker-gc.timer', dest: '/etc/systemd/system/docker-gc.timer' }
+  - { src: 'docker-gc-exclude-containers', dest: '/etc/docker-gc-exclude-containers' }
+
+- name:
+  become: yes
+  shell: >
+    systemctl daemon-reload && systemctl enable docker-gc.timer && systemctl start docker-gc.timer
+
+- name: Install python dependencies for managing containers
+  pip: name={{ item }} executable={{ coreos_pypy_home }}/bin/pip
+  with_items:
+    - docker-py
+    - boto
+
+- name: Sync containers dir to {{ kraken_ci_hostname }}
+  synchronize: >
+    src={{ playbook_dir }}/../containers/
+    dest={{ containers_dir }}
+    recursive=yes
+
+- name: Create directory for docker config
+  file: path="{{ secrets_dir }}/docker/" state=directory
+
+- name: Get docker config for push access to private repos
+  s3:
+    aws_access_key: "{{ aws_key }}"
+    aws_secret_key: "{{ aws_secret }}"
+    region: "{{ aws_region }}"
+    overwrite: True
+    bucket: "{{ config_bucket }}"
+    object: secrets/{{ kraken_ci_hostname }}/{{ item }}
+    dest: "{{ secrets_dir }}/{{ item }}"
+    mode: get
+  with_items:
+    - docker/config.json
+
+- name: Create directory for AWS credentials
+  become: yes
+  file: path="/root/.aws" state=directory
+
+- name: Render AWS credentials
+  become: yes
+  template: src=credentials
+            dest="/root/.aws/credentials"
