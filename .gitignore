@@ -8,3 +8,4 @@ ansible/keys
 
 # osx artifacts
 .DS_Store
+.idea
