@@ -3,7 +3,6 @@ variable "aws_instance_type" {}
 variable "aws_key" {}
 variable "aws_key_name" {}
 variable "aws_region" {}
-variable "aws_region" {}
 variable "aws_secgroup_name" {}
 variable "aws_secret" {}
 variable "kraken_ci_hostname" {}
