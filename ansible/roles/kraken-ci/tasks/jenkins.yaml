@@ -63,7 +63,7 @@
       - "{{ secrets_dir }}/docker/config.json:/root/.docker/config.json:ro"
 
 - name: Try updating jenkins jobs in jenkins container
-  shell: docker exec {{ jenkins_container_name }} jenkins-jobs update --recursive --exclude /etc/jenkins_jobs/jobs/excluded-on-jenkins /etc/jenkins_jobs
+  shell: docker exec {{ jenkins_container_name }} jenkins-jobs update --recursive --exclude /etc/jenkins_jobs/jobs/excluded-on-jenkins:/etc/jenkins_jobs/jobs/k2-configs /etc/jenkins_jobs
   register: result
   until: result.rc == 0
   retries: 5
