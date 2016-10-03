@@ -1,22 +1,11 @@
 ---
-- include: install-container-deps.yaml
+- include: setup-container-host.yaml
+
 - include: kill-containers.yaml
 
-- name: Check if the jenkins data container is present
-  shell: docker inspect {{ data_container_name }}
-  ignore_errors: yes
-  register: data_container_inspect
+- include: run-data-volume-container.yaml
+- include: run-jenkins-backup-container.yaml
+- include: run-nginx-containers.yaml
+- include: run-jenkins-container.yaml
 
-- include: data-volume-common.yaml
-- include: data-volume-create.yaml
-  when: (dump_data == 'yes') or (data_container_inspect.rc != 0)
-- include: data-volume-update.yaml
-  when: (dump_data != 'yes') and (data_container_inspect.rc == 0)
-
-- include: jenkins-backup.yaml
-
-- include: nginx.yaml
-- include: nginx-autoconf.yaml
-
-- include: jenkins.yaml
-
+- include: update-jenkins-jobs.yaml

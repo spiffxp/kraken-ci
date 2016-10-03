@@ -19,22 +19,6 @@
 - name: Build jenkins container
   shell: docker build -t {{ jenkins_container_tag }} {{ jenkins_container_path }}
 
-- name: Create directory for docker config
-  file: path="{{ secrets_dir }}/docker/" state=directory
-
-- name: Get docker config for push access to private repos
-  s3:
-    aws_access_key: "{{ aws_key }}"
-    aws_secret_key: "{{ aws_secret }}"
-    region: "{{ aws_region }}"
-    overwrite: True
-    bucket: "{{ config_bucket }}"
-    object: secrets/{{ kraken_ci_hostname }}/{{ item }}
-    dest: "{{ secrets_dir }}/{{ item }}"
-    mode: get
-  with_items:
-    - docker/config.json
-
 - name: Run jenkins container
   docker:
     name: "{{ jenkins_container_name }}"
@@ -61,10 +45,3 @@
       - /var/run:/ansible
       - /var/lib/docker/gobuild:/var/lib/docker/gobuild
       - "{{ secrets_dir }}/docker/config.json:/root/.docker/config.json:ro"
-
-- name: Try updating jenkins jobs in jenkins container
-  shell: docker exec {{ jenkins_container_name }} jenkins-jobs update --recursive --exclude /etc/jenkins_jobs/jobs/excluded-on-jenkins:/etc/jenkins_jobs/jobs/k2-configs /etc/jenkins_jobs
-  register: result
-  until: result.rc == 0
-  retries: 5
-  delay: 5

@@ -22,18 +22,12 @@ if [ $# -eq 3 ]; then
   echo "Using $1 as S3 URL"
   echo "Using $2 as required quiet (file system inactivity) period before executing backup"
   echo "Using $3 as the backup and restore volume"
-  echo
-  echo "Updating time data to prevent problems with S3 time mismatch"
 fi
 
 if [ $# -eq 2 ]; then
   echo "Using $1 as S3 URL"
   echo "Using $2 as the restore volume"
-  echo
-  echo "Updating time data to prevent problems with S3 time mismatch"
 fi
-
-ntpdate pool.ntp.org
 
 # start by restoring the last backup:
 # This could fail if there's nothing to restore.
@@ -47,9 +41,9 @@ else
   # Now, start waiting for file system events on this path.
   # After an event, wait for a quiet period of N seconds before doing a backup
 
-  while inotifywait -r -e $inotifywait_events . ; do
+  while inotifywait -r -e $inotifywait_events $3; do
     echo "Change detected."
-    while inotifywait -r -t $2 -e $inotifywait_events . ; do
+    while inotifywait -r -t $2 -e $inotifywait_events $3; do
       echo "waiting for quiet period.."
     done
 

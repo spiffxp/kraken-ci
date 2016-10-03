@@ -12,6 +12,7 @@
     object: "{{ config_bucket_key }}"
     dest: "{{ terraform_instance_dir }}/terraform.tfstate"
     mode: get
+  ignore_errors: yes
   when: terraform_s3_remote_enabled
 
 - name: Generate terraform.tfvars file

@@ -1,4 +1,9 @@
 ---
+- name: Check if the jenkins data container is present
+  shell: docker inspect {{ data_container_name }}
+  ignore_errors: yes
+  register: data_container_inspect
+
 - name: Create data container directories
   file: path="{{ data_container_path }}/{{ item }}" state=directory
   with_items:
@@ -60,3 +65,36 @@
     version={{ kraken_ci_jobs_repo_branch }}
     accept_hostkey=yes
     force=yes
+
+- name: Build jenkins data container if we need to
+  shell: docker build -t {{ data_container_tag }} {{ data_container_path }}
+  when: (dump_data == 'yes') or (data_container_inspect.rc != 0)
+
+- name: Run jenkins data container if it's not already running
+  docker:
+    name: "{{ data_container_name }}"
+    docker_api_version: "{{ docker_api_version }}"
+    image: "{{ data_container_tag }}"
+    state: started
+    pull: missing
+    net: bridge
+  when: (dump_data == 'yes') or (data_container_inspect.rc != 0)
+    
+- name: Sync data container with newly rendered files
+  docker:
+    docker_api_version: "{{ docker_api_version }}"
+    image: "{{ data_container_tag }}"
+    state: started
+    pull: missing
+    net: bridge
+    detach: False
+    command: /usr/bin/rsync {{ item.flags }} /rsyncdata/{{ item.src }}/ {{ item.dest }}
+    volumes:
+      - "{{ data_container_path }}:/rsyncdata"
+    volumes_from:
+      - "{{ data_container_name }}"
+  with_items:
+    - { flags: "-avt", src: "config", dest: "/var/jenkins_home/" }
+    - { flags: "-avt", src: "secrets", dest: "/var/jenkins_home/secrets/" }
+    - { flags: "-vrt", src: "job-builder", dest: "/etc/jenkins_jobs" }
+  when: (dump_data != 'yes') and (data_container_inspect.rc == 0)
