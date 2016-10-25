@@ -65,10 +65,15 @@
           <default>
             <comparator class="hudson.util.CaseInsensitiveComparator"/>
           </default>
-          <int>4</int>
+          <int>6</int>
           <!-- used by awscli and other tools that need AWS access -->
           <string>AWS_DEFAULT_REGION</string>
           <string>us-west-2</string>
+          <!-- used by jobs that need access to GCE service accounts -->
+          <string>KRAKEN_GCE_SERVICE_ACCOUNT_ID</string>
+          <string>{{ gce_service_account_id }}</string>
+          <string>KRAKEN_GCE_PROD_SERVICE_ACCOUNT_ID</string>
+          <string>{{ gce_prod_service_account_id }}</string>
           <!-- used by jobs that use kraken/bin/kraken-*.sh scripts -->
           <string>KRAKEN_USER_PREFIX</string>
           <string>{{ kraken_user_prefix }}</string>

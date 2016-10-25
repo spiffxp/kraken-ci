@@ -45,4 +45,6 @@
       - /var/run:/ansible
       - /var/lib/docker/gobuild:/var/lib/docker/gobuild
       - "{{ secrets_dir }}/docker/config.json:/root/.docker/config.json:ro"
+      - "{{ secrets_dir }}/gcloud/service-account.json:/gcloud/service-account.json:ro"
+      - "{{ secrets_dir }}/gcloud/prod-service-account.json:/gcloud/prod-service-account.json:ro"
       - /root/.aws/credentials:/root/.aws/credentials:ro

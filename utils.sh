@@ -28,6 +28,14 @@ case $key in
   export SLACK_API_TOKEN="$2"
   shift
   ;;
+  --gce-id)
+  export GCE_SERVICE_ACCOUNT_ID="$2"
+  shift
+  ;;
+   --gce-prod-id)
+  export GCE_PROD_SERVICE_ACCOUNT_ID="$2"
+  shift
+  ;;
   --github-id)
   export GITHUB_CLIENT_ID="$2"
   shift
@@ -55,7 +63,8 @@ case $key in
   --help)
   echo "setup | destroy.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region>\
   --aws-prefix <aws user prefix> --slack-token <slack api token> --github-id <github app id>\
-  --github-key <github app key> --github-org <github org> --slack-hook-token <outgoing hook token>\
+  --github-key <github app key> --github-org <github org> --gce-id <gce service account id>\
+  --gce-prod-id <gce service account id> --slack-hook-token <outgoing hook token>\
   --dump-data <dump existing jenkins data: yes or no. No by default>\
   --test-instance <this is a test jenkins: yes or no. Yes by default>"
   exit 0
@@ -89,6 +98,16 @@ fi
 
 if [ -z ${SLACK_API_TOKEN+x} ]; then
   echo "SLACK_API_TOKEN is not set. Specify either through environment variable or --slack-token"
+  exit 1
+fi
+
+if [ -z ${GCE_SERVICE_ACCOUNT_ID+x} ]; then
+  echo "GCE_SERVICE_ACCOUNT_ID is not set. Specify either through environment variable or --gce-id"
+  exit 1
+fi
+
+if [ -z ${GCE_PROD_SERVICE_ACCOUNT_ID+x} ]; then
+  echo "GCE_SERVICE_ACCOUNT_ID is not set. Specify either through environment variable or --gce-prod-id"
   exit 1
 fi
 
