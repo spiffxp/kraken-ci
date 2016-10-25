@@ -11,9 +11,8 @@ resource "coreosbox_ami" "coreos_ami" {
   version        = "${var.coreos_version}"
 }
 
-resource "template_file" "cloudconfig" {
+data "template_file" "cloudconfig" {
   template = "${file("${path.module}/templates/cloud-config.tpl")}"
-
 
   vars {
     hostname = "${var.kraken_ci_hostname}"
@@ -23,16 +22,22 @@ resource "template_file" "cloudconfig" {
   }
 }
 
-resource "template_file" "ansible_inventory" {
+data "template_file" "ansible_inventory" {
   template = "${file("${path.module}/templates/inventory.remote.tpl")}"
 
   vars {
     public_ip = "${aws_instance.kraken_ci_ec2.public_ip}"
     private_jenkins_ssh_key = "${var.private_jenkins_ssh_key}"
   }
+}
+
+resource "null_resource" "local" {
+  triggers {
+    template = "${data.template_file.ansible_inventory.rendered}"
+  }
 
   provisioner "local-exec" {
-    command = "cat << 'EOF' > ${path.module}/../ansible/inventory.remote\n${self.rendered}\nEOF"
+    command = "cat << 'EOF' > ${path.module}/../ansible/inventory.remote\n${data.template_file.ansible_inventory.rendered}\nEOF"
   }
 }
 
@@ -167,7 +172,7 @@ resource "aws_security_group" "kraken_ci_secgroup" {
 }
 
 resource "aws_instance" "kraken_ci_ec2" {
-  depends_on = ["template_file.cloudconfig"]
+  depends_on = ["data.template_file.cloudconfig"]
   ami = "${coreosbox_ami.coreos_ami.box_string}"
   instance_type = "${var.aws_instance_type}"
   key_name = "${aws_key_pair.kraken_ci_keypair.key_name}"
@@ -178,14 +183,14 @@ resource "aws_instance" "kraken_ci_ec2" {
     device_name = "/dev/sdf"
     volume_size = "${var.aws_ebs_size}"
   }
-  user_data = "${template_file.cloudconfig.rendered}"
+  user_data = "${data.template_file.cloudconfig.rendered}"
   tags {
     Name = "${var.kraken_ci_hostname}"
   }
 }
 
 resource "aws_route53_record" "kraken_ci_route" {
-  depends_on = ["aws_instance.kraken_ci_ec2", "template_file.ansible_inventory"]
+  depends_on = ["aws_instance.kraken_ci_ec2", "data.template_file.ansible_inventory"]
   zone_id = "${var.route53_zone_id}"
   name = "${var.kraken_ci_hostname}"
   type = "A"

@@ -1,5 +1,5 @@
 ---
-terraform_dir: "{{ playbook_dir }}/../terraform/"
+terraform_dir: "{{ playbook_dir }}/../terraform"
 terraform_instances_dir: "{{ terraform_dir }}/instances"
 terraform_instance_dir: "{{ terraform_instances_dir }}/{{ terraform_instance_name }}"
 terraform_instance_name: default
