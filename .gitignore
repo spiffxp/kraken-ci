@@ -5,6 +5,7 @@
 **/terraform.tfvars
 **/inventory.remote
 ansible/keys
+.env*
 
 # osx artifacts
 .DS_Store

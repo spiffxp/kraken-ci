@@ -2,14 +2,13 @@
 
 ## Bring up a configured jenkins server
 
-Install terraform (manually at the moment, since a required plugin only works with 0.6.16).  In this example, we're installing to `$HOME/bin`
+Install terraform and terraform-provider-coreosbox
 
-    mkdir -p $HOME/bin && cd $HOME/bin
-    wget -O terraform.zip https://releases.hashicorp.com/terraform/0.6.16/terraform_0.6.16_darwin_amd64.zip
-    wget -O terraform-provider-coreosbox.tar.gz https://github.com/samsung-cnct/terraform-provider-coreosbox/releases/download/v0.0.1/terraform-provider-coreosbox_darwin_amd64.tar.gz
-    unzip terraform.zip && rm terraform.zip
-    tar xzf terraform-provider-coreosbox.tar.gz && rm terraform-provider-coreosbox.tar.gz
-    echo 'export PATH=$HOME/bin:$PATH' >> ~/.bash_profile
+    brew install terraform
+    brew tap 'samsung-cnct/terraform-provider-coreosbox'
+    brew install terraform-provider-coreosbox
+
+On a non-OSX platorm, follow the installation directions for [terraform](https://www.terraform.io/intro/getting-started/install.html) and then unzip the appropriate [release](https://github.com/samsung-cnct/terraform-provider-coreosbox/releases) of terraform-provider-coreosbox to the terraform path.
 
 Install ansible
 
