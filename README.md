@@ -38,6 +38,14 @@ You'll need to pre-create some credentials for each instance of kraken-ci:
     - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
         - choose/create an IAM user, we'll assume "example-aws-user"
         - update/create access credentials at https://console.aws.amazon.com/iam/home?region=us-west-2#users/example-aws-user
+- GKE/GCE
+    - Pick a "dev project" (we'll assume this to be k8s-work)
+    - Pick a "prod project" (we'll assume this to be cnct-productioncluster)
+    - Generate JSON-formatted keys for the 'Compute Engine default service account' (or another account with at least Editor access) for both projects
+        - GCE_SERVICE_ACCOUNT_ID - this is the id of the dev project SA
+        - GCE_PROD_SERVICE_ACCOUNT_ID - this is the id of the prod project SA
+    - Upload the dev project key to s3://sundry-automata/secrets/example-kraken-ci.kubeme.io/gcloud/service-account.json
+    - Upload the prod project key to s3://sundry-automata/secrets/example-kraken-ci.kubeme.io/gcloud/prod-service-account.json
 - Slack
     - SLACK_API_TOKEN
         - choose/create a slack team, we'll assume "example-team"
@@ -74,6 +82,8 @@ Create an env file or otherwise populate your environment with the required secr
     export GITHUB_CLIENT_KEY="<github app key>"
     export GITHUB_ACCESS_TOKEN="<github token>"
     export GITHUB_USERNAME="<github user>"
+    export GCE_SERVICE_ACCOUNT_ID="dev project SA id"
+    export GCE_PROD_SERVICE_ACCOUNT_ID="prod project SA id"
 
     export KRAKEN_CI_NAME="example-kraken-ci"
     EOS
