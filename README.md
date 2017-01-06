@@ -14,6 +14,8 @@ Install ansible
 
     pip install -r requirements.txt
 
+NOTE: If you are running in a virtualenv, you'll need to add `ansible_python_interpreter=${VIRTUAL_ENV}/bin/python` to `localhost`
+
 You'll need to pre-create some credentials for each instance of kraken-ci:
 
 - kraken-ci
@@ -24,6 +26,9 @@ You'll need to pre-create some credentials for each instance of kraken-ci:
         - TODO: how to generate docker/config.json
         - re-use secrets from a previous kraken-ci installation, we'll assume example-kraken-ci-prime
         - `aws s3 cp --recursive s3://sundry-automata/secrets/example-kraken-ci-prime.kubeme.io ./secrets`
+    - create a pull request adding your own github id to `ansible/roles/ci-properties/defaults/main.yaml`
+- kraken-ci-jobs
+    - create a pull request adding your own github id to `jobs/samsung-cnct-project-pr.yaml`
 - AWS
     - choose a region, we'll assume "us-west-2"
     - make an s3 bucket: s3://example-kraken-ci-backup
