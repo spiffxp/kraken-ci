@@ -14,6 +14,8 @@ Install ansible
 
     pip install -r requirements.txt
 
+NOTE: If you are running in a virtualenv, you'll need to add `ansible_python_interpreter=${VIRTUAL_ENV}/bin/python` to `localhost`
+
 You'll need to pre-create some credentials for each instance of kraken-ci:
 
 - kraken-ci
