@@ -40,7 +40,8 @@ private_jenkins_ssh_key: "{{ jenkins_ssh_key_path }}/id_rsa"
 secrets_dir: "{{ ansible_env.HOME }}/secrets"
 slack_api_token: "{{ lookup('env','SLACK_API_TOKEN') }}"
 slack_domain: samsung-cnct
-slack_room: "#pipeline"
+# channel id for the #ping-jenkins slack channel (which will follow channel renames)
+slack_room: "C0E1X9ASH"
 test_instance: "{{ lookup('env','TEST_INSTANCE')|default('no')|replace('yes','true')|replace('no','false') }}"
 job_builder:
   ci_admin_list: "{{ jenkins_admin_usernames.split(' ') }}"
