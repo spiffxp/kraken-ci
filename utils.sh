@@ -60,13 +60,26 @@ case $key in
   export TEST_INSTANCE="$2"
   shift
   ;;
+  --verbose)
+  export ANSIBLE_VERBOSITY="vvvv"
+  shift
+  ;;
   --help)
-  echo "setup | destroy.sh --aws-key <aws key> --aws-secret <aws secret> --aws-region <aws region>\
-  --aws-prefix <aws user prefix> --slack-token <slack api token> --github-id <github app id>\
-  --github-key <github app key> --github-org <github org> --gce-id <gce service account id>\
-  --gce-prod-id <gce service account id> --slack-hook-token <outgoing hook token>\
-  --dump-data <dump existing jenkins data: yes or no. No by default>\
-  --test-instance <this is a test jenkins: yes or no. Yes by default>"
+  echo "setup.sh | destroy.sh
+   --aws-key <aws key>
+   --aws-secret <aws secret>
+   --aws-region <aws region>
+   --aws-prefix <aws user prefix>
+   --slack-token <slack api token> 
+   --github-id <github app id>
+   --github-key <github app key>
+   --github-org <github org>
+   --gce-id <gce service account id>
+   --gce-prod-id <gce service account id>
+   --slack-hook-token <outgoing hook token>
+   --dump-data <dump existing jenkins data: yes or no. No by default>
+   --test-instance <this is a test jenkins: yes or no. Yes by default>
+   --verbose <equivalent to runnning ansible with the -vvvv option>"
   exit 0
   ;;
   *)
@@ -137,4 +150,8 @@ fi
 
 if [ -z ${TEST_INSTANCE+x} ]; then
   export TEST_INSTANCE=no
+fi
+
+if [ -z ${ANSIBLE_VERBOSITY+x} ]; then
+  export ANSIBLE_VERBOSITY='vv'
 fi
