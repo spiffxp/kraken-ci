@@ -78,7 +78,7 @@ To create `SLACK_API_TOKEN`:
 * choose/create a slack team, we'll assume "example-team"
 * manage apps for that team [here](https://example-team.slack.com/apps)
 * add a jenkins-ci app
-* choose a channel, we'll assume "#pipeline"
+* choose a channel, we'll assume "#ping-jenkins"
 * Locate and save the `Token` setting on the next page
 
 #### Github
